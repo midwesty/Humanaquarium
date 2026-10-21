@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Humanaquarium (v0.8)</title>
+<title>Humanaquarium (v0.9)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -154,6 +154,7 @@ button.armed{background:var(--warn)!important;color:#fff!important;border-color:
 .staffrow .row{border-bottom:0}.btnrow.mini{margin:2px 0 8px}.btnrow.mini button{min-height:36px;padding:2px 10px;font-size:.88em}
 .hc .toast{outline:2px solid var(--panel)}.hc .meter{border-width:2px}
 @media (max-width:420px){.brand{max-width:34vw;font-size:.9em;padding:5px 8px}.brand b{white-space:normal}#favName{max-width:120px}.rightcol{min-width:0}#rail button{min-width:48px;padding:2px 3px}.brand{padding:5px 10px}#speeds button{min-width:29px;padding:0 2px;font-size:.84em}#mute{min-width:38px;min-height:40px}#speeds{padding:2px}.brand b{font-size:.95em}}
+.hoodtypes{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:6px 0 10px}.hoodcard{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:10px 12px;border:1px solid var(--line);background:var(--panel2);border-radius:12px;cursor:pointer;min-height:48px}.hoodcard.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}.row.sel{background:var(--panel2);box-shadow:inset 3px 0 0 var(--accent)}
 </style>
 </head>
 <body>
@@ -183,7 +184,7 @@ button.armed{background:var(--warn)!important;color:#fff!important;border-color:
 <script>
 /* ==== DATA: every table the sim reads. Placeholder rows are marked; the real
    government datasets replace them row-for-row later. ==== */
-const VERSION='0.8.0', SAVE_VERSION=4;
+const VERSION='0.9.0', SAVE_VERSION=4;
 const NEEDS=['energy','hunger','fun','social','comfort'];
 const DATA={
 meta:{town:'Sprungfeld',paper:'The Sprungfeld Ledger',startYear:2026,realMinPerDay:10,daysPerYear:4,walk:70,targetPop:200,placeholder:true},
@@ -932,7 +933,7 @@ function openBiz(b,use,owner,cash){b.use=use;const u=DATA.uses[use];const z=S.bi
  if(owner){setJob(owner,b.id,'owner');}return z;}
 function staffCount(z,jid){return(z.staff[jid]||[]).filter(id=>P(id)&&P(id).alive).length;}
 function setJob(p,bid,jid){clearJob(p);p.job={b:bid,j:jid};if(bid){const z=S.biz[bid];(z.staff[jid]=z.staff[jid]||[]).push(p.id);}
- const J=JOB[jid];p.offDays=J.days==='all'?shuffle([0,1,2,3,4,5,6]).slice(0,2):[5,6];p.absences=0;}
+ const J=JOB[jid];p.offDays=J.days==='all'?shuffle([0,1,2,3,4,5,6]).slice(0,2):[5,6];if(age(p)<18&&!teenShift(J))p.offDays=[0,1,2,3,4];p.absences=0;}
 function clearJob(p){if(!p.job)return;const z=p.job.b&&S.biz[p.job.b];if(z&&z.staff[p.job.j])z.staff[p.job.j]=z.staff[p.job.j].filter(i=>i!==p.id);if(z&&z.ownerId===p.id&&p.job.j==='owner'){}p.job=null;}
 function jobTitle(p){if(!p.job)return p.retired?'Retired':p.student?'College student':age(p)<18?(age(p)>=5?'Student':'—'):p.homeU?'Unemployed':'Unemployed, unhoused';
  const J=JOB[p.job.j];const z=p.job.b&&S.biz[p.job.b];return J.title+(z?' at '+z.name:'');}
@@ -941,7 +942,7 @@ function jobTitle(p){if(!p.job)return p.retired?'Retired':p.student?'College stu
 function newGame(seed){
  S={v:SAVE_VERSION,ver:VERSION,seed,rng:seed|0,t:7*60,ly:0,nextId:0,cfg:{daysPerYear:DATA.meta.daysPerYear,realMinPerDay:DATA.meta.realMinPerDay},
   cal:{seasonDays:(typeof SET!=='undefined'&&SET.seasonDays)||7,off:0},people:{},blds:{},units:{},biz:{},events:[],paper:[],wx:{k:'sunny',temp:62},funerals:[],graves:[],stats:{births:0,deaths:0,weddings:0,divorces:0,arrivals:0,departures:0,opened:0,closed:0},chunk:null};
- S.chunk=authorTown();addV4Buildings(S.chunk);const _v7=addV7Buildings(S.chunk);
+ S.chunk=authorTown();addV4Buildings(S.chunk);const _v7=addV7Buildings(S.chunk);S.hoods={};S.hoodSeq=0;S.growth=(START_OPTS&&START_OPTS.growth)||'manual';if(START_OPTS&&START_OPTS.hoods)for(const h of START_OPTS.hoods)buildHood(h[0],h[1],h[2]||'any',true);
  for(const b of S.chunk.buildings){S.blds[b.id]=JSON.parse(JSON.stringify(b));}
  rebuildCaches();
  for(const b of Object.values(S.blds)){const u=DATA.uses[b.use];
@@ -952,14 +953,14 @@ function newGame(seed){
  const units=shuffle(Object.values(S.units));let count=0;
  for(const u of units){if(count>=DATA.meta.targetPop)break;const use=S.blds[u.bld].use;if(use!=='mansion'&&chance(0.12))continue;count+=genHousehold(u,use);}
  for(let i=0;i<3;i++){const p=makePerson({bornLy:-ri(24,58),money:ri(0,40)});p.homelessSince=0;p.dep.alcohol=ri(10,70);p.edu=ri(0,1);}
- rebuildCaches();assignInitialJobs();seedRelationships();setupEconomy();initCars();S.pets={};initPets();initTown();initGrowth();S.hol=[];for(const u of Object.values(S.units))if(S.blds[u.bld].lake){u.rent=340;}{const nb=(S._byUse.nursing||[])[0];if(nb&&!Object.values(S.units).some(u=>u.bld===nb)){for(let i=0;i<8;i++){const id=nb+'n'+i;S.units[id]={id,bld:nb,idx:i,rent:1100,owned:false,ownerId:null,pantry:20,missed:0,care:1};initUnit(S.units[id]);}}}
+ rebuildCaches();assignInitialJobs();seedRelationships();setupEconomy();initCars();S.pets={};initPets();initTown();initGrowth();seedSmokers();S.hol=[];for(const u of Object.values(S.units))if(S.blds[u.bld].lake){u.rent=340;}{const nb=(S._byUse.nursing||[])[0];if(nb&&!Object.values(S.units).some(u=>u.bld===nb)){for(let i=0;i<8;i++){const id=nb+'n'+i;S.units[id]={id,bld:nb,idx:i,rent:1100,owned:false,ownerId:null,pantry:20,missed:0,care:1};initUnit(S.units[id]);}}}
  for(const p of living()){p.loc=homeBld(p);p.act={id:'idle',until:S.t+ri(0,40),start:S.t,place:p.loc,label:'Hanging around'};}
  news('town',1,'Welcome to Sprungfeld. Population '+living().length+'. Nothing has happened yet, which the Ledger finds suspicious.',[]);
  return S;}
 function genHousehold(u,use){
  const rich=use==='mansion',poor=use==='trailer';const money=()=>rich?ri(250000,2000000):poor?ri(50,2500):use==='house'?ri(1500,60000):ri(200,9000);
  const edu=()=>rich?pick([2,2,3]):poor?pick([0,0,1,1]):pick([0,1,1,1,1,2,2,2,3]);
- const tpl=rich?pick(['family','couple','elder','family']):use==='house'?wpick(['family','couple','elder','single','single_parent','multigen','roommates'],k=>({family:35,couple:20,elder:12,single:12,single_parent:10,multigen:6,roommates:5})[k])
+ const hb=hoodBias(u);const tpl=hb&&!rich?wpick(Object.keys(hb),k=>hb[k]):rich?pick(['family','couple','elder','family']):use==='house'?wpick(['family','couple','elder','single','single_parent','multigen','roommates'],k=>({family:35,couple:20,elder:12,single:12,single_parent:10,multigen:6,roommates:5})[k])
   :wpick(['single','couple','roommates','single_parent','young_family'],k=>({single:38,couple:25,roommates:10,single_parent:10,young_family:17})[k]);
  const last=pick(DATA.surnames);const made=[];
  const mk=(o)=>{const p=makePerson(Object.assign({homeU:u.id,money:money(),edu:edu(),lineage:last},o));made.push(p);return p;};
@@ -1010,7 +1011,7 @@ function placeFor0(p,uses,arriveH){const c=[];const from=S.blds[p.loc||homeBld(p
 function isOpenAt(bid,h){const b=S.blds[bid];const u=DATA.uses[b.use];if(!u.open)return true;const z=S.biz[bid];if(z&&!z.open)return false;if(b.onFire)return false;if(h>=u.open[0]&&h<u.open[1])return true;return eventOpenUses(h).has(b.use);}
 function obligation(p){ // today's next fixed commitment
  const a=age(p),d=day(),wd=wday(),m=mod();if(p.jailUntil>S.t)return null;
- if(a>=5&&a<18&&wd<5&&!(S.wx&&S.wx.snowDay))return{kind:'school',s:8*60,e:15*60,b:(S._byUse.school||[])[0]};
+ if(a>=5&&a<18&&wd<5&&!(S.wx&&S.wx.snowDay)&&!(p.job&&m>=15*60-30))return{kind:'school',s:8*60,e:15*60,b:(S._byUse.school||[])[0]};
  if(p.student&&wd<5)return{kind:'study',s:9*60,e:14*60,b:(S._byUse.library||[])[0]};
  if(p.job&&!p.offDays.includes(wd)){let J=JOB[p.job.j];let sh=J.sh;if(p.job.j==='owner'){const u=DATA.uses[S.blds[p.job.b].use];sh=[Math.max(7,u.open[0]),Math.min(u.open[1],Math.max(7,u.open[0])+8)];}
   const wfh=DATA.wfhJobs.includes(p.job.j)&&hash(p.id+':'+d)%4===0;const late=p.quirks&&p.quirks.includes('is always late')?20:0;
@@ -1025,18 +1026,18 @@ function decide(p){
  const fn=(S.funerals||[]).find(f=>f.day===d&&!f.done&&p.fnSeen!==f.pid);
  if(fn&&m>=12*60+30&&m<14*60+30&&!p.sick&&mourner(p,fn.pid)){p.fnSeen=fn.pid;fn.att.push(p.id);const dp=P(fn.pid);return setAct(p,'funeral',fn.b,Math.max(30,15*60+30-m),{why:['saying goodbye to '+(dp?dp.first:'a friend')],opts:[]});}
  const ob=obligation(p);
- if(ob&&p.workedDay!==d&&m>=ob.s-50&&m<ob.e-30&&ob.b){
+ if(ob&&obDay(p,ob)!==d&&m>=ob.s-50&&m<ob.e-30&&ob.b){
   const go=scoreObligation(p,ob);
-  if(go.go){p.workedDay=d;return setAct(p,ob.kind,ob.b,Math.max(20,ob.e-m),{why:go.why,opts:go.opts},false,ob.kind);}
-  p.workedDay=d;if(ob.kind==='work'||ob.kind==='wfh')p.absences++;else if(ob.kind==='school')p.schoolSkips++;
+  if(go.go){markOb(p,ob,d);return setAct(p,ob.kind,ob.b,Math.max(20,ob.e-m),{why:go.why,opts:go.opts},false,ob.kind);}
+  markOb(p,ob,d);if(ob.kind==='work'||ob.kind==='wfh')p.absences++;else if(ob.kind==='school')p.schoolSkips++;
   logp(p,'Skipped '+(ob.kind==='work'?'work':ob.kind)+': '+go.skipWhy.join(', ')+'.');p._skipNote={why:go.skipWhy,opts:go.opts};}
  const opts=scoreAll(p);
  if(p._skipNote){opts.unshift({A:{id:'_skip',label:'Skip '+(ob?ob.kind:'it')},s:999,why:p._skipNote.why});}
  const best=opts.find(o=>o.A.id!=='_skip')||{A:ACT.sulk,s:0,why:['nothing appeals'],bid:homeBld(p)};
  const trace={why:best.why.length?best.why:['felt like it'],opts:(p._skipNote?p._skipNote.opts:[]).concat(opts.filter(o=>o.A.id!=='_skip').slice(0,3).map(o=>({label:o.A.label,s:Math.round(o.s),why:o.why})))};p._skipNote=null;
  let dur=ri(best.A.dur[0],best.A.dur[1]);
- if(best.A.id==='sleep'){const ob2=obligation(p);let wake=ob2?ob2.s-60:7*60+ri(0,120);if(stage(p)==='elder')wake=6*60+ri(0,90);if(m>=12*60)wake+=1440;dur=clamp(wake-m,60,720);if(!p.homeU)best.A=Object.assign({},ACT.sleep,{id:'sleep'});}
- if(ob&&p.workedDay!==d&&m<ob.s){const lim=ob.s-40-m;if(lim>15&&dur>lim)dur=lim;}
+ if(best.A.id==='sleep'){const ob2=(age(p)>=5&&age(p)<18&&m>=12*60&&(wday()+1)%7<5)?{kind:'school',s:8*60}:obligation(p);let wake=ob2?ob2.s-60:7*60+ri(0,120);if(stage(p)==='elder')wake=6*60+ri(0,90);if(m>=12*60)wake+=1440;dur=clamp(wake-m,60,720);if(!p.homeU)best.A=Object.assign({},ACT.sleep,{id:'sleep'});}
+ if(ob&&obDay(p,ob)!==d&&m<ob.s){const lim=ob.s-40-m;if(lim>15&&dur>lim)dur=lim;}
  if(best.A.special==='visit'&&best.friend){const f=P(best.friend);if(f&&!f.trip&&f.loc===best.bid&&f.act&&f.act.id!=='sleep'){setAct(f,'host',best.bid,dur+30,{why:['friend '+f.first+' invited: '+p.first+' came over'],opts:[]});}}
  if(best.A.special==='group'){const u=unitOf(p);if(u)u.groupDay=day();if(u)for(const q of residents(u.id))if(q!==p&&q.loc===best.bid&&!q.trip&&q.act&&!['sleep','work','wfh','school'].includes(q.act.id)&&stage(q)!=='baby')setAct(q,best.A.id,best.bid,dur,{why:[p.first+' called everyone together'],opts:[]});}
  if(best.A.special==='party'){p.partyDay=day();const fr=Object.entries(p.rel).filter(([id,r])=>r.a>25).map(([id])=>P(id)).filter(q=>q&&q.alive&&adult(q)&&!q.trip&&q.act&&!['sleep','work','wfh','school','jail'].includes(q.act.id)).slice(0,8);p._party=fr.length;for(const q of fr)setAct(q,'visit',best.bid,dur,{why:['invited to '+p.first+'’s party'],opts:[]});for(const q of fr)if(q.act)q.act.label='At a party';}
@@ -1074,7 +1075,7 @@ function actsFor(ai,h,wd,sea,wx){const k=ai+'|'+h+'|'+wd+'|'+sea+'|'+wx;let r=_A
  const dry=!['rain','storm','snow'].includes(wx);r=DATA.acts.filter(A=>!(A.minAge&&ai<A.minAge-1)&&!(A.maxAge&&ai>A.maxAge)&&!(A.hours&&!(h>=A.hours[0]&&h<A.hours[1]))&&!(A.day!=null&&wd!==A.day)&&!(A.days&&!A.days.includes(wd))&&!(A.season&&!A.season.includes(sea))&&!(A.wx&&!A.wx.includes(wx))&&!(A.dry&&!dry));return(_AF[k]=r);}
 function scoreAll(p){
  const SEA=season(),WD=wday(),WXK=S.wx.k,DAYN0=day();
- const a=age(p),h=hour(),u=unitOf(p),nres=u?residents(u.id).length:1,out=[];
+ const a=age(p),h=hour(),u=unitOf(p),nres=u?residents(u.id).length:1,out=[];const CLp=creditLimit(p);
  const st=stage(p);
  const ACTS=actsFor(Math.floor(a),h,WD,SEA,WXK);
  for(const A of ACTS){
@@ -1085,7 +1086,7 @@ function scoreAll(p){
   if(A.special==='toilet'&&p.needs.bladder>45)continue;
   if(A.special==='skate'&&!(SEA==='Winter'&&S.wx.temp<33))continue;
   if(A.special==='icefish'&&!(S.wx.temp<30))continue;
-  if(A.special==='boat'&&!p.boat&&p.money<300)continue;
+  if(A.special==='boat'&&!p.boat&&p.money<300)continue;if(A.id==='smoke'&&!(p.cigs>0)&&(p.dep.nicotine||0)>=20)continue;if(A.special==='cigs'&&!((p.dep.nicotine||0)>=20&&!(p.cigs>0)&&!p.quitting.nicotine))continue;if(A.special==='quitaid'&&!(p.quitting.nicotine&&!(p.quitAid>S.ly)&&(p.dep.nicotine||0)>25))continue;if(A.special==='event'&&p.evDay&&p.evDay[A.id]===DAYN0)continue;if(A.special==='boat'&&p.boatDay===DAYN0)continue;if(A.special==='date'&&p.dateDay!=null&&DAYN0-p.dateDay<2)continue;if(A.special==='taxes'&&p.taxYear===year())continue;
   let pre=0;const pw=[];
   if(A.pet){const pets=petsOf(p).filter(x=>petMatch(x,A.pet));if(!pets.length)continue;if(A.petNeed){const[k,thr]=A.petNeed;const low=pets.filter(x=>x.needs[k]<thr).sort((a,b)=>a.needs[k]-b.needs[k])[0];if(!low)continue;pre+=(thr-low.needs[k])*0.9+8;pw.push(k==='walk'?low.name+' needs a walk':k==='food'?low.name+' is hungry':k==='health'?low.name+' seems sick':low.name+' needs cleaning');}else pre+=6;if(p.interests.includes('animals'))pre+=6;}
   if(__SA1.has(A.special)&&!(p.car&&p.car.type!=='bike'&&canDrive(p)))continue;if(A.special==='gas'){if(p.car.fuel>30)continue;pre+=40-p.car.fuel;pw.push('running on fumes');}
@@ -1096,9 +1097,9 @@ function scoreAll(p){
   if(homeOnly&&!u&&A.id!=='sleep')continue;
   if(A.pantry&&(!u||u.pantry<A.pantry))continue;
   if(A.houseOnly&&(!u||!__SA2.has(S.blds[u.bld].use)))continue;
-  const cst=(A.cost||0)*costScale(A);if(cst>0&&p.money-cst< -creditLimit(p))continue;
+  const cst=(A.cost||0)*costScale(A);if(cst>0&&p.money-cst< -CLp)continue;
   if(st==='child'&&__SA3.has(A.id))continue;
-  let s=pre;const why=pw.slice();let bid=null,friend=null;
+  let s=pre;const why=pw.slice();let bid=null,friend=null,lazy=null;
   const arrH=Math.floor((mod()+20)/60)%24;
   if(A.at.includes('here')&&(p.loc||u)&&(!A.at.includes('home')||!u||p.loc!==homeBld(p)||true))bid=p.loc||homeBld(p);
   if(A.special==='call'){const q=pickCallTarget(p,A.family);if(!q)continue;friend=q.id;s+=10+(p.rel[q.id].a)/5+(A.family&&p.rel[q.id].st==='family'?10:0);why.push('wants to talk to '+q.first);}
@@ -1113,13 +1114,13 @@ function scoreAll(p){
   else if(A.at.includes('home')&&(u||A.id==='sleep'))bid=homeBld(p);
   else if(A.special==='visit'){const fr=bestFriendHome(p,A.kids);if(!fr)continue;friend=fr.id;bid=fr.loc;s+=fr._a/4;why.push('misses '+fr.first);}
   else if(A.special==='date'){if(!p.partner)continue;const q=P(p.partner);if(!q||!q.alive||q.trip||!freeFor(q))continue;bid=placeFor(p,A.at,arrH);if(!bid)continue;friend=q.id;s+=22+p.traits.romance/6;why.push('wants time with '+q.first);}
-  else{const places=A.at.filter(x=>x!=='home');bid=placeFor(p,places,arrH);if(!bid){if(A.at.includes('home')&&u)bid=homeBld(p);else continue;}}
+  else{lazy=A.at.filter(x=>x!=='home');}
   for(const fp of A._fxp){const n=fp[0],fx=fp[1];{const def=100-p.needs[n];const c=Math.min(fx,def)*def/100*0.9;s+=c;if(def>55&&c>8)why.push(DATA.needWord[n]);}}
   if(A.id==='sleep'){s=(100-p.needs.energy)*0.8+(h>=22||h<6?45:0)-(h>=9&&h<20?50:0)+(st==='child'&&h>=20?30:0);if(p.needs.energy<35)why.push('exhausted');if(h>=22||h<6)why.push('it’s late');if(p.sick){s+=25;why.push('sick');}if(p.rough){s+=10;}}
   if(A.interest&&p.interests.includes(A.interest)){const sk=p.skills[A.interest]||0;s+=14+sk/10;why.push('loves '+DATA.interests.find(i=>i.id===A.interest).label.toLowerCase());}
   if(A.social&&!p.partner&&adult(p)&&age(p)<60&&A.id!=='volunteer'){const lf=(p.traits.romance-40)/5+(p.goal==='love'?8:0);if(lf>4){s+=lf;why.push('hoping to meet someone');}}
   if(A.social){s+=(p.traits.social-50)/4;if(p.traits.social>68&&!why.includes('lonely'))why.push('outgoing');}else if(homeOnly&&p.traits.social<32){s+=6;why.push('homebody');}
-  if(A.sub){const dep=p.dep[A.sub]||0;s+=(p.traits.vice-45)/6+dep*0.35;if(dep>35)why.push('craving '+(A.sub==='alcohol'?'a drink':'a cigarette')+' ('+Math.round(dep)+'% hooked)');
+  if(A.sub){const dep=p.dep[A.sub]||0;s+=(p.traits.vice-45)/6+dep*0.35+(A.sub==='nicotine'&&dep>20?Math.min(45,dep/100*((S.t-(p.lastSmoke||0))/60)*6):0);if(dep>35)why.push('craving '+(A.sub==='alcohol'?'a drink':'a cigarette')+' ('+Math.round(dep)+'% hooked)');
    if(p.mood<38){s+=(38-p.mood)*0.5*(p.traits.vice/55);const c=moodCause(p);why.push('feeling low'+(c?': '+c:''));}
    if(p.quitting[A.sub]){s-=25;}if(dep<10&&p.traits.vice<40)s-=10;if(st==='teen')s-=(70-p.traits.vice)/2;}
   if(A.fit){s+=(p.traits.drive-50)/3+(p.goal==='fit'?8:0);if(p.traits.drive>65)why.push('fitness-driven');}
@@ -1128,10 +1129,10 @@ function scoreAll(p){
   if(A.comfort&&p.mood<40&&!A.sub){s+=(40-p.mood)*0.6;const c=moodCause(p);why.push('feeling low'+(c?': '+c:''));}
   if(A.id==='groceries'){if(!u||!adult(p))continue;const low=u.pantry<nres*3;if(!low)continue;s+=30+(100-p.needs.hunger)*0.2;why.push(u.pantry<1?'the fridge is empty':'running low on food');}
   if(A.special==='gig'){const sk=p.skills.music||0;if(sk<45||![4,5].includes(WD)||p.gigDay===day())continue;s+=40;why.push('booked a gig');}
-  if(A.special==='panhandle'){if(!adult(p)||(p.homeU&&p.money>-creditLimit(p)*0.85))continue;s+=28;why.push('needs money');}
-  else if(A.special==='steal'){const room=p.money+creditLimit(p);if(room>600||p.traits.kindness>35||p.traits.honest>55)continue;s+=(35-p.traits.kindness)*0.8+(55-p.traits.honest)/3+p.traits.impulse/12;why.push('broke','low on scruples');}
-  if(A.special==='clinic'){if(!p.sick)continue;s+=45;why.push('feels awful');}
-  if(A.bias)s+=A.bias;
+  if(A.special==='panhandle'){if(!adult(p)||(p.homeU&&p.money>-CLp*0.85))continue;s+=28;why.push('needs money');}
+  else if(A.special==='steal'){const room=p.money+CLp;if(room>600||p.traits.kindness>35||p.traits.honest>55)continue;s+=(35-p.traits.kindness)*0.8+(55-p.traits.honest)/3+p.traits.impulse/12;why.push('broke','low on scruples');}
+  if(A.special==='clinic'){if(!p.sick)continue;s+=45;why.push('feels awful');}if(A.special==='cigs'){s+=30+(p.dep.nicotine||0)/2;why.push('out of cigarettes');}if(A.special==='quitaid'){s+=26;why.push('trying to quit smoking');}
+  if(A.bias)s+=A.bias;if(A.special==='boat'&&!p.boat)s-=14;if(p.recent){let rc=0;for(const r of p.recent)if(r===A.id)rc++;s-=rc*6;}
   if(A.tw)for(const t in A.tw)s+=((p.traits[t]||50)-50)*A.tw[t];
   if(A.outdoors&&!A.wx&&__SA0.has(WXK))s-=25;if(A.outdoors&&WXK==='hot')s-=10;
   if(p.rough){if(A.chore)s-=15;if(A.social)s-=8;if(A.id==='shower'||A.id==='get_ready')s-=12;}
@@ -1156,8 +1157,8 @@ function scoreAll(p){
   if(p.lastAct===A.id&&A.special!=='tot'&&A.special!=='campaign')s-=12;
   if(A.id==='nap'&&(h<11||h>18))s-=15;
   s+=rand()*7;
-  out.push({A,s,why,bid,friend});}
- out.sort((x,y)=>y.s-x.s);for(let k=0;k<Math.min(4,out.length);k++)out[k].why=[...new Set(out[k].why)].slice(0,3);return out;}
+  out.push({A,s,why,bid,friend,lazy});}
+ out.sort((x,y)=>y.s-x.s);{const arrH=Math.floor((mod()+20)/60)%24;const res=[];for(const o of out){if(o.lazy){o.bid=placeFor(p,o.lazy,arrH);if(!o.bid){if(o.A.at.includes('home')&&u)o.bid=homeBld(p);else continue;}o.lazy=null;}res.push(o);if(res.length>=6)break;}out.length=0;out.push(...res);}for(let k=0;k<Math.min(4,out.length);k++)out[k].why=[...new Set(out[k].why)].slice(0,3);return out;}
 function freeFor(q){if(!q.act)return true;return!['work','school','study','jail','sleep'].includes(q.act.id)&&q.act.until-S.t<60;}
 function bestFriendHome(p,kids){const ck='bf'+(kids?1:0);if(S._pcT===S.t&&S._pcP===p.id&&S._pc&&ck in S._pc)return S._pc[ck];const r=bestFriendHome0(p,kids);if(S._pcT===S.t&&S._pcP===p.id&&S._pc)S._pc[ck]=r;return r;}
 function bestFriendHome0(p,kids){let best=null,ba=30;for(const[id,r]of Object.entries(p.rel)){if(r.a<=ba)continue;const q=P(id);if(!q||!q.alive||!q.homeU||q.trip||q.loc!==homeBld(q)||q.loc===homeBld(p))continue;if(q.act&&['sleep','work'].includes(q.act.id))continue;if(Math.abs(age(q)-age(p))>(kids?3:25)&&r.st!=='family')continue;if(kids&&age(q)>=18)continue;best=q;ba=r.a;}if(best)best._a=ba;return best;}
@@ -1176,7 +1177,7 @@ function onStart(p){
  if(!A){return;}
  if(A.cost){const c=A.cost*costScale(A);const cat=['shop','online_shop','furniture','splurge'].includes(A.id)?'shopping':['clinic','checkup','therapy'].includes(A.id)?'health':A.id==='haircut'?'personal':['eat_out','coffee'].includes(A.id)?'food':'fun';spend(p,c,cat);if(z){z.rev+=c;z.visits++;}}
  const uu=unitOf(p);if(A.home&&uu&&p.act.place===uu.bld)for(const k in A.home)uu.home[k]=clamp(uu.home[k]+A.home[k],0,100);if(A.proj)resetProj(p,uu,A.proj);
- onStartV3(p,A,z,uu);
+ onStartV3(p,A,z,uu);onStartV9(p,A,z,uu);
  if(A.sub){p.used[A.sub]=(p.used[A.sub]||0)+(A.subAmt||1);if(A.sub==='alcohol')p.lastDrink=S.t;}
  if(A.fit)p.fitToday+=A.fit;
  if(A.interest&&p.interests.includes(A.interest)){const sk=p.skills[A.interest]||0;p.skills[A.interest]=Math.min(100,sk+(p.act.until-p.act.start)/60*1.3*(1-sk/115));}
@@ -1334,12 +1335,12 @@ function daily(){
    const peak=p.peakDep[sub]||0;if(dep>peak)p.peakDep[sub]=dep;
    if(sub==='alcohol'&&dep>=60&&p.dep[sub]<60)news('health',3,N(p)+'’s friends say the drinking has become “a thing we should talk about.”',[p.id]);
    if(dep>55&&!p.quitting[sub]&&chance(0.03+(p.sick?0.05:0)+(p.goal==='fit'?0.03:0))){p.quitting[sub]=true;logp(p,'Decided to quit '+(sub==='alcohol'?'drinking':'smoking')+'.');}
-   if(p.quitting[sub]&&chance(dep/400)){p.quitting[sub]=false;if(chance(0.35))news('health',2,N(p)+' has fallen off the wagon. Again.',[p.id]);}
+   if(p.quitting[sub]&&chance(dep/400*(sub==='nicotine'&&p.quitAid>S.ly?0.4:1))){p.quitting[sub]=false;if(chance(0.35))news('health',2,N(p)+' has fallen off the wagon. Again.',[p.id]);}
    if(p.quitting[sub]&&dep<12&&(p.peakDep[sub]||0)>=55){p.quitting[sub]=false;p.peakDep[sub]=dep;news('health',4,N(p)+' has quit '+(sub==='alcohol'?'drinking':'smoking')+' for good, or at least for now.',[p.id]);moodlet(p,'Clean',15,2);}
    p.dep[sub]=dep;p.used[sub]=0;}
   // fitness
   const before=p.fitness;p.fitness=clamp(p.fitness+p.fitToday*0.8-1.2,0,100);p.fitToday=0;if(before<85&&p.fitness>=85&&!p.fitMilestone){p.fitMilestone=true;news('fitness',2,N(p)+' can now, by their own account, deadlift a small car.',[p.id]);}
-  personFinance(p,d);lifeDaily(p,d);
+  personFinance(p,d);lifeDaily(p,d);smokeDaily(p);
   // job hunt / career
   if(adult(p)&&!p.job&&!p.retired&&!p.student&&a<66){let ch=0.3;if(!p.homeU)ch*=0.4;if(p.dep.alcohol>70)ch*=0.5;if(chance(ch))hireSomewhere(p);}
   if(p.job&&JOB[p.job.j].pay&&p.job.j!=='owner'&&p.traits.ambition>50){for(const i of p.interests){const I=DATA.interests.find(x=>x.id===i);if(I.pro&&(p.skills[i]||0)>65&&chance(0.04)){clearJob(p);setJob(p,null,I.pro);news('career',3,N(p)+' has quit their day job to '+(i==='painting'?'paint':i==='music'?'make music':'write')+' full time. Their parents have questions.',[p.id]);break;}}}
@@ -1351,8 +1352,8 @@ function daily(){
   if(adult(p)&&!p.job&&!p.retired&&!p.student&&d-p.unemployedSince>10&&p.mood<40&&!p.partner&&!p.children.some(c=>P(c)&&P(c).alive&&age(P(c))<18)&&chance(0.04)){leaveTown(p);continue;}
   // pregnancy
   if(p.pregUntil&&S.ly>=p.pregUntil)birth(p);
-  else if(p.sex==='f'&&!p.pregUntil&&a>=19&&a<45&&p.partner){const q=P(p.partner);if(q&&q.alive&&q.sex==='m'&&q.homeU===p.homeU&&p.homeU){const kids=p.children.filter(c=>P(c)&&P(c).alive).length;const want=Math.max(p.kidsWanted,q.kidsWanted)+(p.goal==='family'?1:0);
-   const fert=a<35?1:a<40?0.6:0.25;const pr=(kids<want?0.24:0.01)*fert*(p.pstat==='married'?1:0.5);if(chance(pr)){p.pregUntil=S.ly+0.75;p.pregBy=q.id;moodlet(p,'Expecting',15,2);moodlet(q,'Expecting',12,2);logp(p,'Found out she is pregnant.');logp(q,'Found out they are expecting.');}}}
+  else if(p.sex==='f'&&!p.pregUntil&&a>=19&&a<45&&p.partner){const q=P(p.partner);if(q&&q.alive&&q.sex==='m'&&q.homeU===p.homeU&&p.homeU){const kids=p.children.filter(c=>P(c)&&P(c).alive).length;const want=Math.round((p.kidsWanted+q.kidsWanted)/2)+(p.goal==='family'||q.goal==='family'?1:0);
+   const fert=a<35?1:a<40?0.6:0.25;const crowd=residents(p.homeU).length;const pr=(kids<want?0.16:0.006)*fert*(p.pstat==='married'?1:0.5)*(crowd>=7?0:crowd>=5?0.35:1);if(chance(pr)){p.pregUntil=S.ly+0.75;p.pregBy=q.id;moodlet(p,'Expecting',15,2);moodlet(q,'Expecting',12,2);logp(p,'Found out she is pregnant.');logp(q,'Found out they are expecting.');}}}
   if(p.partner&&p.pstat==='married'&&p.sex===P(p.partner)?.sex&&p.id<p.partner&&p.homeU&&P(p.partner).homeU===p.homeU&&age(p)<50){const kids=p.children.filter(c=>P(c)&&P(c).alive).length;if(kids<p.kidsWanted&&chance(0.03)){const q=P(p.partner);const k=makePerson({bornLy:S.ly-ri(0,3),last:p.last,parents:[p.id,q.id],homeU:p.homeU,money:0,skillBase:0,lineage:p.lineage});k.loc=homeBld(p);k.act={id:'sleep',start:S.t,until:S.t+60,place:k.loc,label:'Sleeping'};p.children.push(k.id);q.children.push(k.id);setFam(k,p,75);setFam(k,q,75);S.stats.births++;news('birth',4,N(p)+' and '+N(q)+' adopted '+N(k)+'.',[k.id,p.id,q.id]);}}
   // weird life
   if(adult(p)&&chance(0.0035))weirdEvent(p);
@@ -1447,7 +1448,7 @@ const GOD={
 /* ---- run / save ---- */
 function advance(min){let left=min;while(left>0){const dt=Math.min(10,left);step(dt);left-=dt;}}
 function serialize(){return JSON.stringify(S,(k,v)=>k[0]==='_'?undefined:v);}
-function deserialize(txt){const o=JSON.parse(txt);if(!o||typeof o!=='object'||!o.people)throw new Error('That isn’t a Sprungfeld save file.');if(o.v===1){migrateV1(o);migrateV2(S);migrateV3(S);return S;}if(o.v===2){migrateV2(o);rebuildCaches();migrateV3(S);return S;}if(o.v===3){rebuildCaches();migrateV3(o);rebuildCaches();migrateCalendar();migrateV7();return S;}if(o.v!==SAVE_VERSION)throw new Error('This save is from version '+o.v+' of the format; this build reads version '+SAVE_VERSION+'.');S=o;rebuildCaches();migrateCalendar();migrateV7();return S;}
+function deserialize(txt){const o=JSON.parse(txt);if(!o||typeof o!=='object'||!o.people)throw new Error('That isn’t a Sprungfeld save file.');if(o.v===1){migrateV1(o);migrateV2(S);migrateV3(S);return S;}if(o.v===2){migrateV2(o);rebuildCaches();migrateV3(S);return S;}if(o.v===3){rebuildCaches();migrateV3(o);rebuildCaches();migrateCalendar();migrateV7();migrateV9();return S;}if(o.v!==SAVE_VERSION)throw new Error('This save is from version '+o.v+' of the format; this build reads version '+SAVE_VERSION+'.');S=o;rebuildCaches();migrateCalendar();migrateV7();migrateV9();return S;}
 function townStats(){const L=living();const ad=L.filter(adult);const work=ad.filter(p=>!p.retired&&!p.student&&age(p)<66);
  return{pop:L.length,adults:ad.length,kids:L.length-ad.length,employed:work.filter(p=>p.job).length,unemployed:work.filter(p=>!p.job).length,homeless:L.filter(p=>!p.homeU).length,
   open:Object.values(S.biz).filter(z=>z.open&&!z.civic).length,closed:Object.values(S.biz).filter(z=>!z.open).length,
@@ -1531,7 +1532,7 @@ function householdDaily(u){const res=residents(u.id);if(!res.length){u.arrears=0
  const fam=ad.length<=1||ad.every(a=>a.id===ad[0].id||a.partner===ad[0].id||a.parents.includes(ad[0].id)||ad[0].parents.includes(a.id)||a.partner&&ad.some(z=>z.id===a.partner));
  for(const a of ad)if(a.partner&&a.pstat==='married'&&a.id<a.partner){const q=P(a.partner);if(q&&q.homeU===u.id){const t=(a.money+q.money)/2;a.money=t;q.money=t;}}
  const payers=fam?[ad.slice().sort((x,y)=>y.money-x.money)[0]]:ad;
- let short=false;for(const k of['housing','util','phone','kidc','care','pets']){const amt=perDay(k);if(!amt)continue;const each=amt/payers.length;for(const a of payers){if(a.money-each<-creditLimit(a)&&k==='housing'){short=true;continue;}spend(a,each,{housing:'housing',util:'utilities',phone:'utilities',kidc:'kids',care:'childcare',pets:'pets'}[k]);}}
+ let short=false;for(const k of['housing','util','phone','kidc','care','pets']){const amt=perDay(k);if(!amt)continue;const each=amt/payers.length;for(const a of payers){if(a.money-each<-creditLimit(a)&&k==='housing'){const cv=ad.filter(x=>x!==a&&x.money-each>-creditLimit(x)*0.5).sort((x,y)=>y.money-x.money)[0];if(cv){spend(cv,each,'housing');continue;}short=true;continue;}spend(a,each,{housing:'housing',util:'utilities',phone:'utilities',kidc:'kids',care:'childcare',pets:'pets'}[k]);}}
  if(!u.owned&&!short&&u.landlordId){const lord=P(u.landlordId);if(lord&&lord.alive)earn(lord,perDay('housing'),'rent income');}
  if(u.mortgage&&!short){u.mortgage.bal-=u.mortgage.pay/dpy()*0.45;if(u.mortgage.bal<=0){u.mortgage=null;const o=P(u.ownerId);if(o){news('money',2,N(o)+' paid off the mortgage on '+b.addr+'. They are “never borrowing again,” they say.',[o.id]);moodlet(o,'Paid off the house',25,3);}}}
  if(short){u.arrears++;for(const a of ad)moodlet(a,u.owned?'Behind on the mortgage':'Behind on rent',-12,1);}else u.arrears=0;
@@ -1544,14 +1545,14 @@ function householdDaily(u){const res=residents(u.id);if(!res.length){u.arrears=0
    for(const r of res.slice())r.homeU=v.id;news('money',2,N(head)+' bought '+S.blds[v.bld].addr+'. The realtor called it “cozy,” which it is.',[head.id]);moodlet(head,'Homeowner',20,3);}}}}
 function lifeDaily(p,d){
  // projects that build on the person
- if(adult(p)||age(p)>=4){p.proj.haircut+=40+(p.traits.groomed-50)/3;p.proj.checkup+=10;if(adult(p))p.proj.taxes+=season()==='Spring'?60:5;}
+ if(adult(p)||age(p)>=4){p.proj.haircut+=14+(p.traits.groomed-50)/8;p.proj.checkup+=10;if(adult(p))p.proj.taxes+=season()==='Spring'?60:5;}
  // rough patches
  if(p.mood<30)p.lowDays++;else p.lowDays=Math.max(0,p.lowDays-1);
  if(!p.rough&&p.lowDays>=3&&adult(p)){p.rough=true;logp(p,'Started going through a rough patch.');}
  if(p.rough&&p.mood>45&&chance(0.15+(p.therapy||0)*0.05+(p.traits.optimism-50)/400)){p.rough=false;p.lowDays=0;p.therapy=0;moodlet(p,'Feeling more like myself',15,2);logp(p,'Came out the other side of a rough patch.');}
  // school
 socialDaily(p);
- if(age(p)>=5&&age(p)<18){const skipped=p.workedDay!==d-1&&wday()!==0&&wday()!==6;p.grades=clamp(p.grades+(skipped?-3:1)+(p.hwDay===d-1?2:-1)+(p.traits.curious-50)/60,0,100);}
+ if(age(p)>=5&&age(p)<18){const skipped=(p.schoolDay!=null?p.schoolDay:p.workedDay)!==d-1&&wday()!==0&&wday()!==6;p.grades=clamp(p.grades+(skipped?-3:1)+(p.hwDay===d-1?2:-1)+(p.traits.curious-50)/60,0,100);}
  // work performance, promotions, firing
  if(p.job&&p.job.b&&p.job.j!=='owner'){const J=JOB[p.job.j];const z=S.biz[p.job.b];const boss=z&&z.ownerId&&P(z.ownerId);
   let t=50+(p.workedDay===d-1?10:-15)+(J.interest&&p.interests.includes(J.interest)?10:0)+(J.interest?(p.skills[J.interest]||0)/5:5)+(p.mood-50)/4+(p.traits.ambition-50)/5+(p.rough?-15:0)+(boss&&boss.alive?rel(boss,p).a/5:0);
@@ -1718,7 +1719,7 @@ function castVote(p){const T=S.town;if(!T.electionDay||T.votes[p.id])return;cons
 /* growth */
 function initGrowth(){const ch=S.chunk;if(ch.buildings.some(b=>b.growth))return;DATA.growthLots.forEach((g,i)=>{const b={id:'g'+(i+1),use:'lot',floors:1,fp:[[g.x[0],g.y[0]],[g.x[1],g.y[0]],[g.x[1],g.y[1]],[g.x[0],g.y[1]]],door:[(g.x[0]+g.x[1])/2,g.door],sy:g.sy,addr:(Math.round((g.x[0]+g.x[1])/2*1.3+100)*2+(g.door===g.y[0]?1:0))+' '+g.addr,growth:1,area:g.area,road:g.road,big:g.big||0};ch.buildings.push(b);S.blds[b.id]=JSON.parse(JSON.stringify(b));});rebuildCaches();}
 function openRoad(id){const r=S.chunk.roads.find(x=>x.id===id);if(r&&r.pts[r.pts.length-1][0]<900){r.pts[r.pts.length-1][0]=905;S._layoutVer=(S._layoutVer||0)+1;}}
-function growthDaily(){const B=Object.values(S.blds);
+function growthDaily(){hoodDaily();bizSitesDaily();const B=Object.values(S.blds);
  for(const b of B){if(b.use==='site'&&day()>=b.siteUntil){b.use=b.plan;b.floors=b.plan==='apartment'?3:b.plan==='duplex'?2:ri(1,2);const n=b.plan==='apartment'?6:b.plan==='duplex'?2:1;for(let i=0;i<n;i++){const id=b.id+'u'+i;S.units[id]={id,bld:b.id,idx:i,rent:DATA.uses[b.plan].rent,owned:false,ownerId:null,pantry:0,missed:0};initUnit(S.units[id]);S.units[id].home.cond=100;S.units[id].home.furn=60;}
   delete b.plan;delete b.siteUntil;S._layoutVer=(S._layoutVer||0)+1;rebuildCaches();news('growth',2,'New '+(n>1?n+' homes are':'home is')+' ready at '+b.addr+'. The paint is still drying.',[]);}}
  const res=B.filter(b=>['house','duplex','apartment','trailer'].includes(b.use));
@@ -1891,7 +1892,7 @@ function destroyBld(b,cause,crew){const units=Object.values(S.units).filter(u=>u
  for(const p of living())if(!p.loc&&!p.trip){p.loc=homeBld(p);}S._layoutVer=(S._layoutVer||0)+1;rebuildCaches();S._dirty=true;}
 /* ---- staffing ---- */
 function slotN(z,J){return Math.max(0,J.n+((z.extra&&z.extra[J.id])||0));}
-function hireCandidates(z,J){return living().filter(p=>age(p)>=16&&age(p)<80&&p.edu>=J.edu&&!(p.job&&p.job.b===z.id&&p.job.j===J.id)&&!(p.job&&p.job.j==='owner')&&!(p.jailUntil>S.t)).map(p=>{const cur=p.job?(JOB[p.job.j].pay||0):0;const sc=(!p.job&&!p.retired&&!p.student?100:0)+(J.pay-cur)/4+(J.interest&&p.interests.includes(J.interest)?25:0)+(J.interest?(p.skills[J.interest]||0)/4:0)-(p.retired?60:0)-(p.student?40:0);return{p,sc};}).sort((a,b)=>b.sc-a.sc).slice(0,25);}
+function hireCandidates(z,J){return living().filter(p=>age(p)<80&&!jobBlock(p,J)&&!(p.job&&p.job.b===z.id&&p.job.j===J.id)&&!(p.job&&p.job.j==='owner')&&!(p.jailUntil>S.t)).map(p=>{const cur=p.job?(JOB[p.job.j].pay||0):0;const sc=(!p.job&&!p.retired&&!p.student?100:0)+(J.pay-cur)/4+(J.interest&&p.interests.includes(J.interest)?25:0)+(J.interest?(p.skills[J.interest]||0)/4:0)-(p.retired?60:0)-(p.student?40:0);return{p,sc};}).sort((a,b)=>b.sc-a.sc).slice(0,25);}
 function adminHire(p,z,J){if(p.retired)p.retired=false;if(p.student&&age(p)>=18)p.student=0;setJob(p,z.id,J.id);p.unemployedSince=0;p.perf=55;moodlet(p,'New job',12,2);news('job',2,N(p)+' was hired as a '+J.title.toLowerCase()+' at '+z.name+'.',[p.id]);}
 function sellBusinesses(){for(const z of Object.values(S.biz)){if(!z.forSale||!z.open||z.civic)continue;if(!chance(0.25))continue;const price=Math.round(z.baseA*0.6);const buyers=living().filter(p=>adult(p)&&age(p)>=25&&age(p)<70&&p.money>price*1.3&&!(p.job&&p.job.j==='owner')&&p.id!==z.ownerId);if(!buyers.length)continue;
  const o=wpick(buyers,p=>p.traits.ambition+(p.goal==='business'?60:0));const old=z.ownerId&&P(z.ownerId);spend(o,price,'business');if(old&&old.alive){earn(old,price,'business');if(old.job&&old.job.b===z.id)clearJob(old);old.unemployedSince=day();}
@@ -1902,6 +1903,204 @@ const SECTION_OF={town:'local',weather:'local',holiday:'local',growth:'local',mo
  crime:'crime',fight:'crime',crash:'crime',disaster:'crime',scandal:'crime',politics:'politics',election:'politics',arts:'arts',fitness:'arts',party:'arts',viral:'arts',health:'arts',weird:'weird',luck:'weird',gossip:'weird'};
 const SECTIONS=[['front','Front page'],['local','Local'],['biz','Business & jobs'],['lives','Lives'],['crime','Crime & courts'],['politics','Politics'],['arts','Arts & life'],['weird','Weird news'],['classifieds','Classifieds']];
 function sectionOf(e){return SECTION_OF[e.kind]||'local';}
+
+let START_OPTS=null;
+
+/* ==== v0.9 SIM: real pathfinding over whatever roads exist ==== */
+function routeGrid(a,b){const A=a.door,Bd=b.door;const pts=[[A[0],A[1]],[A[0],a.sy]];
+ if(a.sy!==b.sy){let best=AVX[0],bd=1e9;for(const x of AVX){const d=Math.abs(A[0]-x)+Math.abs(Bd[0]-x);if(d<bd){bd=d;best=x;}}pts.push([best,a.sy],[best,b.sy]);}
+ pts.push([Bd[0],b.sy],[Bd[0],Bd[1]]);return{pts,len:plen(pts)};}
+function plen(pts){let len=0;for(let i=1;i<pts.length;i++)len+=Math.abs(pts[i][0]-pts[i-1][0])+Math.abs(pts[i][1]-pts[i-1][1]);return len;}
+let RG=null;
+function roadSegs(){const out=[];for(const r of S.chunk.roads)for(let i=1;i<r.pts.length;i++){const a=r.pts[i-1],b=r.pts[i];if(a[0]===b[0]&&a[1]===b[1])continue;out.push({a,b,road:r.id,ts:[0,1]});}return out;}
+function segT(s,pt){const dx=s.b[0]-s.a[0],dy=s.b[1]-s.a[1];const L2=dx*dx+dy*dy;let t=((pt[0]-s.a[0])*dx+(pt[1]-s.a[1])*dy)/L2;t=Math.max(0,Math.min(1,t));const x=s.a[0]+dx*t,y=s.a[1]+dy*t;return{t,x,y,d:Math.hypot(pt[0]-x,pt[1]-y)};}
+function accessOf(b,segs){const d=b.door;let best=null;
+ if(b.sy!=null)for(let i=0;i<segs.length;i++){const s=segs[i];if(s.a[1]!==b.sy||s.b[1]!==b.sy)continue;const lo=Math.min(s.a[0],s.b[0]),hi=Math.max(s.a[0],s.b[0]);if(d[0]<lo-0.5||d[0]>hi+0.5)continue;const q=segT(s,[d[0],b.sy]);if(!best||q.d<best.d)best={i,t:q.t,x:q.x,y:q.y,d:Math.abs(d[1]-b.sy)};}
+ if(!best)for(let i=0;i<segs.length;i++){const q=segT(segs[i],d);if(!best||q.d<best.d)best={i,t:q.t,x:q.x,y:q.y,d:q.d};}
+ return best;}
+function buildRoadGraph(){const segs=roadSegs();const n=segs.length;
+ for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const A=segs[i],B=segs[j];const r=[A.b[0]-A.a[0],A.b[1]-A.a[1]],s=[B.b[0]-B.a[0],B.b[1]-B.a[1]];const den=r[0]*s[1]-r[1]*s[0];
+  if(Math.abs(den)<1e-9){for(const[X,Y]of[[A,B],[B,A]])for(const e of[Y.a,Y.b]){const q=segT(X,e);if(q.d<1)X.ts.push(q.t);}continue;}
+  const qp=[B.a[0]-A.a[0],B.a[1]-A.a[1]];const t=(qp[0]*s[1]-qp[1]*s[0])/den,u=(qp[0]*r[1]-qp[1]*r[0])/den;
+  const LA=Math.hypot(r[0],r[1]),LB=Math.hypot(s[0],s[1]);const et=1/LA,eu=1/LB;
+  if(t>=-et&&t<=1+et&&u>=-eu&&u<=1+eu){A.ts.push(Math.max(0,Math.min(1,t)));B.ts.push(Math.max(0,Math.min(1,u)));}}
+ const acc={};for(const b of Object.values(S.blds)){if(!b.door)continue;const a=accessOf(b,segs);if(!a)continue;segs[a.i].ts.push(a.t);acc[b.id]=a;}
+ const key=(x,y)=>Math.round(x*20)+','+Math.round(y*20);const idx=new Map(),XY=[],adj=[];
+ const node=(x,y)=>{const k=key(x,y);let i=idx.get(k);if(i==null){i=XY.length;idx.set(k,i);XY.push([Math.round(x*100)/100,Math.round(y*100)/100]);adj.push([]);}return i;};
+ for(const s of segs){const ts=[...new Set(s.ts.map(t=>Math.round(t*1e6)/1e6))].sort((a,b)=>a-b);let prev=null;
+  for(const t of ts){const x=s.a[0]+(s.b[0]-s.a[0])*t,y=s.a[1]+(s.b[1]-s.a[1])*t;const ni=node(x,y);if(prev!=null&&prev!==ni){const w=Math.abs(XY[ni][0]-XY[prev][0])+Math.abs(XY[ni][1]-XY[prev][1]);adj[prev].push([ni,w]);adj[ni].push([prev,w]);}prev=ni;}}
+ const bnode={};for(const id in acc){bnode[id]=node(acc[id].x,acc[id].y);}
+ RG={ver:S._layoutVer||0,nr:S.chunk.roads.length,nb:Object.keys(S.blds).length,XY,adj,bnode,cache:new Map()};return RG;}
+function graphOK(){return RG&&RG.ver===(S._layoutVer||0)&&RG.nr===S.chunk.roads.length&&RG.nb===Object.keys(S.blds).length&&RG.S===S;}
+function shortest(G,s,t){if(s===t)return[s];const N=G.XY.length;const dist=new Float64Array(N).fill(Infinity),prev=new Int32Array(N).fill(-1);dist[s]=0;const h=[[0,s]];
+ const push=(d,v)=>{h.push([d,v]);let i=h.length-1;while(i>0){const p=(i-1)>>1;if(h[p][0]<=h[i][0])break;[h[p],h[i]]=[h[i],h[p]];i=p;}};
+ const pop=()=>{const top=h[0];const last=h.pop();if(h.length){h[0]=last;let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;if(l<h.length&&h[l][0]<h[m][0])m=l;if(r<h.length&&h[r][0]<h[m][0])m=r;if(m===i)break;[h[m],h[i]]=[h[i],h[m]];i=m;}}return top;};
+ while(h.length){const[d,v]=pop();if(d>dist[v])continue;if(v===t)break;for(const[w,c]of G.adj[v]){const nd=d+c;if(nd<dist[w]){dist[w]=nd;prev[w]=v;push(nd,w);}}}
+ if(dist[t]===Infinity)return null;const path=[];for(let v=t;v!==-1;v=prev[v])path.push(v);return path.reverse();}
+function route(a,b){if(!S||!S.chunk)return routeGrid(a,b);if(!graphOK()){buildRoadGraph();RG.S=S;}const ck=a.id+'>'+b.id;const hit=RG.cache.get(ck);if(hit)return hit;
+ const sa=RG.bnode[a.id],sb=RG.bnode[b.id];let res=null;
+ if(sa!=null&&sb!=null){const path=shortest(RG,sa,sb);if(path){const pts=[[a.door[0],a.door[1]]];for(const v of path){const q=RG.XY[v];const l=pts[pts.length-1];if(l[0]!==q[0]||l[1]!==q[1])pts.push([q[0],q[1]]);}pts.push([b.door[0],b.door[1]]);
+  const out=[pts[0]];for(let i=1;i<pts.length-1;i++){const p0=out[out.length-1],p1=pts[i],p2=pts[i+1];const col=(p1[0]-p0[0])*(p2[1]-p1[1])-(p1[1]-p0[1])*(p2[0]-p1[0]);const dot=(p1[0]-p0[0])*(p2[0]-p1[0])+(p1[1]-p0[1])*(p2[1]-p1[1]);if(Math.abs(col)>1e-6||dot<0)out.push(p1);}out.push(pts[pts.length-1]);res={pts:out,len:plen(out)};}}
+ if(!res)res=routeGrid(a,b);if(RG.cache.size>40000)RG.cache.clear();RG.cache.set(ck,res);return res;}
+
+/* ==== v0.9 SIM: neighborhoods — the town grows when you choose to (or on its own, if you let it) ==== */
+DATA.hoods={
+ starter:{label:'Starter homes',blurb:'Small houses and duplexes for young couples and first-time buyers, with a diner and a café.',bias:{couple:35,young_family:35,single:15,single_parent:10,roommates:5},
+  cells:[{n:['house','house','duplex'],s:['house','duplex','diner']},{n:['duplex','house','house'],s:['house','gas','cafe']},{n:['house','duplex','house'],s:['office:1.4','house','house']},{n:['house','house','duplex'],s:['duplex','salon','house']}]},
+ suburb:{label:'Family suburb',blurb:'Roomy houses on quiet streets, a grocery, a daycare, and a church. Families with kids move here.',bias:{family:60,young_family:20,single_parent:10,multigen:10},
+  cells:[{n:['house','house','house'],s:['house','house','grocery:1.4']},{n:['house','house','house'],s:['daycare:1.2','house','house']},{n:['house','church','house'],s:['house','house','house']},{n:['house','house','house'],s:['hardware','office:1.4','house']}]},
+ apartments:{label:'Apartment block',blurb:'Apartment buildings over street-level shops. Singles, roommates, and a mix of incomes.',bias:null,
+  cells:[{n:['apartment:1.4','apartment:1.4'],s:['cafe','gym','boutique']},{n:['apartment:1.4','diner','bar'],s:['apartment:1.4','salon','record']},{n:['apartment:1.4','apartment:1.4'],s:['office:1.4','grocery:1.4']},{n:['apartment:1.4','thrift','apartment:1.4'],s:['bank','theater:1.3']}]},
+ trailer:{label:'Trailer park',blurb:'Rows of trailers with a bait shop and a gas station. Cheap rent, retirees, and people getting by.',bias:{single:30,couple:20,elder:25,single_parent:15,young_family:10},
+  cells:[{n:['trailer','trailer','trailer','trailer'],s:['trailer','trailer','baitshop','trailer']},{n:['trailer','trailer','trailer','trailer'],s:['trailer','gas','trailer','trailer']},{n:['trailer','trailer','trailer','trailer'],s:['thrift','trailer','trailer','trailer']},{n:['trailer','trailer','trailer','trailer'],s:['trailer','trailer','warehouse:1.6']}]},
+ estates:{label:'Estates',blurb:'Big houses on big lots, a gallery, a boutique, and a private bank. Money moves here.',bias:null,
+  cells:[{n:['mansion:2','mansion:2'],s:['mansion:2','boutique']},{n:['mansion:2','mansion:2'],s:['gallery','mansion:2']},{n:['mansion:2','mansion:2'],s:['mansion:2','bank']},{n:['mansion:2','mansion:2'],s:['venue','mansion:2']}]},
+ mainstreet:{label:'Main Street',blurb:'Mostly shops, restaurants, and entertainment, with apartments upstairs. Adds lots of jobs.',bias:null,
+  cells:[{n:['diner','bar','boutique'],s:['apartment:1.4','cafe','record']},{n:['grocery:1.4','salon','gym'],s:['theater:1.3','apartment:1.4']},{n:['bowling:1.3','hardware','thrift'],s:['apartment:1.4','bank','petshop']},{n:['venue','vet','gallery'],s:['apartment:1.4','office:1.4']}]},
+ bizpark:{label:'Business park',blurb:'Offices, a warehouse, and a factory, with a little housing. The fix when people can’t find work.',bias:null,
+  cells:[{n:['office:1.4','office:1.4'],s:['warehouse:1.6','cafe']},{n:['factory:1.7','gas'],s:['apartment:1.4','office:1.4']},{n:['office:1.4','autoshop:1.3'],s:['construction:1.3','diner']},{n:['warehouse:1.6','office:1.4'],s:['apartment:1.4','dealer:1.3']}]}};
+DATA.hoodSizes={small:{label:'Small',cells:1,days:2,blurb:'About one block'},medium:{label:'Medium',cells:2,days:3,blurb:'About two blocks'},large:{label:'Large',cells:4,days:4,blurb:'About four blocks'}};
+DATA.hoodNames=['Maple Ridge','Cedar Hollow','Prairie View','Willow Bend','Oak Meadows','Sycamore Heights','Bluestem Acres','Cottonwood Park','Hickory Hills','Pheasant Run','Walnut Grove','Redbud Estates','Elmwood','Fox Hollow','Sunflower Fields','Quail Crossing','Persimmon Point','Dogwood Glen','Linden Place','Juniper Flats'];
+DATA.hoodFixedNames={trailer:['Whispering Pines Mobile Home Park','Shady Acres','Lazy Creek Estates','Sunset Trailer Court'],mainstreet:['Market Street','Front Street','Commerce Row','Old Town'],bizpark:['Commerce Park','Prairie Business Park','Gateway Industrial','Interchange Park']};
+const HX=[-900,-750,-600,-450,-300,-150,0,150,300,450,600,750,1060,1210,1360,1510,1660,1810],HY=[-600,-480,-360,-240,-120,0,120,240,360,480,600,720,840,960,1080,1200];
+const TOWN_C=[400,260];
+function cellRect(i,j){return[HX[i],HY[j],HX[i+1],HY[j+1]];}
+function bboxOf(poly){const xs=poly.map(q=>q[0]),ys=poly.map(q=>q[1]);return[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)];}
+function rectHit(a,b){return a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];}
+function segHitsRect(s,R){const[x0,y0,x1,y1]=R;const a=s[0],b=s[1];if(Math.max(a[0],b[0])<x0||Math.min(a[0],b[0])>x1||Math.max(a[1],b[1])<y0||Math.min(a[1],b[1])>y1)return false;
+ for(let k=0;k<=20;k++){const x=a[0]+(b[0]-a[0])*k/20,y=a[1]+(b[1]-a[1])*k/20;if(x>x0&&x<x1&&y>y0&&y<y1)return true;}return false;}
+function occupiedCells(){const occ=new Set();const nI=HX.length-1,nJ=HY.length-1;const blds=S.chunk.buildings.map(b=>bboxOf(b.fp));const areas=S.chunk.areas.map(a=>bboxOf(a.poly));const segs=[];for(const r of S.chunk.roads)for(let k=1;k<r.pts.length;k++)segs.push([r.pts[k-1],r.pts[k]]);
+ for(let i=0;i<nI;i++)for(let j=0;j<nJ;j++){const R=cellRect(i,j);const Ri=[R[0]+4,R[1]+4,R[2]-4,R[3]-4];if(blds.some(b=>rectHit(b,Ri))||areas.some(a=>rectHit(a,Ri))||segs.some(s=>segHitsRect(s,[R[0]+6,R[1]+6,R[2]-6,R[3]-6])))occ.add(i+','+j);}return occ;}
+function onRoad(pt){for(const r of S.chunk.roads)for(let k=1;k<r.pts.length;k++){const a=r.pts[k-1],b=r.pts[k];const s={a,b};const q=segT(s,pt);if(q.d<1)return true;}return false;}
+function cellTouchesRoad(i,j){const[x0,y0,x1,y1]=cellRect(i,j);for(const r of S.chunk.roads)for(let k=1;k<r.pts.length;k++){const a=r.pts[k-1],b=r.pts[k];const s={a,b};for(const e of[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[(x0+x1)/2,y0],[(x0+x1)/2,y1],[x0,(y0+y1)/2],[x1,(y0+y1)/2]])if(segT(s,e).d<1)return true;}return false;}
+function dirOK(i,j,dir){const[x0,y0,x1,y1]=cellRect(i,j);const cx=(x0+x1)/2,cy=(y0+y1)/2;if(dir==='north')return y1<=0;if(dir==='south')return y0>=600;if(dir==='east')return x0>=1060;if(dir==='west')return x1<=0;return true;}
+const DIRS=[['any','Wherever it fits'],['north','North'],['south','South, across the creek'],['east','East'],['west','West']];
+function planHood(type,size,dir){const n=DATA.hoodSizes[size].cells;const occ=occupiedCells();const nI=HX.length-1,nJ=HY.length-1;const free=(i,j)=>i>=0&&j>=0&&i<nI&&j<nJ&&!occ.has(i+','+j);
+ const nb=(i,j)=>[[i+1,j],[i-1,j],[i,j+1],[i,j-1]];const dev=(i,j)=>nb(i,j).some(([a,b])=>occ.has(a+','+b))||cellTouchesRoad(i,j);
+ const d0=(i,j)=>{const R=cellRect(i,j);return Math.hypot((R[0]+R[2])/2-TOWN_C[0],(R[1]+R[3])/2-TOWN_C[1]);};
+ const seeds=[];for(let i=0;i<nI;i++)for(let j=0;j<nJ;j++)if(free(i,j)&&dirOK(i,j,dir)&&dev(i,j))seeds.push([i,j]);
+ seeds.sort((a,b)=>d0(...a)-d0(...b));
+ for(const sd of seeds){const cl=[sd];const inCl=new Set([sd.join()]);
+  while(cl.length<n){let best=null,bs=1e9;for(const c of cl)for(const[a,b]of nb(...c)){if(inCl.has(a+','+b)||!free(a,b)||!dirOK(a,b,dir))continue;const cx=cl.reduce((s,q)=>s+q[0],0)/cl.length,cy=cl.reduce((s,q)=>s+q[1],0)/cl.length;const sc=Math.hypot(a-cx,b-cy)*400+d0(a,b)*0.2;if(sc<bs){bs=sc;best=[a,b];}}if(!best)break;cl.push(best);inCl.add(best.join());}
+  if(cl.length===n)return{cells:cl};}
+ return{cells:null,why:seeds.length?'There isn’t room for a '+DATA.hoodSizes[size].label.toLowerCase()+' neighborhood there. Try a smaller size or another direction.':'There’s no open land left in that direction. Try another direction.'};}
+function hoodNameFor(type){const used=new Set(Object.values(S.hoods||{}).map(h=>h.name));const pool=(DATA.hoodFixedNames[type]||DATA.hoodNames).filter(n=>!used.has(n));return pool.length?pick(pool):pick(DATA.hoodNames)+' '+(Object.keys(S.hoods||{}).length+1);}
+function streetNames(name,type){const w=name.split(' ')[0].replace(/[^A-Za-z]/g,'');if(type==='mainstreet')return[name.includes('Street')?name.replace('Street','St'):w+' St',w+' Ave'];if(type==='bizpark')return[w+' Dr',w+' Pkwy'];if(type==='trailer')return[w+' Ln',w+' Loop'];return[w+' '+pick(['Dr','Ln','Way','Rd']),w+' '+pick(['Ct','Ave','Pl'])];}
+function segCovered(a,b){const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];for(const r of S.chunk.roads)for(let k=1;k<r.pts.length;k++){const s={a:r.pts[k-1],b:r.pts[k]};if(segT(s,a).d<0.5&&segT(s,b).d<0.5&&segT(s,mid).d<0.5)return r;}return null;}
+function roadNameAt(pt,horiz){for(const r of S.chunk.roads)for(let k=1;k<r.pts.length;k++){const a=r.pts[k-1],b=r.pts[k];if(horiz?a[1]!==b[1]:a[0]!==b[0])continue;const s={a,b};if(segT(s,pt).d<0.5)return r.name;}return null;}
+function nearestRoadCast(pt,exclude){let best=null;for(const r of S.chunk.roads){if(exclude.has(r.id))continue;for(let k=1;k<r.pts.length;k++){const s={a:r.pts[k-1],b:r.pts[k]};
+  for(const[dx,dy]of[[0,-1],[0,1],[-1,0],[1,0]]){for(let L=10;L<=420;L+=10){const q=[pt[0]+dx*L,pt[1]+dy*L];if(segT(s,q).d<5){const hit=segT(s,q);if(!best||L<best.L)best={L,to:[dx?hit.x:pt[0],dy?hit.y:pt[1]]};break;}}}}}return best;}
+let _hoodN=0;
+function addHoodRoads(h,cells){const[ns,ew]=streetNames(h.name,h.type);const added=[];const mk=(a,b)=>{const key=[a,b].map(p=>p.join(',')).sort().join('|');if(added.some(x=>x.key===key))return;if(segCovered(a,b))return;const horiz=a[1]===b[1];
+  const nm=roadNameAt(horiz?(a[0]<b[0]?a:b):(a[1]<b[1]?a:b),horiz)||roadNameAt(horiz?(a[0]<b[0]?b:a):(a[1]<b[1]?b:a),horiz)||(horiz?ns:ew);const r={id:'r'+h.id+'_'+added.length,kind:horiz?'street':'avenue',name:nm,pts:[a,b],hood:h.id};added.push({key,r});};
+ for(const[i,j]of cells){const[x0,y0,x1,y1]=cellRect(i,j);mk([x0,y0],[x1,y0]);mk([x0,y1],[x1,y1]);mk([x0,y0],[x0,y1]);mk([x1,y0],[x1,y1]);}
+ for(const{r}of added)S.chunk.roads.push(r);
+ const ours=new Set(added.map(x=>x.r.id));const touches=()=>{for(const{r}of added){for(const e of r.pts){for(const r2 of S.chunk.roads){if(ours.has(r2.id))continue;for(let k=1;k<r2.pts.length;k++){if(segT({a:r2.pts[k-1],b:r2.pts[k]},e).d<1)return true;}}}
+   for(const r2 of S.chunk.roads){if(ours.has(r2.id))continue;for(const e of r2.pts)if(segT({a:r.pts[0],b:r.pts[1]},e).d<1)return true;}}return false;};
+ if(!touches()){let best=null;for(const[i,j]of cells){const[x0,y0,x1,y1]=cellRect(i,j);for(const c of[[x0,y0],[x1,y0],[x0,y1],[x1,y1]]){const hit=nearestRoadCast(c,ours);if(hit&&(!best||hit.L<best.L))best=Object.assign({from:c},hit);}}
+  if(best){const r={id:'r'+h.id+'_c',kind:'road',name:h.type==='bizpark'?'Industrial Rd':h.name.split(' ')[0]+' Bridge Rd',pts:[best.from,best.to],hood:h.id,connector:1};S.chunk.roads.push(r);added.push({key:'c',r});}}
+ return added.map(x=>x.r);}
+function lotDepth(use){return use==='trailer'?22:use==='mansion'?40:DATA.uses[use].cat==='home'?26+rand()*8:36+rand()*6;}
+function floorsOf(use){const f=DATA.uses[use].floors;if(f)return f[0]+Math.floor(rand()*(f[1]-f[0]+1));if(use==='office')return 2+Math.floor(rand()*2);if(['bank','theater','hospital','newspaper'].includes(use))return 2;if(['warehouse','factory','construction','farm','trailer','church'].includes(use))return 1;return rand()<0.35?2:1;}
+function addHoodBuildings(h,cells,instant){const tpl=DATA.hoods[h.type];const out=[];let ci=0;
+ for(const[i,j]of cells){const spec=tpl.cells[ci%tpl.cells.length];ci++;const[cx0,cy0,cx1,cy1]=cellRect(i,j);const x0=cx0+14,x1=cx1-14;
+  for(const side of['n','s']){const lots=spec[side];const sy=side==='n'?cy0:cy1;const yEdge=side==='n'?cy0+14:cy1-14;const items=lots.map(s=>{const[u,w]=s.split(':');return{u,w:+(w||1)};});const tw=items.reduce((a,b)=>a+b.w,0);const gap=6;const usable=(x1-x0)-gap*(items.length-1);let x=x0;
+   const stName=roadNameAt([(x0+x1)/2,sy],true)||streetNames(h.name,h.type)[0];
+   for(const it of items){const lw=usable*it.w/tw;const home=DATA.uses[it.u].cat==='home';const inset=home?3+rand()*4:2;const depth=lotDepth(it.u);const fx0=x+inset,fx1=x+lw-inset;const fy0=side==='n'?yEdge:yEdge-depth,fy1=side==='n'?yEdge+depth:yEdge;const cxm=(fx0+fx1)/2;
+    const num=Math.round(Math.abs(cxm)*1.3+100)*2+(side==='n'?0:1);const id='h'+h.id+'_'+out.length;
+    const b={id,use:instant?it.u:'site',floors:instant?floorsOf(it.u):1,fp:[[fx0,fy0],[fx1,fy0],[fx1,fy1],[fx0,fy1]],door:[cxm,side==='n'?fy0:fy1],sy,addr:num+' '+stName,hood:h.id};
+    if(!instant){b.plan=it.u;b.siteUntil=h.ready;}if(it.u==='mansion')b.estate=1;S.chunk.buildings.push(b);out.push(b);x+=lw+gap;}}}
+ return out;}
+function hoodStats(type,size){const tpl=DATA.hoods[type];const n=DATA.hoodSizes[size].cells;let homes=0,biz=0,jobs=0;for(let c=0;c<n;c++){const sp=tpl.cells[c%tpl.cells.length];for(const s of sp.n.concat(sp.s)){const u=s.split(':')[0];if(DATA.uses[u].cat==='home')homes+=u==='apartment'?6:u==='duplex'?2:1;else{biz++;jobs+=jobsFor(u).reduce((a,j)=>a+j.n,0)+(DATA.uses[u].civic?0:1);}}}return{homes,biz,jobs};}
+function buildHood(type,size,dir,instant){if(!DATA.hoods[type]||!DATA.hoodSizes[size])return{ok:false,why:'Unknown neighborhood type.'};S.hoods=S.hoods||{};
+ if(!instant&&Object.values(S.hoods).some(h=>!h.done))return{ok:false,why:'Builders are still working on '+Object.values(S.hoods).find(h=>!h.done).name+'. One neighborhood at a time.'};
+ const pl=planHood(type,size,dir||'any');if(!pl.cells)return{ok:false,why:pl.why};
+ S.hoodSeq=(S.hoodSeq||Object.keys(S.hoods).length)+1;const id=String(S.hoodSeq);const name=hoodNameFor(type);const days=DATA.hoodSizes[size].days;const h={id,type,size,dir:dir||'any',name,cells:pl.cells,start:S.t?day():0,ready:(S.t?day():0)+days,done:!!instant};S.hoods[id]=h;
+ const roads=addHoodRoads(h,pl.cells);const blds=addHoodBuildings(h,pl.cells,instant);
+ let bx=S.chunk.bounds||[-100,-20,1360,960];for(const[i,j]of pl.cells){const R=cellRect(i,j);bx=[Math.min(bx[0],R[0]-40),Math.min(bx[1],R[1]-40),Math.max(bx[2],R[2]+40),Math.max(bx[3],R[3]+40)];}S.chunk.bounds=bx;
+ if(!instant){for(const b of blds)S.blds[b.id]=JSON.parse(JSON.stringify(b));S._layoutVer=(S._layoutVer||0)+1;rebuildCaches();
+  const st=hoodStats(type,size);const where=h.dir==='any'?hoodSide(h):h.dir==='south'?'south of the creek':h.dir+' of town';
+  news('growth',4,'Builders broke ground on '+h.name+', a new '+DATA.hoods[type].label.toLowerCase()+' neighborhood '+where+': '+st.homes+' home'+(st.homes===1?'':'s')+(st.biz?' and '+st.biz+' business'+(st.biz===1?'':'es'):'')+', ready in about '+days+' days.',[]);
+  const cz=(S._byUse.construction||[]).map(i=>S.biz[i]).find(z=>z&&z.open);if(cz)cz.rev+=blds.length*6000;}
+ return{ok:true,hood:h,roads,blds};}
+function hoodSide(h){const R=cellRect(...h.cells[0]);const cx=(R[0]+R[2])/2,cy=(R[1]+R[3])/2;if(cy<0)return'north of town';if(cy>600)return'south of the creek';if(cx>1060)return'east of town';if(cx<0)return'west of town';return'at the edge of town';}
+function hoodSitesDaily(){if(!S.hoods)return;for(const h of Object.values(S.hoods)){if(h.done||day()<h.ready)continue;const bs=Object.values(S.blds).filter(b=>b.hood===h.id&&b.use==='site');let homes=0,biz=0;
+  for(const b of bs){const use=b.plan;delete b.plan;delete b.siteUntil;b.use=use;b.floors=floorsOf(use);const U=DATA.uses[use];
+   if(U.cat==='home'){const n=use==='apartment'?b.floors*2:use==='duplex'?2:1;for(let i=0;i<n;i++){const uid=b.id+'u'+i;S.units[uid]={id:uid,bld:b.id,idx:i,rent:use==='mansion'?600:(U.rent||0),owned:false,ownerId:null,pantry:0,missed:0};initUnit(S.units[uid]);S.units[uid].home.cond=100;S.units[uid].home.furn=use==='mansion'?90:60;homes++;}}
+   else{const z=openBiz(b,use,null,0);z.baseA=baseAnnual(use);z.cash=z.civic?0:Math.round(z.baseA/dpy()*3);biz++;}
+   const cb=S.chunk.buildings.find(x=>x.id===b.id);if(cb){cb.use=use;cb.floors=b.floors;delete cb.plan;delete cb.siteUntil;}}
+  h.done=true;S._layoutVer=(S._layoutVer||0)+1;rebuildCaches();S._resDirty=true;
+  for(const p of living())if(adult(p)&&!p.job&&!p.retired&&!p.student&&age(p)<66&&chance(0.5))hireSomewhere(p);
+  news('growth',5,h.name+' is finished. '+(homes?homes+' new home'+(homes===1?' is':'s are')+' on the market':'')+(homes&&biz?', and ':'')+(biz?biz+' new business'+(biz===1?' is':'es are')+' hiring':'')+'. The ribbon was cut with regular scissors.',[]);}}
+function hoodBias(u){const b=u&&S.blds[u.bld];const h=b&&b.hood&&S.hoods&&S.hoods[b.hood];return h&&DATA.hoods[h.type]?DATA.hoods[h.type].bias:null;}
+/* ---- is the town full? ---- */
+function housingStatus(){const all=Object.values(S.units).filter(u=>!u.care);const v=vacantUnits().filter(u=>S.blds[u.bld]&&S.blds[u.bld].use!=='mansion').length;const lots=Object.values(S.blds).filter(b=>b.use==='lot').length;const sites=Object.values(S.blds).filter(b=>b.use==='site').length;
+ return{units:all.length,vacant:v,lots,sites,full:v<=Math.max(1,Math.round(all.length*0.03))&&!lots&&!sites};}
+function hoodDaily(){hoodSitesDaily();const hs=housingStatus();S.turned=S.turned||{total:0,week:0};
+ if(hs.full){if(!S.fullSince){S.fullSince=day();if(!(S.fullNews>day()-7)){S.fullNews=day();S._fullAlert=true;news('housing',4,'Sprungfeld is out of room. Every home in town is spoken for, and the city council says the town “needs a new neighborhood, or people need to start sharing.”',[]);}}
+  if(chance(0.4)){S.turned.total++;S.turned.week++;}
+  if(wday()===6&&S.turned.week>0){news('housing',3,'Housing shortage: '+S.turned.week+' famil'+(S.turned.week===1?'y':'ies')+' looked for a home in '+townName0()+' this week and found nothing. Landlords report “a lot of calls.”',[]);S.turned.week=0;}
+  if(S.growth==='auto'&&!Object.values(S.hoods||{}).some(h=>!h.done)&&day()-S.fullSince>=1){const L=living();const wk=L.filter(p=>adult(p)&&!p.retired&&!p.student&&age(p)<66);const un=wk.filter(p=>!p.job).length/Math.max(1,wk.length);
+   const type=un>0.15?pick(['bizpark','mainstreet']):wpick(Object.keys(DATA.hoods),k=>({starter:30,suburb:30,apartments:20,trailer:8,estates:4,mainstreet:8,bizpark:4})[k]);let r=buildHood(type,'medium','any');if(!r.ok)r=buildHood(type,'small','any');}}
+ else if(S.fullSince&&hs.vacant>2){S.fullSince=0;}}
+function townName0(){return(S&&S.townName)||'Sprungfeld';}
+/* ---- newcomers fill new homes faster, and the right households pick the right neighborhoods ---- */
+function newcomers(){const v=vacantUnits().filter(u=>S.blds[u.bld]&&(S.blds[u.bld].use!=='mansion'||S.blds[u.bld].estate));const tot=Object.keys(S.units).length;if(!v.length||v.length/tot<0.04)return;
+ const tries=clamp(Math.round(v.length*0.12),1,4);for(let k=0;k<tries;k++){if(!chance(k===0?0.4:0.45))continue;const vv=vacantUnits().filter(u=>S.blds[u.bld]&&(S.blds[u.bld].use!=='mansion'||S.blds[u.bld].estate));if(!vv.length)break;
+  const u=wpick(vv,u=>S.blds[u.bld].hood?3:1);const before=new Set(Object.keys(S.people));genHousehold(u,S.blds[u.bld].use);const made=Object.values(S.people).filter(p=>!before.has(p.id));
+  for(const p of made){p.loc=homeBld(p);p.act={id:'idle',start:S.t,until:S.t+30,place:p.loc,label:'Unpacking'};if(adult(p)&&!p.retired&&!p.student){p.unemployedSince=day();if(age(p)<66&&chance(0.7))hireSomewhere(p,true);}}
+  S.stats.arrivals+=made.length;S._dirty=true;S._resDirty=true;if(typeof initCars==='function')initCars();
+  const kids=made.length-made.filter(adult).length;news('moving',1,made.filter(adult).map(N).join(' and ')+' moved to '+S.blds[u.bld].addr+' from '+pick(DATA.elsewhere)+(kids?', with '+kids+' kid'+(kids===1?'':'s')+' in tow':'')+'.',made.map(p=>p.id));}}
+
+function migrateV9(){S.hoods=S.hoods||{};S.growth=S.growth||'manual';S.turned=S.turned||{total:0,week:0};}
+
+/* ==== v0.9 SIM: who can work where, elected offices, businesses on empty lots ==== */
+const TEEN_NO_PLACES=new Set(['bar','club','venue','construction','factory','warehouse','sanitation']);
+const TEEN_NO_JOBS=new Set(['tow_driver','bus_driver','mortician','owner','ch_mayor']);
+const ELECTED=new Set(['ch_mayor']);
+function jobBlock(p,J){if(!p||!J)return'That job doesn’t exist.';if(!p.alive)return p.first+' is no longer in town.';const a=age(p);
+ if(ELECTED.has(J.id))return'The mayor is elected. Use “Run for mayor” on someone’s page, and the town decides at the next election.';
+ if(a<16)return p.first+' is '+Math.floor(a)+'. Nobody under 16 can be hired.';
+ if(a<18){if(TEEN_NO_PLACES.has(J.place)||TEEN_NO_JOBS.has(J.id))return p.first+' is '+Math.floor(a)+'. Teens can’t work in bars, clubs, or heavy industry, or drive for a living.';}
+ if(J.edu>p.edu)return p.first+' needs '+['','a high school diploma','a college degree','a graduate degree'][J.edu]+' for that job.';
+ if(p.jailUntil>S.t)return p.first+' is in a holding cell right now.';return null;}
+function teenShift(J){return J.sh[0]>=14;}
+function openings(p){const out=[];if(age(p)<16)return out;for(const z of Object.values(S.biz)){if(!z.open)continue;for(const J of jobsFor(z.use)){if(ELECTED.has(J.id))continue;if(J.edu>p.edu)continue;if(age(p)<18&&jobBlock(p,J))continue;if(staffCount(z,J.id)>=slotN(z,J))continue;out.push({z,J});}}return out;}
+function obDay(p,ob){return ob.kind==='school'?(p.schoolDay==null?-1:p.schoolDay):p.workedDay;}
+function markOb(p,ob,d){if(ob.kind==='school')p.schoolDay=d;else p.workedDay=d;}
+/* empty lots can become businesses */
+const BIZ_PICK=['diner','cafe','grocery','bar','club','gym','record','boutique','thrift','hardware','salon','autoshop','gallery','office','gas','vet','petshop','theater','bowling','venue','daycare','baitshop','bank','dealer','motel'];
+function storefronts(){return Object.values(S.biz).filter(z=>!z.open&&!z.civic&&S.blds[z.id]&&S.blds[z.id].use!=='site');}
+function emptyLots(){return Object.values(S.blds).filter(b=>b.use==='lot');}
+function startBizOnLot(b,use,owner,cash){if(!b||b.use!=='lot')return'That lot isn’t empty anymore.';if(owner&&!adult(owner))return'Only adults can own a business.';b.use='site';b.plan=use;b.bizSite=1;b.siteUntil=day()+2;b.bizOwner=owner?owner.id:null;b.bizCash=cash||0;delete b.growth;
+ if(owner&&owner.job&&owner.job.j!=='owner')clearJob(owner);S._layoutVer=(S._layoutVer||0)+1;rebuildCaches();news('business',3,(owner?N(owner)+' broke ground on ':'Builders broke ground on ')+'a new '+DATA.uses[use].label.toLowerCase()+' at '+b.addr+'. It should open in about two days.',owner?[owner.id]:[]);return null;}
+function bizSitesDaily(){for(const b of Object.values(S.blds)){if(b.use!=='site'||!b.bizSite||day()<b.siteUntil)continue;const use=b.plan;delete b.plan;delete b.bizSite;delete b.siteUntil;b.floors=floorsOf(use);
+  const o=b.bizOwner&&P(b.bizOwner);delete b.bizOwner;const cash=b.bizCash||0;delete b.bizCash;delete S.biz[b.id];const z=openBiz(b,use,o&&o.alive&&adult(o)?o:null,cash);z.baseA=baseAnnual(use);if(!cash)z.cash=Math.round(z.baseA/dpy()*3);
+  S._layoutVer=(S._layoutVer||0)+1;rebuildCaches();news('business',3,z.name+' is open at '+b.addr+(z.ownerId?', run by '+N(P(z.ownerId)):'')+'. Now hiring.',z.ownerId?[z.ownerId]:[]);}}
+function startBusiness(p,use,where){if(!adult(p))return'Only adults can start a business. '+p.first+' is '+Math.floor(age(p))+'.';if(!DATA.uses[use])return'Pick a kind of business.';
+ if(where&&where.lot){return startBizOnLot(S.blds[where.lot],use,p,60000);}
+ const z0=where&&where.store?S.biz[where.store]:null;if(!z0||z0.open)return'That storefront isn’t empty anymore.';const b=S.blds[z0.id];if(p.job)clearJob(p);delete S.biz[b.id];const z=openBiz(b,use,p,60000);z.baseA=baseAnnual(use);rebuildCaches();S._layoutVer=(S._layoutVer||0)+1;S.stats.opened++;
+ news('business',4,N(p)+' opened '+z.name+' at '+b.addr+' after what they describe as “a vision.”',[p.id]);moodlet(p,'Opened a business',20,3);return null;}
+/* ==== v0.9 SIM: smoking costs money, needs supplies, and can be quit with help ==== */
+ACT.smoke.minAge=18;
+{const A=(id,label,pose,prop,at,room,fx,dur,emo,o)=>{const a=Object.assign({id,label,pose,prop,at,room,fx,dur,emo},o||{});const KEYS=Object.keys(DATA.acts[0]);const n={};for(const k of KEYS)n[k]=a[k];for(const k in a)n[k]=a[k];n._fxp=[];for(const nd of NEEDS){const v=(a.fx&&a.fx[nd])||0;if(v>0)n._fxp.push([nd,v*(a.dur[0]+a.dur[1])/120]);}DATA.acts.push(n);ACT[id]=n;};
+ A('buy_cigs','Buying cigarettes','stand','bag',['gas','grocery'],'pub',{comfort:4},[5,12],'🚬',{special:'cigs',minAge:18,chore:1});
+ A('quit_aid','Buying nicotine patches','stand','bag',['grocery','clinic','gas'],'pub',{comfort:3},[10,20],'🩹',{special:'quitaid',minAge:18});}
+function cigDaily(p){return(0.25+p.dep.nicotine/100*0.9)*9*E();}
+function seedSmokers(){for(const p of living()){if(!adult(p))continue;if(chance(0.11*(p.traits.vice/50))){p.dep.nicotine=ri(35,80);p.peakDep.nicotine=p.dep.nicotine;p.cigs=ri(1,3);}}}
+function smokeDaily(p){if(!adult(p)){if(p.cigs)p.cigs=0;return;}if(p.smoked){p.smoked=0;if(p.cigs>0)p.cigs=Math.max(0,p.cigs-1);}
+ const dep=p.dep.nicotine||0;if(dep>20&&!(p.cigs>0)&&!p.quitting.nicotine)moodlet(p,'Out of cigarettes',-8,1);
+ if(p.quitAid>S.ly&&p.quitting.nicotine){p.dep.nicotine=Math.max(0,dep-3);const w=p.moodlets.find(m=>m.text==='Withdrawal');if(w)w.v=Math.max(w.v,-3);}}
+function onStartV9(p,A,z,u){const sp=A.special;
+ p.recent=p.recent||[];p.recent.push(A.id);if(p.recent.length>10)p.recent.shift();
+ if(sp==='event'){p.evDay=p.evDay||{};for(const k in p.evDay)if(p.evDay[k]<day())delete p.evDay[k];p.evDay[A.id]=day();}
+ if(sp==='boat')p.boatDay=day();if(sp==='date')p.dateDay=day();if(sp==='taxes')p.taxYear=year();
+ if(A.id==='smoke'){p.smoked=1;p.lastSmoke=S.t;if(!(p.cigs>0))logp(p,'Bummed a cigarette off somebody.');}
+ if(sp==='cigs'){const days=3;const c=Math.round(cigDaily(p)*days);spend(p,c,'cigarettes');p.cigs=(p.cigs||0)+days;if(z){z.rev+=c;z.visits++;}}
+ if(sp==='quitaid'){spend(p,Math.round(45*E()/7),'quit aids');if(z){z.rev+=Math.round(45*E()/7);z.visits++;}p.quitAid=S.ly+1.5;logp(p,'Bought nicotine patches. This time for real.');moodlet(p,'Trying to quit, with help',4,1);}}
+ACT.boating.bias=(ACT.boating.bias||0)-6;ACT.eat_out.bias=(ACT.eat_out.bias||0)-4;
+/* ---- balance: small everyday things get a fair shot, big outings stop crowding them out ---- */
+for(const[k,v]of Object.entries({coffee:10,social_media:8,doomscroll:4,workout_home:6,crossword:6,meditate:4,people_watch:6,window_shop:6,color:10,pretend:10,cartoons:12,snack:6,get_ready:8,make_bed:10,vacuum:6,clean_bath:6,bills:10,bank_errand:8,online_shop:4,karaoke:4,sunbathe:6,dance:6,journal:2,movie:-6,fish:-4,lake_fish:-4,play:-4}))if(ACT[k])ACT[k].bias=(ACT[k].bias||0)+v;
 
 /* ==== UI ==== */
 const $=s=>document.querySelector(s);
@@ -1957,7 +2156,7 @@ function drawMap(){
   if(SET.figures&&cam.z>=2)mapFigure(s[0],s[1],p);else dot(s[0],s[1]-rr,rr,p);
   if(p.act&&p.act.id==='trick_or_treat'&&cam.z>=1.1){cx.font=Math.round(8+cam.z*2)+'px sans-serif';cx.textAlign='center';cx.fillText('🎃',s[0],s[1]-rr-8);cx.textAlign='left';}
   if(p.trip&&p.trip.mode==='bike'&&cam.z>=1.4){cx.strokeStyle=TH.ink;cx.lineWidth=1;cx.beginPath();cx.arc(s[0]-3,s[1]+1,2.2*cam.z*0.5,0,7);cx.arc(s[0]+3,s[1]+1,2.2*cam.z*0.5,0,7);cx.stroke();}}
- drawParked();drawSeasonExtras(rt);drawLakeExtras(rt);drawServices(rt);callSounds();drawMarkers(rt);drawYardPets();drawWild(rt);drawBus(rt);
+ drawParked();drawSeasonExtras(rt);drawLakeExtras(rt);drawServices(rt);callSounds();drawMarkers(rt);drawHoodLabels();drawYardPets();drawWild(rt);drawBus(rt);
  // selection
  if(selP){const p=S.people[selP];if(p&&p.alive){let xy=personXY(p,rt);if(!xy&&p.loc){const b=S.blds[p.loc];xy=[(b.fp[0][0]+b.fp[2][0])/2,(b.fp[0][1]+b.fp[2][1])/2];}if(xy){const s=P2(xy[0],xy[1]);cx.strokeStyle=TH.accent;cx.lineWidth=2.5;cx.beginPath();cx.arc(s[0],s[1]-rr,rr+6,0,7);cx.stroke();if(follow===selP){cam.tx=xy[0];cam.ty=xy[1];}}}}
  drawWeather();drawFireworks();drawFX();
@@ -2194,7 +2393,7 @@ function showSheet(title){if(sheet.hidden&&typeof SND!=='undefined')SND.play('op
 function closeSheet(){sheet.hidden=true;stack=[];selB=null;document.body.classList.remove('sheet-open');pickFor=null;cv.focus({preventScroll:true});}
 function pushView(v){const top=stack[stack.length-1];if(top&&top.type===v.type&&top.id===v.id)return;stack.push(v);if(stack.length>12)stack.shift();}
 function render(){const v=stack[stack.length-1];if(!v)return;const vk=v.type+':'+(v.id||v.tab||v.idx||'');const keepScroll=body._vk===vk?body.scrollTop:0;body._vk=vk;
- if(['hire','job'].includes(v.type)){body.innerHTML=v.type==='hire'?hireHTML(v):jobPageHTML(v);body.scrollTop=keepScroll;return;}
+ if(['hire','job','startbiz'].includes(v.type)){body.innerHTML=v.type==='hire'?hireHTML(v):v.type==='startbiz'?startbizHTML(v):jobPageHTML(v);body.scrollTop=keepScroll;return;}
  if(['creator','library','calendar'].includes(v.type)){if(v.type==='creator'&&!CR){openCreator(null);return;}body.innerHTML=v.type==='creator'?creatorHTML():v.type==='library'?libraryHTML():calendarHTML();body.scrollTop=v.type==='calendar'?keepScroll:keepScroll;wireV6(v);return;}
  const html=v.type==='person'?personHTML(v.id):v.type==='building'?buildingHTML(v.id):v.type==='paper'?paperHTML0(v):v.type==='favs'?favsHTML():v.type==='town'?townHTML(v.tab||'overview'):v.type==='admin'?adminHTML():settingsHTML();
  body.innerHTML=html;body.scrollTop=keepScroll;body.querySelectorAll('details[data-k]').forEach(d=>{d.open=openSecs.has(d.dataset.k);d.addEventListener('toggle',()=>{d.open?openSecs.add(d.dataset.k):openSecs.delete(d.dataset.k);});});
@@ -2263,8 +2462,8 @@ function clock(t){const m=t%1440;let hh=Math.floor(m/60),mm=Math.floor(m%60);con
 function dateStr(t){const d=Math.floor(t/1440);return dateLabel(d)+', '+DAYN[d%7].slice(0,3);}
 function buildingHTML(id){const b=S.blds[id];const u=DATA.uses[b.use];const z=S.biz[id];const occ=(S._occ&&S._occ[id]||[]);
  const fp=follow&&S.people[follow];const fbar=fp?`<div class="followbar"><span>👁 Following <b>${esc(fp.first)}</b>: ${esc(actLabel(fp))}</span><button data-person="${fp.id}">Page</button><button data-act="unfollow">Stop</button></div>`:'';
- if(b.use==='lot')return`<p class="sub">${esc(b.addr)}</p><p>An empty lot, zoned residential. A builder will put a home here when Sprungfeld needs one.</p>`;
- if(b.use==='site')return`<p class="sub">${esc(b.addr)}</p><p>Under construction: ${b.plan==='apartment'?'an apartment building':'a new '+esc(b.plan)}. Ready in about ${Math.max(1,b.siteUntil-day())} day${b.siteUntil-day()>1?'s':''}.</p>`;
+ if(b.use==='lot')return lotHTML(b);
+ if(b.use==='site')return`<p class="sub">${esc(b.addr)}</p><p>Under construction: ${b.plan==='apartment'?'an apartment building':'a new '+esc((DATA.uses[b.plan]||{label:b.plan}).label.toLowerCase())}${b.hood&&S.hoods&&S.hoods[b.hood]?', part of '+esc(S.hoods[b.hood].name):''}. Ready in about ${Math.max(1,b.siteUntil-day())} day${b.siteUntil-day()>1?'s':''}.</p>`;
  let h=fbar+`<p class="sub">${u.cat==='home'?'':esc(u.label)+', '}${esc(b.addr)}${b.floors>1?', '+b.floors+' floors':''}${z&&!z.open?' <b class="warn">Closed</b>':''}</p>`;
  if(z&&!z.civic&&z.open){h+=`<p class="small">${z.ownerId&&S.people[z.ownerId]?'Owned by '+plink(z.ownerId)+'. ':''}Open ${u.open[0]}:00 to ${u.open[1]===24?'midnight':u.open[1]+':00'}. Cash on hand ${money(z.cash)}.</p>`;}
  h+=`<div class="dollwrap"><canvas id="doll" aria-label="Cutaway view of ${esc(bName(b))}. People inside are listed below."></canvas></div>`;
@@ -2273,18 +2472,19 @@ function buildingHTML(id){const b=S.blds[id];const u=DATA.uses[b.use];const z=S.
  if(b.use==='pound'){const sh=Object.values(S.pets||{}).filter(x=>x.alive&&!x.owner);h+='<h3>Waiting for a home ('+sh.length+')</h3>'+(petsHTML(sh)||'<p class="small muted">Every animal here has been adopted.</p>');}
  h+=sec('bgod','Play god',bldGodPanel(b));
  if(z){h+=staffHTML(b,z)+convertHTML(b,z);
-  if(!z.civic)h+=sec('badmin','Admin tools',`<div class="btnrow wrap"><button data-act="badm" data-g="cash">+$10,000 cash</button>${z.open?'<button data-act="badm" data-g="close" class="danger">Force closure</button>':''}</div><p class="small muted">Market luck ${z.luck.toFixed(2)}, baseline sales ${money(z.baseA)} a year.</p>`);}
+  if(!z.civic)h+=sec('badmin','Admin tools',`<div class="btnrow wrap"><button data-act="badm" data-g="cash">+$10,000 cash</button>${z.open?'<button data-act="badm" data-g="close" class="danger">Force closure</button>':''}</div><p class="small muted">To turn it into a different kind of business, force a closure, then reopen the storefront as something new. Market luck ${z.luck.toFixed(2)}, baseline sales ${money(z.baseA)} a year.</p>`);}
  return h;}
 function paperHTML(idx){const v=stack[stack.length-1];return paperHTML0(v&&v.type==='paper'?v:{idx});}
 function favsHTML(){const f=Object.values(S.people).filter(p=>p.fav);let h='';
  h+=f.length?f.sort((a,b)=>b.alive-a.alive).map(p=>`<div class="favrow"><button class="miniwrap" data-portrait="${p.id}" aria-label="Where is ${esc(p.first)}?"><canvas class="miniport" data-pid="${p.id}"></canvas></button>${personRow(p)}</div>`).join(''):'<p class="empty">Tap the ☆ on anyone’s page to follow their life here. You’ll get a heads-up when something happens to them.</p>';
  h+=`<label class="tog"><input type="checkbox" data-set="passFav" ${SET.passFav?'checked':''}> When a favorite dies, follow their partner and kids</label><label class="tog"><input type="checkbox" data-set="favToasts" ${SET.favToasts?'checked':''}> Pop-up alerts for favorites</label>`;setTimeout(wireForm);return h;}
-function townHTML(tab){const tabs=[['overview','Overview'],['civic','Civic'],['people','People'],['biz','Businesses'],['jobs','Jobs'],['legends','Legends']];
+function townHTML(tab){const tabs=[['overview','Overview'],['growth','Growth'],['civic','Civic'],['people','People'],['biz','Businesses'],['jobs','Jobs'],['legends','Legends']];
  let h='<div class="tabs" role="tablist">'+tabs.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-act="tab" data-t="${k}">${l}</button>`).join('')+'</div>';
- if(tab==='overview'){const t=townStats();h+=`<dl class="kv"><dt>Population</dt><dd>${t.pop} (${t.kids} under 18)</dd><dt>Working</dt><dd>${t.employed} employed, ${t.unemployed} looking</dd><dt>Unhoused</dt><dd>${t.homeless}</dd><dt>Homes</dt><dd>${t.units-t.vacant} of ${t.units} occupied</dd><dt>Businesses</dt><dd>${t.open} open, ${t.closed} empty storefronts</dd><dt>Average mood</dt><dd>${t.mood} (${moodWord(t.mood).toLowerCase()})</dd><dt>Married couples</dt><dd>${t.couples}</dd><dt>Dating</dt><dd>${t.dating}</dd><dt>Sick today</dt><dd>${t.sick}</dd><dt>Struggling with drink</dt><dd>${t.drinkers}</dd><dt>In a cell</dt><dd>${t.jailed}</dd><dt>Vehicles</dt><dd>${living().filter(q=>q.car&&q.car.type!=='bike').length} cars and trucks, ${living().filter(q=>q.car&&q.car.type==='bike').length} bikes</dd><dt>Pets</dt><dd>${Object.values(S.pets||{}).filter(x=>x.alive&&x.owner).length} in homes, ${Object.values(S.pets||{}).filter(x=>x.alive&&!x.owner).length} at the shelter</dd><dt>Homeowners</dt><dd>${Object.values(S.units).filter(x=>x.owned&&residents(x.id).length).length} households</dd><dt>In debt</dt><dd>${living().filter(q=>adult(q)&&q.money<0).length} adults</dd><dt>Median income</dt><dd>${money((()=>{const a=living().filter(q=>adult(q)&&!q.student).map(annualIncome).sort((x,y)=>x-y);return a[a.length>>1]||0;})())} a year</dd><dt>Weather</dt><dd>${DATA.wxIcon[S.wx.k]} ${DATA.wxLabel[S.wx.k]}, ${S.wx.temp}°F</dd><dt>Richest</dt><dd>${t.richest?plink(t.richest.id)+' ('+money(t.richest.money)+')':'—'}</dd></dl>
+ if(tab==='overview'){const t=townStats();h+=`<dl class="kv"><dt>Population</dt><dd>${t.pop} (${t.kids} under 18)</dd><dt>Working</dt><dd>${t.employed} employed, ${t.unemployed} looking</dd><dt>Unhoused</dt><dd>${t.homeless}</dd><dt>Homes</dt><dd>${t.units-t.vacant} of ${t.units} occupied${housingStatus().full?' <b class="warn">Full</b>':''}</dd>${S.turned&&S.turned.total?`<dt>Turned away</dt><dd>${S.turned.total} famil${S.turned.total===1?'y':'ies'} so far</dd>`:''}<dt>Businesses</dt><dd>${t.open} open, ${t.closed} empty storefronts</dd><dt>Average mood</dt><dd>${t.mood} (${moodWord(t.mood).toLowerCase()})</dd><dt>Married couples</dt><dd>${t.couples}</dd><dt>Dating</dt><dd>${t.dating}</dd><dt>Sick today</dt><dd>${t.sick}</dd><dt>Struggling with drink</dt><dd>${t.drinkers}</dd><dt>In a cell</dt><dd>${t.jailed}</dd><dt>Vehicles</dt><dd>${living().filter(q=>q.car&&q.car.type!=='bike').length} cars and trucks, ${living().filter(q=>q.car&&q.car.type==='bike').length} bikes</dd><dt>Pets</dt><dd>${Object.values(S.pets||{}).filter(x=>x.alive&&x.owner).length} in homes, ${Object.values(S.pets||{}).filter(x=>x.alive&&!x.owner).length} at the shelter</dd><dt>Homeowners</dt><dd>${Object.values(S.units).filter(x=>x.owned&&residents(x.id).length).length} households</dd><dt>In debt</dt><dd>${living().filter(q=>adult(q)&&q.money<0).length} adults</dd><dt>Median income</dt><dd>${money((()=>{const a=living().filter(q=>adult(q)&&!q.student).map(annualIncome).sort((x,y)=>x-y);return a[a.length>>1]||0;})())} a year</dd><dt>Weather</dt><dd>${DATA.wxIcon[S.wx.k]} ${DATA.wxLabel[S.wx.k]}, ${S.wx.temp}°F</dd><dt>Richest</dt><dd>${t.richest?plink(t.richest.id)+' ('+money(t.richest.money)+')':'—'}</dd></dl>
   <p class="small muted">Since the town began: ${S.stats.births} births, ${S.stats.deaths} deaths, ${S.stats.weddings} weddings, ${S.stats.divorces} divorces, ${S.stats.arrivals} arrivals, ${S.stats.departures} departures, ${S.stats.opened} businesses opened, ${S.stats.closed} closed.</p>`;}
  if(tab==='civic')h+=civicHTML();
  if(tab==='jobs')h+=jobsTabHTML();
+ if(tab==='growth')h+=growthHTML();
  if(tab==='people'){h+=`<label class="field"><span>Find someone</span><input type="search" id="psearch" placeholder="Name, job, or street" autocomplete="off"></label><div id="plist">${peopleList('')}</div>`;setTimeout(()=>{const i=$('#psearch');if(i){i.value=townQ;i.oninput=()=>{townQ=i.value;$('#plist').innerHTML=peopleList(i.value);};}});}
  if(tab==='biz'){h+=Object.values(S.biz).filter(z=>z.use!=='park').sort((a,b)=>b.open-a.open||a.name.localeCompare(b.name)).map(z=>`<button class="row" data-bld="${z.id}"><span class="rname">${esc(z.open?z.name:'Empty: formerly '+z.name)}</span><span class="rsub">${esc(DATA.uses[z.use].label)}${z.civic?'':', '+money(z.cash)}, ${Object.values(z.staff).flat().length} staff</span></button>`).join('');}
  if(tab==='legends'){const gone=Object.values(S.people).filter(p=>!p.alive).sort((a,b)=>b.diedLy-a.diedLy);h+=gone.length?gone.slice(0,120).map(p=>personRow(p,(p.status==='dead'?'🪦 Died '+esc(p.cause||'')+' at '+Math.floor(p.diedLy-p.bornLy)+(p.epitaph?'. “'+esc(p.epitaph)+'”':''):'Left town at '+Math.floor(p.diedLy-p.bornLy))+', Year '+yearOf(p.diedDay))).join(''):'<p class="empty">Nobody has died or left yet. Give it time.</p>';}
@@ -2293,7 +2493,7 @@ let townQ='';
 function peopleList(q){q=q.trim().toLowerCase();let L=living().slice().sort((a,b)=>a.last.localeCompare(b.last)||a.first.localeCompare(b.first));
  if(q)L=L.filter(p=>(fullName(p)+' '+jobTitle(p)+' '+(p.homeU?S.blds[S.units[p.homeU].bld].addr:'')).toLowerCase().includes(q));return L.slice(0,150).map(p=>personRow(p,esc(Math.floor(age(p))+', '+jobTitle(p)))).join('')||'<p class="empty">No one matches that.</p>';}
 function adminHTML(){const slots=[1,2,3].map(i=>{const t=LS.get('halverson:slot'+i);let info='Empty';if(t){try{const m=JSON.parse(LS.get('halverson:slotmeta'+i)||'{}');info=m.label||'Saved';}catch(e){}}return`<div class="slot"><span><b>Slot ${i}</b> ${esc(info)}</span><button data-act="save" data-i="${i}">Save</button><button data-act="load" data-i="${i}" ${t?'':'disabled'}>Load</button></div>`;}).join('');
- return`<div class="btnrow wrap"><button data-cr="newhh" class="primarybtn">Create a household</button><button data-act="lib">Library</button></div>`+townGodPanel()+`<h3>Skip ahead</h3><div class="btnrow wrap">${[['1 hour',60],['1 day',1440],['1 week',10080]].map(([l,m])=>`<button data-act="ff" data-m="${m}">${l}</button>`).join('')}${[1,5,10].map(y=>`<button data-act="ffy" data-y="${y}">${y} year${y>1?'s':''}</button>`).join('')}</div>
+ return`<div class="btnrow wrap"><button data-cr="newhh" class="primarybtn">Create a household</button><button data-act="lib">Library</button><button data-gr="goto">Expand the town</button></div>`+townGodPanel()+`<h3>Skip ahead</h3><div class="btnrow wrap">${[['1 hour',60],['1 day',1440],['1 week',10080]].map(([l,m])=>`<button data-act="ff" data-m="${m}">${l}</button>`).join('')}${[1,5,10].map(y=>`<button data-act="ffy" data-y="${y}">${y} year${y>1?'s':''}</button>`).join('')}</div>
  <h3>Saves</h3><p class="small muted">The game autosaves every sim day on this device. ${LS.get('halverson:auto')?'Last autosave: '+esc(JSON.parse(LS.get('halverson:autometa')||'{}').label||'saved'):'No autosave yet.'}</p>${slots}
  <div class="btnrow wrap"><button data-act="export">Export save file</button><button data-act="copy">Copy save as text</button><label class="filebtn">Import save file<input type="file" accept=".json,application/json" id="importFile"></label></div>
  <label class="field"><span>Or paste save text</span><textarea id="pasteSave" rows="3" placeholder="Paste a save here"></textarea></label><button data-act="paste">Load pasted save</button>
@@ -2327,7 +2527,7 @@ body.addEventListener('click',async e=>{const t=e.target.closest('button');if(!t
  if(act==='follow'&&p){follow=follow===p.id?null:p.id;if(follow&&p.loc&&!p.trip){openBuilding(p.loc,true);}else render();}
  if(act==='unfollow'){follow=null;render();}
  if(act==='god'&&p){const g=t.dataset.g;if(TARGETED[g]){pickFor={id:p.id,g};toast(TARGETED[g].replace('{a}',p.first));return;}if(DANGER.includes(g)&&!armed(t,'Tap again to confirm'))return;if(g==='smite'){SND.play('thunder');fxAt(p,'bolt');}if(g==='fire'){SND.play('crash');}if(g==='bless')SND.play('coin');if(g==='raccoons')SND.play('raccoon');if(g==='puppy')SND.play('bark');GOD[g](p);render();}
- if(act==='adm'&&p){const g=t.dataset.g;if(g==='mood+')moodlet(p,'Admin cheer',20,1);if(g==='mood-')moodlet(p,'Admin gloom',-20,1);if(g==='cash')p.money+=1000;if(g==='sicken')GOD.sicken(p);if(g==='heal')GOD.heal(p);if(g==='sober'){p.dep.alcohol=p.dep.nicotine=0;p.quitting={};}if(g==='fire'&&p.job)fire(p,'by order of a higher power');if(g==='hire'&&!p.job&&!hireSomewhere(p))toast('No openings fit '+p.first+' right now.');if(g==='age')p.bornLy-=5;if(g==='needs')for(const n of NEEDS)p.needs[n]=100;if(g==='edit'){openCreator({members:[personSpec(p)],pets:[]},p.id);return;}if(g==='savehh'){const sp=householdSpec(p);const lib=libLoad();lib.push(sp);libSave(lib);toast('Saved '+sp.name+' ('+sp.members.length+' people) to your library.');return;}updateMood(p);render();}
+ if(act==='adm'&&p){const g=t.dataset.g;if(g==='mood+')moodlet(p,'Admin cheer',20,1);if(g==='mood-')moodlet(p,'Admin gloom',-20,1);if(g==='cash')p.money+=1000;if(g==='sicken')GOD.sicken(p);if(g==='heal')GOD.heal(p);if(g==='sober'){p.dep.alcohol=p.dep.nicotine=0;p.quitting={};}if(g==='fire'&&p.job)fire(p,'by order of a higher power');if(g==='hire'&&!p.job&&!hireSomewhere(p))toast(age(p)<16?p.first+' is too young to work. Nobody under 16 can be hired.':age(p)<18?'No after-school or weekend jobs are open for '+p.first+' right now.':'No openings fit '+p.first+' right now. Add positions from a business’s staffing tools, or expand the town with a Business park.');if(g==='age')p.bornLy-=5;if(g==='needs')for(const n of NEEDS)p.needs[n]=100;if(g==='edit'){openCreator({members:[personSpec(p)],pets:[]},p.id);return;}if(g==='savehh'){const sp=householdSpec(p);const lib=libLoad();lib.push(sp);libSave(lib);toast('Saved '+sp.name+' ('+sp.members.length+' people) to your library.');return;}updateMood(p);render();}
  if(act==='bgod'){const b=S.blds[v.id];const g=t.dataset.g;if(BDANGER.includes(g)&&!armed(t,'Tap again to confirm'))return;BGOD[g](b);render();return;}
  if(act==='tgod'){const g=t.dataset.g;if(['quake','tornado','recession','plague'].includes(g)&&!armed(t,'Tap again to confirm'))return;TGOD[g]();toast('Done. Check the paper.');render();return;}
  if(act==='make2'){const g=t.dataset.g;PUPPET[g](p);render();return;}
@@ -2359,7 +2559,7 @@ function afterLoad(){WILD=null;renameTown(S,'Halverson','Sprungfeld');applySetti
 
 /* ---------- fast-forward, now showing, toasts ---------- */
 function ffMinutes(total){if(busy)return;busy=true;const ov=$('#busy');ov.hidden=false;const bar=ov.querySelector('i'),msg=ov.querySelector('p');let done=0;const t0=S.t;
- const chunk=()=>{const end=performance.now()+40;while(done<total&&performance.now()<end){const dt=Math.min(10,total-done);step(dt);done+=dt;}bar.style.width=(done/total*100)+'%';msg.textContent='Skipping ahead… '+dateStr(S.t);
+ const chunk=()=>{const end=performance.now()+40;while(done<total&&performance.now()<end){const dt=Math.min(total>=1440?20:10,total-done);step(dt);done+=dt;}bar.style.width=(done/total*100)+'%';msg.textContent='Skipping ahead… '+dateStr(S.t);
   if(done<total)setTimeout(chunk,0);else{busy=false;ov.hidden=true;autosave();toast('Skipped to '+dateStr(S.t)+'. '+S.events.filter(e=>e.t>t0&&e.drama>=4).length+' big stories in the paper.');if(stack.length)render();}};chunk();}
 function nowShowing(){const seen=S._seen||(S._seen=new Set());const since=S.t-720;const ev=S.events.filter(e=>e.t>=since&&e.drama>=3&&!seen.has(e.t+e.text)).sort((a,b)=>b.drama-a.drama||b.t-a.t);
  for(const e of ev){const id=e.ids.find(i=>S.people[i]&&S.people[i].alive);if(!id)continue;seen.add(e.t+e.text);follow=id;stack=[];openPerson(id);toast(plain(e.text));return;}
@@ -2370,7 +2570,7 @@ function announce(t){const r=$('#sr');r.textContent='';setTimeout(()=>r.textCont
 function hookSim(){S._favFamily=SET.passFav;S._onNews=e=>{if(busy)return;SND.event(e);const fav=e.ids.some(i=>S.people[i]&&S.people[i].fav);if((fav&&SET.favToasts&&e.drama>=2)||(SET.bigToasts&&e.drama>=6))toast(plain(e.text));};
  S._onDeath=p=>{if(!p.fav||!SET.passFav)return;const heirs=[p.partner,...p.children].map(i=>S.people[i]).filter(q=>q&&q.alive);heirs.forEach(q=>q.fav=true);if(heirs.length&&!busy)toast('Now following '+heirs.map(q=>q.first).join(', ')+'.');};}
 function autosave(){const ok=LS.set('halverson:auto',serialize());LS.set('halverson:autometa',JSON.stringify({label:dateLabel()+', day '+(day()+1)}));if(!ok&&!S._warned){S._warned=true;toast('Autosave failed: device storage is full. Export a save from Admin.');}}
-function startNew(opts){opts=opts||{};WILD=null;if(opts.pop)DATA.meta.targetPop=opts.pop;if(opts.lifespan){SET.lifespan=opts.lifespan;saveSettings();}newGame(opts.seed||((Math.random()*2**31)|0));if(opts.name&&opts.name!=='Sprungfeld')renameTown(S,'Sprungfeld',opts.name);hookSim();applySettings();sortBlds();acc=0;lastDay=day();autosave();cam.x=375;cam.y=250;}
+function startNew(opts){opts=opts||{};WILD=null;if(opts.pop)DATA.meta.targetPop=opts.pop;{const ts=TOWN_SIZES[opts.size||'town'];if(ts)DATA.meta.targetPop=ts.pop;START_OPTS={growth:opts.growth||'manual',hoods:ts?ts.hoods:[]};}if(opts.lifespan){SET.lifespan=opts.lifespan;saveSettings();}newGame(opts.seed||((Math.random()*2**31)|0));START_OPTS=null;if(opts.name&&opts.name!=='Sprungfeld')renameTown(S,'Sprungfeld',opts.name);hookSim();applySettings();sortBlds();acc=0;lastDay=day();autosave();cam.x=375;cam.y=250;}
 
 /* ---------- top bar, keys, loop ---------- */
 document.querySelectorAll('#speeds button').forEach(b=>b.onclick=()=>setSpeed(+b.dataset.s));
@@ -2390,7 +2590,7 @@ function frame(now){const dt=Math.min(0.25,(now-last)/1000);last=now;
  if(!busy){drawMap();if(!sheet.hidden&&selB&&stack.length&&stack[stack.length-1].type==='building'&&!['lot','site'].includes(S.blds[selB].use))drawDoll();portraitTick();}
  if(now-lastUI>400){lastUI=now;const m=S.t%1440;$('#clock').textContent=DAYN[wday()]+' '+clock(S.t);$('#townLabel').textContent=townName()+(live?' · Live':'');$('#date').textContent=DATA.wxIcon[S.wx.k]+' '+S.wx.temp+'°F, '+dateLabel();
   if(day()!==lastDay){lastDay=day();autosave();}
-  followTick();favBarTick();reminderTick();
+  followTick();favBarTick();reminderTick();fullTick();
   const v=stack[stack.length-1];if(!sheet.hidden&&v&&now-(window._lastRender||0)>1000&&now-lastTouch>1200){window._lastRender=now;if((v.type==='person'||v.type==='building')&&!body.contains(document.activeElement))liveRefresh(v);refreshLiveRows();}}
  requestAnimationFrame(frame);}
 let lastTouch=0;['touchstart','touchmove','wheel','scroll','pointerdown'].forEach(ev=>body.addEventListener(ev,()=>{lastTouch=performance.now();},{passive:true,capture:true}));
@@ -2648,7 +2848,7 @@ function godPanel(p){const B=(g,l,cls)=>`<button data-act="god" data-g="${g}"${c
  return`<p class="small muted">Blessings</p><div class="btnrow wrap">${B('bless','Lottery win')}${B('inheritance','Mystery inheritance')}${B('talent','Sudden talent')}${B('puppy','Surprise puppy')}${B('newcar','New car')}${B('youth','Fountain of youth')}</div>
  <p class="small muted">Curses</p><div class="btnrow wrap">${B('smite','Lightning strike','danger')}${B('fire','Burn down their house','danger')}${B('raincloud','Personal rain cloud')}${B('foodpoison','Food poisoning')}${B('badhair','Bad hair day')}${B('wallet','Lose their wallet')}${B('audit','IRS audit')}${B('cartrouble','Kill their car')}${B('bees','Bees')}${B('raccoons','Raccoons')}${B('elderly','Age them 10 years')}${B('rumor','Start a rumor')}${B('secret','Expose a secret')}</div>
  <p class="small muted">Meddling (tap the button, then tap a second person)</p><div class="btnrow wrap">${B('introduce','Introduce to…')}${adult(p)?B('crush','Make them fall for…'):''}${B('feud','Start a feud with…')}${B('forget','Make them forget…')}${B('midlife','Midlife crisis')}</div>
- <p class="small muted">Make them…</p><div class="btnrow wrap">${M('quit','Quit their job')}${adult(p)?M('propose','Propose')+M('dump','Dump their partner'):''}${M('party','Throw a party now')}${M('adopt','Adopt a pet')}${M('car','Buy a car')}${M('business','Start a business')}${M('mayor','Run for mayor')}${M('drunk','Go get drunk')}${M('spree','Go on a spending spree')}${M('hobby','Take up a hobby')}${M('makeover','Get a makeover')}${M('leave','Move away')}</div>`;}
+ <p class="small muted">Make them…</p><div class="btnrow wrap">${M('quit','Quit their job')}${adult(p)?M('propose','Propose')+M('dump','Dump their partner'):''}${M('party','Throw a party now')}${M('adopt','Adopt a pet')}${M('car','Buy a car')}${M('business','Start a business…')}${M('mayor','Run for mayor')}${M('drunk','Go get drunk')}${M('spree','Go on a spending spree')}${M('hobby','Take up a hobby')}${M('makeover','Get a makeover')}${M('leave','Move away')}</div>`;}
 /* ---- building and town powers ---- */
 const BDANGER=['fire','meteor'];
 const BGOD={
@@ -2685,7 +2885,7 @@ function titleHTML(v){const saved=!!LS.get('halverson:auto');const meta=JSON.par
  if(v==='menu')return`<div class="tcard">${head}<p class="small center">${esc(townName())}, ${esc(dateLabel())}</p><div class="tbtns"><button data-t="resume">Resume</button><button data-t="live">${live?'Turn off Live mode':'Live mode (real time)'}</button><button data-t="save1">Save to slot 1</button><button data-t="admin">Admin and god tools</button><button data-t="library">Create a household / Library</button><button data-t="options">Settings</button><button data-t="quit">Quit to title</button></div></div>`;
  if(v==='new')return`<div class="tcard">${head}<h3>New town</h3><label class="field"><span>Town name</span><input id="tName" value="Sprungfeld" maxlength="24"></label>
   <label class="field"><span>Lifespan</span><select id="tLife"><option value="short">Short (about 25 hours a life)</option><option value="normal" selected>Normal (about 50 hours a life)</option><option value="long">Long (about 100 hours a life)</option></select></label>
-  <label class="field"><span>Starting population</span><select id="tPop"><option value="150">Small (about 150)</option><option value="200" selected>Medium (about 200)</option><option value="280">Large (about 280)</option></select></label>
+  <label class="field"><span>Town size</span><select id="tSize">${Object.entries(TOWN_SIZES).map(([k,s])=>`<option value="${k}" ${k==='town'?'selected':''}>${esc(s.label)}</option>`).join('')}</select></label><label class="field"><span>How it grows</span><select id="tGrow"><option value="manual" selected>Only when I build a neighborhood</option><option value="auto">On its own when it fills up</option></select></label>
   <label class="field"><span>Seed (optional, same seed makes the same town)</span><input id="tSeed" inputmode="numeric" placeholder="Random"></label>
   <div class="tbtns"><button data-t="create">Start this town</button><button data-t="back">Back</button></div>${saved?'<p class="small muted center">Starting a new town replaces the autosave. Save slots are kept.</p>':''}</div>`;
  if(v==='load'){const slots=[1,2,3].map(i=>{const m=JSON.parse(LS.get('halverson:slotmeta'+i)||'{}');const has=!!LS.get('halverson:slot'+i);return`<button data-t="slot${i}" ${has?'':'disabled'}>Slot ${i}: ${has?esc(m.label||'Saved'):'empty'}</button>`;}).join('');
@@ -2703,7 +2903,7 @@ function titleAction(t,btn){
  if(t==='save1'){const ok=LS.set('halverson:slot1',serialize());LS.set('halverson:slotmeta1',JSON.stringify({label:townName()+', '+dateLabel()}));toast(ok?'Saved to slot 1.':'Storage is full. Export a save from Admin.');return;}
  if(t==='quit'){autosave();live=false;setSpeed(0);showTitle('main');return;}
  if(t&&t.startsWith('slot')){try{loadText(LS.get('halverson:'+t));renameTown(S,'Halverson','Sprungfeld');hideTitle();setSpeed(1);}catch(e){toast(e.message);}return;}
- if(t==='create'){const name=($('#tName').value||'Sprungfeld').trim().slice(0,24)||'Sprungfeld';const seed=parseInt($('#tSeed').value,10);startNew({name,lifespan:$('#tLife').value,pop:+$('#tPop').value,seed:isNaN(seed)?0:seed});hideTitle();setSpeed(1);markSpeeds();toast('Welcome to '+townName()+'. Tap a building to look inside, or tap a dot to meet someone.');return;}}
+ if(t==='create'){const name=($('#tName').value||'Sprungfeld').trim().slice(0,24)||'Sprungfeld';const seed=parseInt($('#tSeed').value,10);startNew({name,lifespan:$('#tLife').value,size:$('#tSize').value,growth:$('#tGrow').value,seed:isNaN(seed)?0:seed});hideTitle();setSpeed(1);markSpeeds();toast('Welcome to '+townName()+'. Tap a building to look inside, or tap a dot to meet someone.');return;}}
 let onTitleFromMenu=false;
 const _closeSheet=closeSheet;closeSheet=function(){_closeSheet();if(optsFromTitle){optsFromTitle=false;showTitle('main');}};
 $('#sheetClose').onclick=closeSheet;
@@ -2846,7 +3046,7 @@ function creatorHTML(){const m=CR.members[CR.cur];const L=DATA.look;const T=CR.t
   h+='<p class="small muted">Interests (up to 5)</p><div class="chips">'+DATA.interests.map(i=>`<button class="chip ${m.interests.includes(i.id)?'on':''}" data-cr="int" data-i="${i.id}">${esc(i.label)}</button>`).join('')+'</div>';
   h+=f('goal','Life goal',`<select data-f="goal">${DATA.goals.map(g=>`<option value="${g.id}" ${m.goal===g.id?'selected':''}>${esc(g.label)}</option>`).join('')}</select>`);}
  if(T==='life'){h+=f('edu','Education',`<select data-f="edu">${['No diploma','High school','College','Graduate degree'].map((l,i)=>`<option value="${i}" ${+m.edu===i?'selected':''}>${l}</option>`).join('')}</select>`)+f('money','Money in the bank',`<input type="number" min="0" data-f="money" value="${m.money||0}">`);
-  const jobs=Object.values(JOB).filter(j=>j.id!=='owner'&&j.place!=='*').sort((a,b)=>a.title.localeCompare(b.title));h+=f('job','Job',`<select data-f="job"><option value="">Find one on their own</option>${jobs.map(j=>`<option value="${j.id}" ${m.job===j.id?'selected':''}>${esc(j.title)}</option>`).join('')}</select>`);}
+  const jobs=Object.values(JOB).filter(j=>j.id!=='owner'&&j.place!=='*'&&!ELECTED.has(j.id)).sort((a,b)=>a.title.localeCompare(b.title));h+=f('job','Job',`<select data-f="job"><option value="">Find one on their own</option>${jobs.map(j=>`<option value="${j.id}" ${m.job===j.id?'selected':''}>${esc(j.title)}</option>`).join('')}</select>`);}
  if(CR.edit)h+=`<div class="btnrow wrap crfoot"><button data-cr="apply" class="primarybtn">Save changes</button><button data-cr="cancel">Cancel</button></div>`;
  else{const v=vacantUnits().filter(u=>S.blds[u.bld].use!=='mansion'||CR.members.reduce((a,x)=>a+(x.money||0),0)>500000).sort((a,b)=>b.rent-a.rent);
   h+=`<h3>Finish</h3><label class="field"><span>Home</span><select id="crHome">${v.map(u=>`<option value="${u.id}">${esc(S.blds[u.bld].addr)}${S.blds[u.bld].use==='apartment'?' apt '+(u.idx+1):''} (${esc(DATA.uses[S.blds[u.bld].use].label.toLowerCase())}, ${money(u.rent*4.33)} a month)</option>`).join('')}<option value="">No home (starts out unhoused)</option></select></label>
@@ -2865,7 +3065,7 @@ function libSave(l){if(!LS.set('halverson:library',JSON.stringify(l)))toast('Dev
 function libraryHTML(){const lib=libLoad();let h='<div class="btnrow wrap"><button data-cr="newhh" class="primarybtn">Create a household</button><label class="filebtn">Import a household file<input type="file" accept=".json,application/json" id="libFile"></label></div>';
  h+=lib.length?lib.map((s,i)=>`<div class="libitem"><b>${esc(s.name||'Household')}</b><span class="small muted">${s.members.map(m=>esc(m.first)+' ('+m.age+')').join(', ')}${(s.pets||[]).length?', plus '+s.pets.length+' pet'+(s.pets.length>1?'s':''):''}</span><div class="btnrow wrap"><button data-cr="libedit" data-i="${i}">Edit or move in</button><button data-cr="libexp" data-i="${i}">Export</button><button data-cr="libdel" data-i="${i}" class="danger">Delete</button></div></div>`).join(''):'<p class="empty">Nothing saved yet. Build a household in the creator, or open any family’s page and choose “Save household to library.”</p>';return h;}
 function applySpecToPerson(p,m){p.first=m.first;p.last=m.last;p.sex=m.sex;p.attracted=m.attracted.slice();p.traits=Object.assign({},m.traits);p.quirks=m.quirks.slice();p.prefs=Object.assign({},m.prefs);p.interests=m.interests.slice();for(const i of p.interests)if(p.skills[i]==null)p.skills[i]=10;p.goal=m.goal;p.edu=+m.edu;p.look=JSON.parse(JSON.stringify(m.look));p.bornLy=S.ly-m.age-(age(p)%1);p.money=+m.money;
- if(m.job&&(!p.job||p.job.j!==m.job)&&JOB[m.job]){const J=JOB[m.job];const z=Object.values(S.biz).find(z=>z.open&&z.use===J.place&&staffCount(z,m.job)<J.n);if(z)setJob(p,z.id,m.job);else if(J.place==='home')setJob(p,null,m.job);else toast('No opening for '+J.title.toLowerCase()+' right now; kept their current job.');}}
+ if(m.job&&(!p.job||p.job.j!==m.job)&&JOB[m.job]&&!jobBlock(p,JOB[m.job])){const J=JOB[m.job];const z=Object.values(S.biz).find(z=>z.open&&z.use===J.place&&staffCount(z,m.job)<J.n);if(z)setJob(p,z.id,m.job);else if(J.place==='home')setJob(p,null,m.job);else toast('No opening for '+J.title.toLowerCase()+' right now; kept their current job.');}}
 async function crAction(t,btn){const a=btn.dataset.cr;
  if(a==='pick'){CR.cur=+btn.dataset.i;render();return;}
  if(a==='tab'){CR.tab=btn.dataset.t;render();return;}
@@ -3018,16 +3218,17 @@ function staffHTML(b,z){let h='';const jobs=jobsFor(z.use);if(!jobs.length&&!z.c
  h+='<h3>Who works here</h3>';
  if(z.ownerId&&S.people[z.ownerId])h+=`<div class="jobslot"><div class="jobhead"><b>Owner</b></div>${personRow(S.people[z.ownerId],'Owner')}</div>`;
  for(const J of jobs){const ids=(z.staff[J.id]||[]).filter(i=>S.people[i]&&S.people[i].alive);const n=slotN(z,J);
-  h+=`<div class="jobslot"><div class="jobhead"><button class="plink" data-jobpage="${J.id}">${esc(J.title)}</button><span class="small muted">${ids.length} of ${n} filled, ${money(J.pay*260)} a year</span>${ADMIN_OPEN?`<span class="slotbtns"><button data-st="minus" data-j="${J.id}" aria-label="Remove a ${esc(J.title)} position">−</button><button data-st="plus" data-j="${J.id}" aria-label="Add a ${esc(J.title)} position">+</button></span>`:''}</div>`;
-  h+=ids.map(i=>{const p=S.people[i];return`<div class="staffrow">${personRow(p,esc(J.title)+', performance '+Math.round(p.perf||50))}${ADMIN_OPEN?`<div class="btnrow wrap mini"><button data-st="promote" data-p="${i}">Promote</button><button data-st="transfer" data-p="${i}">Transfer</button><button data-st="fire" data-p="${i}" class="danger">Fire</button></div>`:''}</div>`;}).join('');
-  if(ADMIN_OPEN&&ids.length<n)h+=`<div class="btnrow wrap mini"><button data-st="hire" data-j="${J.id}">Hire from a list…</button><button data-st="hirepick" data-j="${J.id}">Tap someone to hire…</button></div>`;
+  h+=`<div class="jobslot"><div class="jobhead"><button class="plink" data-jobpage="${J.id}">${esc(J.title)}</button><span class="small muted">${ids.length} of ${n} filled, ${money(J.pay*260)} a year</span>${ADMIN_OPEN&&!ELECTED.has(J.id)?`<span class="slotbtns"><button data-st="minus" data-j="${J.id}" aria-label="Remove a ${esc(J.title)} position">−</button><button data-st="plus" data-j="${J.id}" aria-label="Add a ${esc(J.title)} position">+</button></span>`:''}</div>`;
+  h+=ids.map(i=>{const p=S.people[i];return`<div class="staffrow">${personRow(p,esc(J.title)+', performance '+Math.round(p.perf||50))}${ADMIN_OPEN&&!ELECTED.has(J.id)?`<div class="btnrow wrap mini"><button data-st="promote" data-p="${i}">Promote</button><button data-st="transfer" data-p="${i}">Transfer</button><button data-st="fire" data-p="${i}" class="danger">Fire</button></div>`:''}</div>`;}).join('');
+  if(ADMIN_OPEN&&ids.length<n&&!ELECTED.has(J.id))h+=`<div class="btnrow wrap mini"><button data-st="hire" data-j="${J.id}">Hire from a list…</button><button data-st="hirepick" data-j="${J.id}">Tap someone to hire…</button></div>`;
+  if(ADMIN_OPEN&&ELECTED.has(J.id))h+='<p class="small muted">This office is elected. Use “Run for mayor” on someone’s page; the town votes in the fall.</p>';
   h+='</div>';}
  if(!z.civic&&ADMIN_OPEN){h+=`<div class="btnrow wrap"><button data-st="owner">${z.ownerId?'Replace the owner…':'Set an owner…'}</button><button data-st="sale" aria-pressed="${!!z.forSale}">${z.forSale?'Take it off the market':'Put it up for sale'}</button></div>`;}
  h+=`<label class="tog"><input type="checkbox" id="staffAdmin" ${ADMIN_OPEN?'checked':''}> Show staffing tools</label>`;return h;}
 let ADMIN_OPEN=false;
 function convertHTML(b,z){if(z.open||z.civic)return'';const types=[...new Set([z.use].concat(DATA.newBizTypes))];return`<h3>Reopen this storefront</h3><div class="btnrow wrap">${types.map(t=>`<button data-st="convert" data-u="${t}">${esc(DATA.uses[t].label)}</button>`).join('')}</div><p class="small muted">It opens with no owner and no staff; hire people above or let the town fill the jobs.</p>`;}
 function hireHTML(v){const z=S.biz[v.b],J=JOB[v.j];if(!z||!J)return'<p>That job no longer exists.</p>';const c=hireCandidates(z,J);
- return`<p class="sub">${esc(J.title)} at ${blink(z.id)}, ${money(J.pay*260)} a year${J.edu?', needs '+['','a high school diploma','a college degree','a graduate degree'][J.edu]:''}.</p>`+(c.length?c.map(({p})=>`<div class="staffrow">${personRow(p,esc(Math.floor(age(p))+', '+jobTitle(p)+(J.interest&&p.skills[J.interest]?', '+DATA.interests.find(x=>x.id===J.interest).label.toLowerCase()+' '+Math.round(p.skills[J.interest]):'')))}<div class="btnrow mini"><button data-st="dohire" data-p="${p.id}" class="primarybtn">Hire</button></div></div>`).join(''):'<p class="empty">Nobody in town qualifies right now.</p>');}
+ return`<p class="sub">${esc(J.title)} at ${blink(z.id)}, ${money(J.pay*260)} a year${J.edu?', needs '+['','a high school diploma','a college degree','a graduate degree'][J.edu]:''}.</p>`+(c.length?c.map(({p})=>`<div class="staffrow">${personRow(p,esc(Math.floor(age(p))+', '+jobTitle(p)+(J.interest&&p.skills[J.interest]?', '+DATA.interests.find(x=>x.id===J.interest).label.toLowerCase()+' '+Math.round(p.skills[J.interest]):'')))}<div class="btnrow mini"><button data-st="dohire" data-p="${p.id}" class="primarybtn">Hire</button></div></div>`).join(''):'<p class="empty">Nobody in town qualifies right now.'+(J.edu?' This job needs '+['','a high school diploma','a college degree','a graduate degree'][J.edu]+'.':'')+' Teens 16 and 17 only show up for after-school and weekend work, and never for bars, clubs, or heavy industry.</p>');}
 function jobPageHTML(v){const J=JOB[v.j];if(!J)return'';const hold=living().filter(p=>p.job&&p.job.j===J.id);const at=Object.values(S.biz).filter(z=>z.open&&jobsFor(z.use).some(x=>x.id===J.id));
  return`<p class="sub">${money(J.pay*260)} a year, ${J.sh[0]}:00 to ${J.sh[1]===24?'midnight':J.sh[1]+':00'}${J.days==='wk'?' on weekdays':', any day of the week'}.${J.edu?' Needs '+['','a high school diploma','a college degree','a graduate degree'][J.edu]+'.':''}${DATA.ladder[J.id]?' Next step up: '+esc(JOB[DATA.ladder[J.id]].title.toLowerCase())+'.':''}</p>
  <h3>Held by ${hold.length} ${hold.length===1?'person':'people'}</h3>${hold.map(p=>personRow(p,esc(S.biz[p.job.b]?S.biz[p.job.b].name:'self-employed'))).join('')||'<p class="small muted">Nobody, right now.</p>'}
@@ -3050,7 +3251,7 @@ body.addEventListener('click',e=>{const jp=e.target.closest('[data-jobpage]');if
  if(a==='sale'){z.forSale=!z.forSale;toast(z.forSale?z.name+' is on the market. An ambitious local may buy it.':z.name+' is off the market.');}
  if(a==='convert'){const bb=S.blds[z.id];const nz=openBiz(bb,b.dataset.u,null,0);nz.baseA=baseAnnual(b.dataset.u);nz.cash=Math.round(nz.baseA/dpy()*3);rebuildCaches();S._layoutVer=(S._layoutVer||0)+1;news('business',3,nz.name+' has opened at '+bb.addr+'.',[]);showSheet(bName(bb));}
  render();},true);
-function pickForAction(pf,p){if(pf.hire){const z=S.biz[pf.hire.b],J=JOB[pf.hire.j];if(!z||!J)return;if(age(p)<16){toast(p.first+' is too young to work there.');return;}if(J.edu>p.edu){toast(p.first+' doesn’t have the education for that job.');return;}adminHire(p,z,J);toast(fullName(p)+' is the new '+J.title.toLowerCase()+'.');openBuilding(z.id);return true;}
+function pickForAction(pf,p){if(pf.hire){const z=S.biz[pf.hire.b],J=JOB[pf.hire.j];if(!z||!J)return;{const why=jobBlock(p,J);if(why){toast(why);return;}}adminHire(p,z,J);toast(fullName(p)+' is the new '+J.title.toLowerCase()+'.');openBuilding(z.id);return true;}
  if(pf.owner){const z=S.biz[pf.owner];if(!z)return;if(!adult(p)){toast('Only adults can own a business.');return;}const old=z.ownerId&&P(z.ownerId);if(old&&old.job&&old.job.b===z.id){clearJob(old);old.unemployedSince=day();}z.ownerId=p.id;z.forSale=false;setJob(p,z.id,'owner');moodlet(p,'Owns a business now',16,2);news('business',3,N(p)+' is the new owner of '+z.name+'.',[p.id]);openBuilding(z.id);return true;}}
 /* ======================= live markers on the map ======================= */
 const MARK_ICON={event:null,party:'🎉',yardsale:'🏷️',funeral:'🕯️',fire:'🔥',police:'🚨',campaign:'📣',vote:'🗳️',gig:'🎤',concert:'🎸'};
@@ -3069,6 +3270,57 @@ let MARKS=[];function drawMarkers(rt){MARKS=liveMarkers(rt);const t=animNow()/10
 function tapMarker(x,y){for(const m of MARKS){if(m._s&&Math.hypot(m._s[0]-x,m._s[1]-y)<16){toast(m.icon+' '+m.label+' at '+bName(S.blds[m.bid])+'.');openBuilding(m.bid,true);return true;}}return false;}
 /* ======================= favorites and lists stay live ======================= */
 function refreshLiveRows(){body.querySelectorAll('.row[data-live]').forEach(r=>{const p=S.people[r.dataset.person];if(!p)return;const sub=r.querySelector('.rsub');const t=p.alive?actLabel(p):p.status==='dead'?'Died '+(p.cause||''):'Moved away';if(sub&&sub.textContent!==t)sub.textContent=t;const d=r.querySelector('.mdot');const c='mdot m-'+moodB(p.mood);if(d&&d.className!==c)d.className=c;});}
+
+/* ======================= v0.9: growth tab, neighborhoods, start-a-business picker ======================= */
+const TOWN_SIZES={village:{label:'Village (about 150 people)',pop:150,hoods:[]},town:{label:'Town (about 210 people)',pop:210,hoods:[]},city:{label:'Small city (about 380 people, four extra neighborhoods)',pop:380,hoods:[['suburb','medium','north'],['apartments','medium','east'],['mainstreet','small','any'],['bizpark','small','any']]}};
+let GROW={type:'suburb',size:'medium',dir:'any',msg:''};
+function jobsPicture(){const L=living();const wk=L.filter(p=>adult(p)&&!p.retired&&!p.student&&age(p)<66);let slots=0,filled=0;for(const z of Object.values(S.biz)){if(!z.open)continue;for(const J of jobsFor(z.use)){if(J.place==='home'||ELECTED.has(J.id))continue;slots+=slotN(z,J);filled+=staffCount(z,J.id);}}return{workers:wk.length,unemployed:wk.filter(p=>!p.job).length,open:Math.max(0,slots-filled)};}
+function growthHTML(){const hs=housingStatus();const jp=jobsPicture();const busy=Object.values(S.hoods||{}).find(h=>!h.done);let h='';
+ h+=`<dl class="kv"><dt>Homes</dt><dd>${hs.units-hs.vacant} of ${hs.units} occupied${hs.full?' <b class="warn">Full</b>':''}</dd><dt>Room to grow</dt><dd>${hs.vacant} vacant home${hs.vacant===1?'':'s'}, ${hs.lots} empty lot${hs.lots===1?'':'s'}${hs.sites?', '+hs.sites+' under construction':''}</dd><dt>Turned away</dt><dd>${(S.turned&&S.turned.total)||0} famil${((S.turned&&S.turned.total)||0)===1?'y':'ies'} couldn’t find a home here</dd><dt>Work</dt><dd>${jp.unemployed} of ${jp.workers} working-age adults looking, ${jp.open} open positions</dd></dl>`;
+ if(hs.full)h+='<p class="small warn">Every home is taken. New families are being turned away until the town grows.</p>';
+ else if(jp.workers&&jp.unemployed/jp.workers>0.15)h+='<p class="small warn">A lot of people can’t find work. A Business park or Main Street adds jobs.</p>';
+ h+=`<h3>How the town grows</h3><div class="chips">${[['manual','Only when I build'],['auto','Automatically when it fills up']].map(([k,l])=>`<button class="chip ${(S.growth||'manual')===k?'on':''}" data-gr="mode" data-v="${k}" aria-pressed="${(S.growth||'manual')===k}">${l}</button>`).join('')}</div>
+ <p class="small muted">${S.growth==='auto'?'When every home is taken, builders start a new neighborhood on their own, picking whatever the town needs most.':'The town only grows when you build. The paper will say when it’s running out of room.'}</p>`;
+ h+='<h3>Build a neighborhood</h3>';
+ if(busy)h+=`<p class="small">🚧 Builders are working on <b>${esc(busy.name)}</b>, ready in about ${Math.max(1,busy.ready-day())} day${busy.ready-day()>1?'s':''}. One neighborhood at a time.</p>`;
+ h+='<div class="hoodtypes">'+Object.entries(DATA.hoods).map(([k,t])=>{const st=hoodStats(k,GROW.size);return`<button class="hoodcard ${GROW.type===k?'on':''}" data-gr="type" data-v="${k}" aria-pressed="${GROW.type===k}"><b>${esc(t.label)}</b><span class="small">${esc(t.blurb)}</span><span class="small muted">${st.homes} home${st.homes===1?'':'s'}, ${st.biz} business${st.biz===1?'':'es'}, about ${st.jobs} jobs</span></button>`;}).join('')+'</div>';
+ h+=`<p class="small muted">Size</p><div class="chips">${Object.entries(DATA.hoodSizes).map(([k,s])=>`<button class="chip ${GROW.size===k?'on':''}" data-gr="size" data-v="${k}" aria-pressed="${GROW.size===k}">${esc(s.label)}: ${esc(s.blurb.toLowerCase())}</button>`).join('')}</div>`;
+ h+=`<p class="small muted">Where</p><div class="chips">${DIRS.map(([k,l])=>`<button class="chip ${GROW.dir===k?'on':''}" data-gr="dir" data-v="${k}" aria-pressed="${GROW.dir===k}">${esc(l)}</button>`).join('')}</div>`;
+ h+=`<div class="btnrow wrap"><button data-gr="build" class="primarybtn" ${busy?'disabled':''}>Break ground on a ${esc(DATA.hoodSizes[GROW.size].label.toLowerCase())} ${esc(DATA.hoods[GROW.type].label.toLowerCase())}</button></div>${GROW.msg?`<p class="small warn">${esc(GROW.msg)}</p>`:''}<p class="small muted">Building is free. It takes ${DATA.hoodSizes[GROW.size].days} days, and the paper covers it.</p>`;
+ const all=Object.values(S.hoods||{});if(all.length)h+='<h3>Neighborhoods</h3>'+all.slice().reverse().map(x=>{const b=Object.values(S.blds).find(b=>b.hood===x.id);const homes=Object.values(S.units).filter(u=>S.blds[u.bld]&&S.blds[u.bld].hood===x.id);const occ=homes.filter(u=>residents(u.id).length).length;return`<button class="row" ${b?`data-gr="look" data-v="${x.id}"`:''}><span class="rname">${esc(x.name)}</span><span class="rsub">${esc(DATA.hoods[x.type].label)}, ${esc(DATA.hoodSizes[x.size].label.toLowerCase())}. ${x.done?(homes.length?occ+' of '+homes.length+' homes filled':'Open for business'):'Under construction'}</span></button>`;}).join('');
+ return h;}
+function lookAtHood(h){if(!h)return;const xs=[],ys=[];for(const[i,j]of h.cells){const R=cellRect(i,j);xs.push(R[0],R[2]);ys.push(R[1],R[3]);}cam.tx=(Math.min(...xs)+Math.max(...xs))/2;cam.ty=(Math.min(...ys)+Math.max(...ys))/2;follow=null;}
+body.addEventListener('click',e=>{const b=e.target.closest('[data-gr]');if(!b)return;e.stopPropagation();const a=b.dataset.gr,v=b.dataset.v;
+ if(a==='type')GROW.type=v;if(a==='size')GROW.size=v;if(a==='dir')GROW.dir=v;if(a==='mode'){S.growth=v;toast(v==='auto'?'The town will build a new neighborhood on its own when it fills up.':'The town will only grow when you build.');}
+ if(a==='goto'){stack=[];openView('town',{tab:'growth'});return;}
+ if(a==='look'){lookAtHood(S.hoods[v]);if(VW<900)closeSheet();return;}
+ if(a==='build'){const r=buildHood(GROW.type,GROW.size,GROW.dir);if(!r.ok){GROW.msg=r.why;toast(r.why);}else{GROW.msg='';toast('🚧 Builders broke ground on '+r.hood.name+'. Check the paper.');lookAtHood(r.hood);SND.play('tap');}}
+ if(a!=='build')GROW.msg='';render();},true);
+/* labels for neighborhoods on the map when zoomed out */
+function drawHoodLabels(){if(!S.hoods||cam.z>=1.7||SET.labels==='off')return;for(const h of Object.values(S.hoods)){const xs=[],ys=[];for(const[i,j]of h.cells){const R=cellRect(i,j);xs.push(R[0],R[2]);ys.push(R[1],R[3]);}const c=P2((Math.min(...xs)+Math.max(...xs))/2,Math.min(...ys)+20,30);
+ const t=(h.done?'':'🚧 ')+h.name;cx.font='700 '+Math.round(12*SET.text)+'px "Barlow Semi Condensed",sans-serif';cx.textAlign='center';cx.lineWidth=3;cx.strokeStyle=TH.halo;cx.strokeText(t,c[0],c[1]);cx.fillStyle=TH.label;cx.fillText(t,c[0],c[1]);cx.textAlign='left';}}
+function fullTick(){if(S&&S._fullAlert){S._fullAlert=false;toast('🏘️ '+townName()+' is full, and families are being turned away. Open Town → Growth to add a neighborhood.');}}
+/* ---- start a business: pick the kind and the place, or learn why you can't ---- */
+PUPPET.business=function(p){if(!adult(p)){toast('Only adults can start a business. '+p.first+' is '+Math.floor(age(p))+'.');return;}pushView({type:'startbiz',id:p.id});showSheet('Start a business');};
+function startbizHTML(v){const p=S.people[v.id];if(!p||!p.alive)return'<p>This person is no longer in town.</p>';const st=storefronts(),lots=emptyLots();
+ if(!v.use){const pref={cooking:'diner',fitness:'gym',collecting:'record',painting:'gallery',music:'venue',nightlife:'bar',dancing:'club',tinkering:'autoshop',animals:'petshop',fishing:'baitshop',cars:'dealer'};v.use=p.interests.map(i=>pref[i]).find(Boolean)||'cafe';}
+ let h=`<p class="sub">${esc(p.first)} gets $60,000 to start with${p.job?' and leaves their job as '+esc(JOB[p.job.j].title.toLowerCase()):''}.</p>`;
+ if(!st.length&&!lots.length){return h+`<p class="warn">There’s nowhere to put a new business: no empty storefronts and no empty lots.</p><p class="small">You can close or sell an existing business from its page, or expand the town. A Main Street or Business park adds new storefronts.</p><div class="btnrow wrap"><button data-gr="goto" class="primarybtn">Expand the town</button></div>`;}
+ h+='<h3>What kind</h3><div class="chips">'+BIZ_PICK.filter(u=>DATA.uses[u]).map(u=>`<button class="chip ${v.use===u?'on':''}" data-sb="use" data-v="${u}" aria-pressed="${v.use===u}">${esc(DATA.uses[u].label)}</button>`).join('')+'</div>';
+ h+='<h3>Where</h3>';if(!v.where)v.where=st.length?'s:'+st[0].id:'l:'+lots[0].id;
+ h+=st.map(z=>{const k='s:'+z.id;return`<button class="row ${v.where===k?'sel':''}" data-sb="where" data-v="${k}" aria-pressed="${v.where===k}"><span class="rname">${v.where===k?'● ':''}${esc(S.blds[z.id].addr)}</span><span class="rsub">Empty storefront, formerly ${esc(z.name)}. Opens right away.</span></button>`;}).join('');
+ h+=lots.map(b=>{const k='l:'+b.id;return`<button class="row ${v.where===k?'sel':''}" data-sb="where" data-v="${k}" aria-pressed="${v.where===k}"><span class="rname">${v.where===k?'● ':''}${esc(b.addr)}</span><span class="rsub">Empty lot. Builders need about two days.</span></button>`;}).join('');
+ h+=`<div class="btnrow wrap"><button data-sb="go" class="primarybtn">Open a ${esc(DATA.uses[v.use].label.toLowerCase())}</button></div><p class="small muted">Need more room? <button class="plink" data-gr="goto">Expand the town</button> with a Main Street or Business park.</p>`;return h;}
+body.addEventListener('click',e=>{const b=e.target.closest('[data-sb]');if(!b)return;e.stopPropagation();const v=stack[stack.length-1];if(!v||v.type!=='startbiz')return;const a=b.dataset.sb;
+ if(a==='use')v.use=b.dataset.v;if(a==='where')v.where=b.dataset.v;
+ if(a==='go'){const p=S.people[v.id];const[k,id]=(v.where||'').split(':');const where=k==='l'?{lot:id}:{store:id};const err=startBusiness(p,v.use,where);if(err){toast(err);render();return;}
+  toast(k==='l'?'Builders are on it. '+p.first+'’s '+DATA.uses[v.use].label.toLowerCase()+' opens in about two days.':p.first+' is open for business.');stack.pop();openBuilding(id);return;}
+ render();},true);
+function lotHTML(b){let h=`<p class="sub">${esc(b.addr)}</p><p>An empty lot. A builder will put a home here when ${esc(townName())} needs one, or you can build a business on it now.</p>`;
+ h+='<h3>Build a business here</h3><div class="chips">'+BIZ_PICK.filter(u=>DATA.uses[u]).map(u=>`<button class="chip" data-lotb="${u}">${esc(DATA.uses[u].label)}</button>`).join('')+'</div><p class="small muted">It opens in about two days with no owner, and the town fills the jobs. To give it an owner, open someone’s page and use Make them… → Start a business.</p>';return h;}
+body.addEventListener('click',e=>{const b=e.target.closest('[data-lotb]');if(!b)return;e.stopPropagation();const v=stack[stack.length-1];if(!v||v.type!=='building')return;const err=startBizOnLot(S.blds[v.id],b.dataset.lotb,null,0);toast(err||'Builders are on it. Opening in about two days.');showSheet(bName(S.blds[v.id]));render();},true);
+
+CAT.cigarettes='Cigarettes';CAT['quit aids']='Quit-smoking aids';
 
 </script>
 </body>
