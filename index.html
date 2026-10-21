@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Humanaquarium (v0.7.1)</title>
+<title>Humanaquarium (v0.8)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -147,6 +147,11 @@ button.armed{background:var(--warn)!important;color:#fff!important;border-color:
 .calev{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:6px 0;border-top:1px dashed var(--line);margin-top:6px}.calev>div:nth-child(2){flex:1;min-width:150px}.calic{font-size:1.2em}.calbtns{display:flex;gap:6px}.calbtns button{min-height:38px;padding:2px 10px;border:1px solid var(--line);background:var(--panel2);border-radius:9px;font-weight:600;cursor:pointer;font-size:.88em}.calnone{margin:4px 0 0}
 .phead{align-items:center}.pname{flex:1;min-width:0}.portraitbtn{flex:0 0 auto;border:0;background:none;padding:0;cursor:pointer;border-radius:18px}.portrait{display:block}
 .favrow{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}.favrow .row{border-bottom:0}.miniwrap{border:0;background:none;padding:0;cursor:pointer;flex:0 0 auto}.miniport{display:block}
+.ptabs{display:flex;gap:6px;margin:0 0 10px;overflow-x:auto;padding-bottom:2px}.ptabs button{min-height:40px;padding:4px 14px;border:1px solid var(--line);background:none;border-radius:999px;font-weight:600;cursor:pointer;white-space:nowrap}.ptabs button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.ptabs.secs button{min-height:36px;font-size:.9em;padding:2px 12px}
+.sres{border-bottom:1px dashed var(--line);padding:6px 0}.sres p{margin:4px 0 0;font-family:var(--news)}
+.jobslot{border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin:8px 0}.jobhead{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}.jobhead .small{flex:1}.slotbtns{display:flex;gap:4px}.slotbtns button{min-width:38px;min-height:36px;border:1px solid var(--line);background:var(--panel2);border-radius:9px;font-weight:700;cursor:pointer}
+.staffrow .row{border-bottom:0}.btnrow.mini{margin:2px 0 8px}.btnrow.mini button{min-height:36px;padding:2px 10px;font-size:.88em}
 .hc .toast{outline:2px solid var(--panel)}.hc .meter{border-width:2px}
 @media (max-width:420px){.brand{max-width:34vw;font-size:.9em;padding:5px 8px}.brand b{white-space:normal}#favName{max-width:120px}.rightcol{min-width:0}#rail button{min-width:48px;padding:2px 3px}.brand{padding:5px 10px}#speeds button{min-width:29px;padding:0 2px;font-size:.84em}#mute{min-width:38px;min-height:40px}#speeds{padding:2px}.brand b{font-size:.95em}}
 </style>
@@ -178,7 +183,7 @@ button.armed{background:var(--warn)!important;color:#fff!important;border-color:
 <script>
 /* ==== DATA: every table the sim reads. Placeholder rows are marked; the real
    government datasets replace them row-for-row later. ==== */
-const VERSION='0.7.1', SAVE_VERSION=4;
+const VERSION='0.8.0', SAVE_VERSION=4;
 const NEEDS=['energy','hunger','fun','social','comfort'];
 const DATA={
 meta:{town:'Sprungfeld',paper:'The Sprungfeld Ledger',startYear:2026,realMinPerDay:10,daysPerYear:4,walk:70,targetPop:200,placeholder:true},
@@ -237,7 +242,7 @@ acts:[
  {id:'dance',label:'Dancing',pose:'stand',prop:null,at:['club'],room:'pub',fx:{fun:18,social:10,energy:-6},dur:[60,150],cost:10,interest:'dancing',social:1,emo:'💃',minAge:18,hours:[20,24],sub:'alcohol',subAmt:0.5},
  {id:'sulk',label:'Sulking',pose:'sit',prop:null,at:['home'],room:'bedroom',fx:{comfort:5},dur:[30,60],comfort:1,emo:'😞',lowMood:1},
  {id:'visit',label:'Visiting a friend',pose:'sit',prop:'cup',at:['friend'],room:'living',fx:{social:14,fun:6},dur:[60,120],social:1,emo:'🏠',special:'visit',hours:[10,22]},
- {id:'date',label:'On a date',pose:'sit',prop:'cup',at:['diner','cafe','bar'],room:'pub',fx:{social:16,fun:12},dur:[60,120],cost:15,social:1,emo:'❤️',special:'date',hours:[17,23],minAge:16},
+ {id:'date',label:'On a date',pose:'sit',prop:'cup',at:['diner','cafe','bar'],room:'pub',fx:{social:16,fun:12},dur:[60,120],cost:15,social:1,emo:'❤️',special:'date',hours:[17,23],minAge:18},
  {id:'gig',label:'Playing a gig',pose:'stand',prop:'guitar',at:['bar'],room:'pub',fx:{fun:16,social:10},dur:[90,120],emo:'🎤',special:'gig',hours:[19,23]},
  {id:'panhandle',label:'Asking for change',pose:'sit',prop:'cup',at:['park'],room:'pub',fx:{social:3},dur:[60,120],emo:'🥫',special:'panhandle',hours:[8,20]},
  {id:'steal',label:'Shoplifting',pose:'walk',prop:'bag',at:['grocery','boutique','hardware','thrift'],room:'pub',fx:{fun:6},dur:[15,25],emo:'🕶️',special:'steal',minAge:13},
@@ -882,7 +887,7 @@ function vacantUnits(){const occ=new Set(living().map(p=>p.homeU).filter(Boolean
 
 /* ---- events / news ---- */
 function news(kind,drama,text,ids,opts={}){
- const e={t:S.t,day:day(),kind,drama,text,ids:ids||[]};S.events.push(e);if(S.events.length>900)S.events.splice(0,S.events.length-900);
+ const e={t:S.t,day:day(),kind,drama,text,ids:ids||[]};S.events.push(e);if(S.events.length>1200)S.events.splice(0,S.events.length-1200);
  for(const id of e.ids){const p=P(id);if(p)logp(p,text);}
  if(S._onNews)S._onNews(e);return e;}
 function logp(p,text){p.log.push({t:S.t,text});if(p.log.length>28)p.log.shift();}
@@ -987,7 +992,7 @@ function assignInitialJobs(){
   const art=p.interests.find(i=>DATA.interests.find(x=>x.id===i).pro&&(p.skills[i]||0)>55);if(art&&chance(0.5)){setJob(p,null,DATA.interests.find(x=>x.id===art).pro);continue;}
   hireSomewhere(p,true);}
  for(const p of living())if(!p.job&&adult(p)&&!p.retired&&!p.student)p.unemployedSince=day()-ri(0,6);}
-function openings(p){const out=[];for(const z of Object.values(S.biz)){if(!z.open)continue;for(const J of jobsFor(z.use)){if(J.edu>p.edu)continue;if(staffCount(z,J.id)>=J.n)continue;out.push({z,J});}}return out;}
+function openings(p){const out=[];for(const z of Object.values(S.biz)){if(!z.open)continue;for(const J of jobsFor(z.use)){if(J.edu>p.edu)continue;if(staffCount(z,J.id)>=slotN(z,J))continue;out.push({z,J});}}return out;}
 function hireSomewhere(p,silent){const op=openings(p);if(!op.length)return false;const o=wpick(op,({J})=>1+(J.interest&&p.interests.includes(J.interest)?4:0)+J.pay/120+J.edu*0.8);setJob(p,o.z.id,o.J.id);p.unemployedSince=0;
  if(!silent){const back=!p.homeU;news('job',back?3:1,back?N(p)+' has been hired as a '+o.J.title.toLowerCase()+' at '+o.z.name+', a first step off the street.':N(p)+' starts work as a '+o.J.title.toLowerCase()+' at '+o.z.name+'.',[p.id]);moodlet(p,'New job',15,2);}return true;}
 function seedRelationships(){
@@ -1002,7 +1007,7 @@ function placeFor(p,uses,arriveH){if(S._pcT!==S.t||S._pcP!==p.id){S._pcT=S.t;S._
 function placeFor0(p,uses,arriveH){const c=[];const from=S.blds[p.loc||homeBld(p)];
  for(const u of uses){for(const bid of(S._byUse[u]||[])){const z=S.biz[bid];if(z&&!z.open)continue;if(!isOpenAt(bid,arriveH))continue;c.push(bid);}}
  if(!c.length)return null;return wpick(c,bid=>1/(1+doorDist(from,S.blds[bid])/120));}
-function isOpenAt(bid,h){const b=S.blds[bid];const u=DATA.uses[b.use];if(!u.open)return true;const z=S.biz[bid];if(z&&!z.open)return false;return h>=u.open[0]&&h<u.open[1];}
+function isOpenAt(bid,h){const b=S.blds[bid];const u=DATA.uses[b.use];if(!u.open)return true;const z=S.biz[bid];if(z&&!z.open)return false;if(b.onFire)return false;if(h>=u.open[0]&&h<u.open[1])return true;return eventOpenUses(h).has(b.use);}
 function obligation(p){ // today's next fixed commitment
  const a=age(p),d=day(),wd=wday(),m=mod();if(p.jailUntil>S.t)return null;
  if(a>=5&&a<18&&wd<5&&!(S.wx&&S.wx.snowDay))return{kind:'school',s:8*60,e:15*60,b:(S._byUse.school||[])[0]};
@@ -1207,7 +1212,7 @@ function step(dt){
   if(p.needs.hunger<8&&p.act&&p.act.id!=='eat_home'&&p.act.id!=='eat_out'&&!p.trip&&chance(0.05))p.act.until=Math.min(p.act.until,S.t+5);
   if(!p.trip&&(!p.act||S.t>=p.act.until))decide(p);
   if(!p.trip&&p.loc)(occ[p.loc]=occ[p.loc]||[]).push(p);}
- S._occ=occ;petsStep(dt);dogWalkerTick();
+ S._occ=occ;petsStep(dt);dogWalkerTick();firesStep();
  for(const p of L)updateMood(p);
  interactions(dt,occ);}
 function updateMood(p){p.moodlets=p.moodlets.filter(m=>m.until>S.t);let m=55+p.moodlets.reduce((a,b)=>a+b.v,0)+((p.traits.optimism||50)-50)/8;let nd=0,nn=0;for(const n of NEEDS){if(n==='bladder')continue;nd+=p.needs[n];nn++;}m+=(nd/nn-55)*0.55;if(p.sick)m-=p.sick.sev*6;if(!p.homeU&&adult(p))m-=10;p.mood=clamp(m,0,100);}
@@ -1251,6 +1256,7 @@ function interact(a,b,bid){
  updRel(a,b,r);updRel(b,a,r2);}
 function updRel(a,b,r){if(['family','spouse','partner','dating','ex'].includes(r.st))return;r.st=r.a>45&&r.f>40?'close friend':r.a>25&&r.f>25?'friend':r.a<-45?'enemy':r.a<-20?'rival':'acq';}
 function romanceCheck(a,b,r,r2){
+ if(!canRomance(a,b))return;
  if(a.partner&&a.partner!==b.id){const pt=P(a.partner);if(pt&&pt.alive&&pt.loc===a.loc&&pt.traits.jealous>55){rel(pt,a).a-=8;rel(pt,b).a-=10;moodlet(pt,'Jealous of '+b.first,-10,1,b.id);logp(pt,'Watched '+a.first+' flirt with '+fullName(b)+'.');}}
  if(r.r<35&&(a.traits.loyal>70)&&a.partner&&a.partner!==b.id)return;
  if(a.partner===b.id)return;
@@ -1305,7 +1311,7 @@ function birth(mom){
  if(mom.fav&&S._favFamily)k.fav=true;return k;}
 function moveTo(p,uid,withKids){const old=p.homeU;p.homeU=uid;if(withKids){for(const c of p.children.map(P)){if(c&&c.alive&&c.homeU===old&&age(c)<18)c.homeU=uid;}}
  if(old){const u=S.units[old];if(!residents(old).length){u.pantry=0;if(u.owned&&u.ownerId===p.id){u.owned=false;u.ownerId=null;p.money+=S.blds[u.bld].use==='mansion'?400000:80000;}}}}
-function findUnit(p,size,maxRent){const v=vacantUnits().filter(u=>u.rent<=maxRent&&S.blds[u.bld].use!=='mansion');if(!v.length)return null;
+function findUnit(p,size,maxRent){const v=vacantUnits().filter(u=>u.rent<=maxRent&&S.blds[u.bld].use!=='mansion'&&!(size>=4&&S.blds[u.bld].use==='apartment'&&vacantUnits().some(w=>w.rent<=maxRent&&['house','duplex','trailer'].includes(S.blds[w.bld].use))));if(!v.length)return null;
  return wpick(v,u=>{const use=S.blds[u.bld].use;return(size>2?(use==='house'?5:1):(use==='apartment'||use==='duplex'?4:1))+(u.rent<maxRent*0.6?1:0);});}
 function income(p){return annualIncome(p)/52;}
 function daily(){
@@ -1341,7 +1347,7 @@ function daily(){
   // moving out / rehousing / leaving
   const u=unitOf(p);
   if(u&&adult(p)&&a>=19&&p.parents.some(id=>{const q=P(id);return q&&q.alive&&q.homeU===p.homeU;})&&!p.partner&&income(p)>=450&&p.money>3000&&chance(0.15)){const nu=findUnit(p,1,income(p)*0.4);if(nu){moveTo(p,nu.id);news('moving',1,N(p)+' moved out of their parents’ place into '+S.blds[nu.bld].addr+'.',[p.id]);moodlet(p,'Own place',12,2);}}
-  if(!p.homeU&&adult(p)&&p.money>1500&&(p.job||p.money>8000)){const nu=findUnit(p,1,Math.max(140,income(p)*0.45));if(nu){moveTo(p,nu.id);spend(p,nu.rent*4,'housing');news('moving',p.homelessSince?3:1,N(p)+' signed a lease on '+S.blds[nu.bld].addr+(p.homelessSince?' after '+(d-p.homelessSince)+' days without a home.':'.'),[p.id]);moodlet(p,'A roof again',20,2);p.homelessSince=0;}}
+  if(!p.homeU&&adult(p)&&p.money>1500&&(p.job||p.money>8000)){const fam=householdGroup(p);const nu=findUnit(p,fam.length,Math.max(140,income(p)*0.45)*(fam.length>2?1.3:1));if(nu){moveHousehold(p,nu.id);spend(p,nu.rent*4,'housing');news('moving',p.homelessSince?3:1,N(p)+' signed a lease on '+S.blds[nu.bld].addr+(p.homelessSince?' after '+(d-p.homelessSince)+' days without a home.':'.'),[p.id]);moodlet(p,'A roof again',20,2);p.homelessSince=0;}}
   if(adult(p)&&!p.job&&!p.retired&&!p.student&&d-p.unemployedSince>10&&p.mood<40&&!p.partner&&!p.children.some(c=>P(c)&&P(c).alive&&age(P(c))<18)&&chance(0.04)){leaveTown(p);continue;}
   // pregnancy
   if(p.pregUntil&&S.ly>=p.pregUntil)birth(p);
@@ -1361,7 +1367,7 @@ function daily(){
   else if(p.homeU!==q.homeU)cohabit(p,q);
   r.a-=0.3;r2.a-=0.3;}
  for(const u of Object.values(S.units))householdDaily(u);
- nursingDaily();boatsDaily();if(wday()===3&&(S._byUse.sanitation||[]).some(b=>S.biz[b]&&staffCount(S.biz[b],'sanit_worker'))){for(const u of Object.values(S.units))if(u.home)u.home.trash=Math.max(0,u.home.trash-50);}
+ nursingDaily();boatsDaily();reuniteMinors();sellBusinesses();if(wday()===3&&(S._byUse.sanitation||[]).some(b=>S.biz[b]&&staffCount(S.biz[b],'sanit_worker'))){for(const u of Object.values(S.units))if(u.home)u.home.trash=Math.max(0,u.home.trash-50);}
  for(const p of living())if(p.boat)spend(p,DATA.boats[p.boat.type].slip/dpy(),'boat');
  for(const p of living())if(p.alive)carsDaily(p,d);
  petsDaily();
@@ -1423,8 +1429,8 @@ function newcomers(){const v=vacantUnits().filter(u=>S.blds[u.bld].use!=='mansio
  for(const p of made){p.loc=homeBld(p);p.act={id:'idle',start:S.t,until:S.t+30,place:p.loc,label:'Unpacking'};if(adult(p)&&!p.retired&&!p.student)p.unemployedSince=day();}
  S.stats.arrivals+=made.length;S._dirty=true;
  news('moving',1,made.filter(adult).map(N).join(' and ')+' moved to '+S.blds[u.bld].addr+' from '+pick(DATA.elsewhere)+(made.length>2?', with '+(made.length-made.filter(adult).length)+' kid'+(made.length-made.filter(adult).length===1?'':'s')+' in tow':'')+'.',made.map(p=>p.id));}
-function compilePaper(d){const ev=S.events.filter(e=>e.day===d&&e.kind!=='town');const items=ev.slice().sort((a,b)=>b.drama-a.drama).slice(0,7);
- S.paper.push({day:d,season:season(),year:year(),items,pop:living().length});if(S.paper.length>80)S.paper.shift();}
+function compilePaper(d){const ev=S.events.filter(e=>e.day===d&&e.kind!=='town');const items=ev.slice().sort((a,b)=>b.drama-a.drama).slice(0,24).map(e=>({kind:e.kind,drama:e.drama,text:e.text,ids:e.ids.slice(0,4),t:e.t}));
+ S.paper.push({day:d,season:seasonOf(d),year:yearOf(d),items,pop:living().length});if(S.paper.length>3000)S.paper.shift();}
 
 /* ---- god powers ---- */
 const GOD={
@@ -1530,7 +1536,7 @@ function householdDaily(u){const res=residents(u.id);if(!res.length){u.arrears=0
  if(u.mortgage&&!short){u.mortgage.bal-=u.mortgage.pay/dpy()*0.45;if(u.mortgage.bal<=0){u.mortgage=null;const o=P(u.ownerId);if(o){news('money',2,N(o)+' paid off the mortgage on '+b.addr+'. They are “never borrowing again,” they say.',[o.id]);moodlet(o,'Paid off the house',25,3);}}}
  if(short){u.arrears++;for(const a of ad)moodlet(a,u.owned?'Behind on the mortgage':'Behind on rent',-12,1);}else u.arrears=0;
  if(u.arrears>=2){u.arrears=0;if(u.owned){u.owned=false;u.mortgage=null;u.ownerId=null;news('housing',5,'The bank foreclosed on '+b.addr+'. The '+res[0].last+' household has to be out by the end of the week.',res.map(r=>r.id));}else news('housing',5,'The '+res[0].last+' household was evicted from '+b.addr+(u.landlordId&&P(u.landlordId)?' by landlord '+N(P(u.landlordId)):'')+'. '+(res.length>1?res.length+' people':'One person')+' now have nowhere to go.',res.map(r=>r.id).concat(u.landlordId?[u.landlordId]:[]));
-  for(const r of res){r.homeU=null;r.homelessSince=day();moodlet(r,'Lost the house',-30,3);const kin=r.parents.concat(r.children).map(P).find(q=>q&&q.alive&&q.homeU&&q.homeU!==u.id);if(kin&&chance(0.6)){r.homeU=kin.homeU;logp(r,'Moved in with '+fullName(kin)+'.');}}}
+  rehomeGroup(res,[u.id],'Lost the house',-30);}
  // buying a house
  if(!u.owned&&!short){const head=ad.slice().sort((x,y)=>y.money-x.money)[0];if(head&&head.job&&!head.student&&!(head.bankruptUntil>S.ly)&&moneySense(head)>45&&chance(0.05)){
   const opts=vacantUnits().filter(v=>['house','duplex','trailer'].includes(S.blds[v.bld].use)&&!v.owned);const afford=opts.filter(v=>{const pr=DATA.money.price[S.blds[v.bld].use];return head.money>=pr*DATA.money.downPayment+8000&&pr*0.85*DATA.money.mortgageRate<annualIncome(head)*0.35;});
@@ -1550,7 +1556,7 @@ socialDaily(p);
  if(p.job&&p.job.b&&p.job.j!=='owner'){const J=JOB[p.job.j];const z=S.biz[p.job.b];const boss=z&&z.ownerId&&P(z.ownerId);
   let t=50+(p.workedDay===d-1?10:-15)+(J.interest&&p.interests.includes(J.interest)?10:0)+(J.interest?(p.skills[J.interest]||0)/5:5)+(p.mood-50)/4+(p.traits.ambition-50)/5+(p.rough?-15:0)+(boss&&boss.alive?rel(boss,p).a/5:0);
   if(DATA.customerFacing.includes(J.id))t+=(p.needs.hygiene-50)/3;if(p.quirks.includes('is always late'))t-=6;p.perf=clamp(p.perf+(t-p.perf)*0.3,0,100);
-  const nx=DATA.ladder[J.id];if(nx&&p.perf>75&&JOB[nx].edu<=p.edu&&z&&z.open&&staffCount(z,nx)<JOB[nx].n&&chance(0.12)){const old=J.title;setJob(p,z.id,nx);p.raise=1;p.perf=60;moodlet(p,'Promoted',20,3);news('job',2,N(p)+' was promoted from '+old.toLowerCase()+' to '+JOB[nx].title.toLowerCase()+' at '+z.name+'.',[p.id]);}
+  const nx=DATA.ladder[J.id];if(nx&&p.perf>75&&JOB[nx].edu<=p.edu&&z&&z.open&&staffCount(z,nx)<slotN(z,JOB[nx])&&chance(0.12)){const old=J.title;setJob(p,z.id,nx);p.raise=1;p.perf=60;moodlet(p,'Promoted',20,3);news('job',2,N(p)+' was promoted from '+old.toLowerCase()+' to '+JOB[nx].title.toLowerCase()+' at '+z.name+'.',[p.id]);}
   else if(p.perf<18&&chance(0.25))fire(p,'for poor performance');}
  // borrowed things and loans
  for(const[id,r]of Object.entries(p.rel)){if(r.lent){const q=P(id);if(!q||!q.alive){delete r.lent;continue;}if(chance(0.2*q.traits.honest/50)){moodlet(p,'Got the '+r.lent+' back',3,1);logp(p,fullName(q)+' finally returned the '+r.lent+'.');delete r.lent;}else if(d-r.lentDay>4){r.a-=2;if(chance(0.25))moodlet(p,q.first+' still has the '+r.lent,-4,1,q.id);if(d-r.lentDay===8&&chance(0.5))news('weird',2,N(p)+' is still waiting on '+N(q)+' to return their '+r.lent+'. Sources say it has “gone too far.”',[p.id,q.id]);}}
@@ -1780,7 +1786,7 @@ function createHousehold(spec,unitId){const made=[];const ms=spec.members||[];if
  for(const m of ms){const st=Math.max(0,m.age);const p=makePerson({first:m.first,last:m.last,sex:m.sex,bornLy:S.ly-st-rand()*0.9,traits:Object.assign({},m.traits),interests:(m.interests&&m.interests.length?m.interests.slice():undefined),homeU:unitId,money:st>=18?m.money||0:0,edu:m.edu||0,lineage:m.last});
   if(m.attracted&&m.attracted.length)p.attracted=m.attracted.slice();if(m.quirks)p.quirks=m.quirks.slice();if(m.prefs)p.prefs=Object.assign({},m.prefs);if(m.goal&&st>=18)p.goal=m.goal;if(m.skills)Object.assign(p.skills,m.skills);if(m.look)p.look=JSON.parse(JSON.stringify(m.look));
   if(st>=66)p.retired=true;made.push([m,p]);}
- const head=made[0][1];const sp=made.find(([m])=>m.role==='spouse');if(sp)marry(head,sp[1],true);
+ const head=made[0][1];let sp=made.find(([m])=>m.role==='spouse');if(sp&&!(adult(head)&&adult(sp[1])))sp=null;if(sp)marry(head,sp[1],true);
  for(const[m,p]of made){if(m.role==='child'){p.parents=[head.id].concat(sp?[sp[1].id]:[]);for(const q of[head,sp&&sp[1]].filter(Boolean)){q.children.push(p.id);setFam(p,q,ri(55,85));}}
   else if(m.role==='parent'){head.parents.push(p.id);p.children.push(head.id);setFam(head,p,ri(50,80));}
   else if(m.role==='roommate'){const r1=rel(head,p),r2=rel(p,head);r1.a=r2.a=35;r1.f=r2.f=50;r1.st=r2.st='friend';}}
@@ -1848,6 +1854,55 @@ function onStartV7(p,A,z,u){const sp=A.special;
  if(sp==='grave'&&p.act.target){const q=P(p.act.target);if(q){p.moodlets=p.moodlets.filter(m=>!(m.cause===q.id&&m.text.startsWith('Grieving')));moodlet(p,'Visited '+q.first+'’s grave',4,1,q.id);}}
  if(sp==='hospvisit'&&p.act.target){const q=P(p.act.target);if(q){moodlet(q,p.first+' came to the hospital',10,1,p.id);}}}
 function hospitalAdmit(p){const hb=hospitalB();if(!hb||p.hospDay===day())return false;p.hospDay=day();spend(p,ri(1500,6000),'health');const z=S.biz[hb];if(z)z.rev+=1000;callOut('ambulance',p.loc||homeBld(p));logp(p,'Admitted to the hospital with '+(p.sick?p.sick.label:'something serious')+'.');if(p.sick)p.sick.d=Math.max(1,p.sick.d-1);return true;}
+/* ==== v0.8 SIM: families stay together, evening venues, real fires, staffing, archive, romance limits ==== */
+/* ---- event venues stay open while their event runs ---- */
+const _EVO={k:null,v:null};
+function eventOpenUses(h){const k=day()+'|'+h;if(_EVO.k===k)return _EVO.v;const v=new Set();
+ for(const A of DATA.acts){if(A.special!=='event'||!A.hours||!(h>=A.hours[0]&&h<A.hours[1]))continue;if(typeof eventActive==='function'&&eventActive(A.eid))for(const u of A.at)v.add(u);}
+ if(S.town&&S.town.electionDay===day()&&h>=7&&h<20)v.add('cityhall');_EVO.k=k;_EVO.v=v;return v;}
+/* ---- households move as a unit ---- */
+function householdGroup(p){const g=new Set([p]);const old=p.homeU;const pt=p.partner&&P(p.partner);if(pt&&pt.alive&&(pt.homeU===old||!pt.homeU))g.add(pt);
+ for(const par of[...g])for(const cid of par.children){const c=P(cid);if(c&&c.alive&&age(c)<18&&(!c.homeU||c.homeU===old))g.add(c);}return[...g];}
+function moveHousehold(p,uid){const g=householdGroup(p);for(const q of g){const oldU=q.homeU;q.homeU=uid;q.homelessSince=0;if(oldU&&S.units[oldU]&&!residents(oldU).length)S.units[oldU].pantry=0;}S._resDirty=true;return g;}
+function rehomeGroup(res,exclude,label,v){exclude=exclude||[];if(!res.length)return;const adults=res.filter(adult);
+ const kin=adults.flatMap(p=>[...p.parents,...p.children,...siblings(p).map(s=>s.id)]).map(P).find(q=>q&&q.alive&&q.homeU&&!exclude.includes(q.homeU)&&!res.includes(q)&&residents(q.homeU).length+res.length<=8);
+ for(const r of res){moodlet(r,label,v,3);r.homeU=kin?kin.homeU:null;if(!kin)r.homelessSince=day();}
+ if(kin)for(const r of res)logp(r,'Moved in with '+fullName(kin)+'.');S._resDirty=true;return kin;}
+function reuniteMinors(){for(const k of living()){if(k.homeU||age(k)>=18)continue;const par=k.parents.map(P).filter(q=>q&&q.alive&&q.homeU);const gp=k.parents.map(P).filter(Boolean).flatMap(q=>q.parents.map(P)).filter(q=>q&&q.alive&&q.homeU);const host=par[0]||gp[0];
+ if(host){k.homeU=host.homeU;k.homelessSince=0;logp(k,'Moved in with '+fullName(host)+'.');}else if(!k.parents.some(id=>P(id)&&P(id).alive))rehomeOrphan(k);}S._resDirty=true;}
+/* ---- fires burn, the truck comes, the crew decides the outcome ---- */
+function startFire(b,source){if(!b||b.use==='lot'||b.use==='site'||b.onFire)return false;b.onFire={t:S.t,src:source||'unknown'};const fs=(S._byUse.fire||[])[0];
+ const dist=fs&&S.blds[fs]?route(S.blds[fs],b).len:600;b.onFire.resolve=S.t+Math.round(12+dist/300*3+ri(0,8));if(typeof callOut==='function')callOut('fire',b.id);
+ for(const q of living())if(q.loc===b.id&&!q.trip){moodlet(q,'Escaped a fire',-12,1);q.act&&(q.act.until=S.t);}
+ news('disaster',4,'Fire broke out at '+(S.biz[b.id]?S.biz[b.id].name:b.addr)+'. Fire Station No. 1 is responding.',[]);return true;}
+function firesStep(){for(const b of Object.values(S.blds)){const f=b.onFire;if(!f||S.t<f.resolve)continue;delete b.onFire;
+ const fz=S.biz[(S._byUse.fire||[])[0]];const ffs=fz?(fz.staff.fire_ff||[]).map(P).filter(q=>q&&q.alive&&!(q.jailUntil>S.t)):[];const onShift=ffs.filter(q=>q.act&&q.act.id==='work'&&!q.trip).length;const crew=onShift+Math.floor((ffs.length-onShift)/2);for(const q of ffs)if(!(q.act&&q.act.id==='work'))logp(q,'Got called in to fight a fire at '+(S.biz[b.id]?S.biz[b.id].name:b.addr)+'.');const wet=['rain','storm','snow'].includes(S.wx.k)?0.1:0;
+ const pSave=crew?Math.min(0.85,0.45+crew*0.12+wet):0.05,pDmg=crew?0.12:0.2;const r=rand();const name=S.biz[b.id]?S.biz[b.id].name:b.addr;const units=Object.values(S.units).filter(u=>u.bld===b.id);const res=units.flatMap(u=>residents(u.id));
+ for(const ff of(fz?(fz.staff.fire_ff||[]).map(P).filter(q=>q&&q.alive):[]))moodlet(ff,'Fought a fire',r<pSave?8:-4,1);
+ if(r<pSave){for(const u of units)if(u.home){u.home.cond=Math.max(0,u.home.cond-20);u.home.tidy=Math.max(0,u.home.tidy-25);}for(const q of res)moodlet(q,'Close call with a fire',-8,2);news('disaster',3,'Firefighters saved '+name+'. '+(crew>2?'A crew of '+crew+' had it out in minutes.':'Smoke damage, but it’s standing.'),res.map(q=>q.id).slice(0,4));}
+ else if(r<pSave+pDmg){for(const u of units)if(u.home){u.home.cond=4;u.home.furn=Math.max(0,u.home.furn-45);u.home.tidy=0;}for(const q of res)moodlet(q,'The house is badly damaged',-18,3);if(S.biz[b.id]&&!S.biz[b.id].civic)S.biz[b.id].cash-=Math.round(S.biz[b.id].baseA/dpy()*2);news('disaster',4,'Fire badly damaged '+name+' before crews could get it under control. Repairs will take a while.',res.map(q=>q.id).slice(0,4));}
+ else destroyBld(b,'fire',crew);}}
+function destroyBld(b,cause,crew){const units=Object.values(S.units).filter(u=>u.bld===b.id);const res=units.flatMap(u=>residents(u.id));const home=DATA.uses[b.use].cat==='home';const word=cause==='meteor'?'a meteor strike':'a fire';
+ for(const p of living())if(p.loc===b.id&&!p.trip){if(!p.sick&&chance(cause==='meteor'?0.3:0.15))p.sick={id:'injury',label:cause==='meteor'?'meteor-related injuries':'smoke inhalation',d:ri(1,2),sev:2};p.act=null;}
+ if(home){const ids=units.map(u=>u.id);const byUnit={};for(const p of res)(byUnit[p.homeU]=byUnit[p.homeU]||[]).push(p);for(const k in byUnit)rehomeGroup(byUnit[k],ids,'Lost everything in '+word,-35);
+  for(const u of units)delete S.units[u.id];b.use='lot';b.growth=1;b.floors=1;
+  news('disaster',6,(cause==='meteor'?'A meteor flattened ':'Fire destroyed ')+b.addr+'. '+(cause==='fire'?(crew===0?'There was nobody on shift at Fire Station No. 1. ':'Firefighters got everyone out. '):'')+(res.length?'The '+res[0].last+' household is staying with family or at Hope House.':'Nobody was home.'),res.map(p=>p.id).slice(0,5));}
+ else{const z=S.biz[b.id];if(z&&!z.civic&&z.open)closeBiz(z);b.burned=day();news('disaster',5,(cause==='meteor'?'A meteor struck ':'Fire gutted ')+(z?z.name:b.addr)+'. '+(z&&z.civic?'It will reopen once the smoke clears.':'The building is a total loss.'),[]);}
+ for(const p of living())if(!p.loc&&!p.trip){p.loc=homeBld(p);}S._layoutVer=(S._layoutVer||0)+1;rebuildCaches();S._dirty=true;}
+/* ---- staffing ---- */
+function slotN(z,J){return Math.max(0,J.n+((z.extra&&z.extra[J.id])||0));}
+function hireCandidates(z,J){return living().filter(p=>age(p)>=16&&age(p)<80&&p.edu>=J.edu&&!(p.job&&p.job.b===z.id&&p.job.j===J.id)&&!(p.job&&p.job.j==='owner')&&!(p.jailUntil>S.t)).map(p=>{const cur=p.job?(JOB[p.job.j].pay||0):0;const sc=(!p.job&&!p.retired&&!p.student?100:0)+(J.pay-cur)/4+(J.interest&&p.interests.includes(J.interest)?25:0)+(J.interest?(p.skills[J.interest]||0)/4:0)-(p.retired?60:0)-(p.student?40:0);return{p,sc};}).sort((a,b)=>b.sc-a.sc).slice(0,25);}
+function adminHire(p,z,J){if(p.retired)p.retired=false;if(p.student&&age(p)>=18)p.student=0;setJob(p,z.id,J.id);p.unemployedSince=0;p.perf=55;moodlet(p,'New job',12,2);news('job',2,N(p)+' was hired as a '+J.title.toLowerCase()+' at '+z.name+'.',[p.id]);}
+function sellBusinesses(){for(const z of Object.values(S.biz)){if(!z.forSale||!z.open||z.civic)continue;if(!chance(0.25))continue;const price=Math.round(z.baseA*0.6);const buyers=living().filter(p=>adult(p)&&age(p)>=25&&age(p)<70&&p.money>price*1.3&&!(p.job&&p.job.j==='owner')&&p.id!==z.ownerId);if(!buyers.length)continue;
+ const o=wpick(buyers,p=>p.traits.ambition+(p.goal==='business'?60:0));const old=z.ownerId&&P(z.ownerId);spend(o,price,'business');if(old&&old.alive){earn(old,price,'business');if(old.job&&old.job.b===z.id)clearJob(old);old.unemployedSince=day();}
+ z.ownerId=o.id;setJob(o,z.id,'owner');z.forSale=false;moodlet(o,'Bought a business',18,3);news('business',4,N(o)+' bought '+z.name+(old?' from '+N(old):'')+' for $'+price.toLocaleString()+'.',[o.id].concat(old?[old.id]:[]));}}
+/* ---- newspaper sections ---- */
+const SECTION_OF={town:'local',weather:'local',holiday:'local',growth:'local',moving:'local',home:'local',housing:'local',family:'local',lake:'local',cars:'local',
+ job:'biz',career:'biz',business:'biz',money:'biz',retire:'biz',birth:'lives',death:'lives',funeral:'lives',wedding:'lives',divorce:'lives',romance:'lives',inheritance:'lives',birthday:'lives',school:'lives',pet:'lives',petdeath:'lives',
+ crime:'crime',fight:'crime',crash:'crime',disaster:'crime',scandal:'crime',politics:'politics',election:'politics',arts:'arts',fitness:'arts',party:'arts',viral:'arts',health:'arts',weird:'weird',luck:'weird',gossip:'weird'};
+const SECTIONS=[['front','Front page'],['local','Local'],['biz','Business & jobs'],['lives','Lives'],['crime','Crime & courts'],['politics','Politics'],['arts','Arts & life'],['weird','Weird news'],['classifieds','Classifieds']];
+function sectionOf(e){return SECTION_OF[e.kind]||'local';}
+
 /* ==== UI ==== */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1902,7 +1957,7 @@ function drawMap(){
   if(SET.figures&&cam.z>=2)mapFigure(s[0],s[1],p);else dot(s[0],s[1]-rr,rr,p);
   if(p.act&&p.act.id==='trick_or_treat'&&cam.z>=1.1){cx.font=Math.round(8+cam.z*2)+'px sans-serif';cx.textAlign='center';cx.fillText('🎃',s[0],s[1]-rr-8);cx.textAlign='left';}
   if(p.trip&&p.trip.mode==='bike'&&cam.z>=1.4){cx.strokeStyle=TH.ink;cx.lineWidth=1;cx.beginPath();cx.arc(s[0]-3,s[1]+1,2.2*cam.z*0.5,0,7);cx.arc(s[0]+3,s[1]+1,2.2*cam.z*0.5,0,7);cx.stroke();}}
- drawParked();drawSeasonExtras(rt);drawLakeExtras(rt);drawServices(rt);callSounds();drawYardPets();drawWild(rt);drawBus(rt);
+ drawParked();drawSeasonExtras(rt);drawLakeExtras(rt);drawServices(rt);callSounds();drawMarkers(rt);drawYardPets();drawWild(rt);drawBus(rt);
  // selection
  if(selP){const p=S.people[selP];if(p&&p.alive){let xy=personXY(p,rt);if(!xy&&p.loc){const b=S.blds[p.loc];xy=[(b.fp[0][0]+b.fp[2][0])/2,(b.fp[0][1]+b.fp[2][1])/2];}if(xy){const s=P2(xy[0],xy[1]);cx.strokeStyle=TH.accent;cx.lineWidth=2.5;cx.beginPath();cx.arc(s[0],s[1]-rr,rr+6,0,7);cx.stroke();if(follow===selP){cam.tx=xy[0];cam.ty=xy[1];}}}}
  drawWeather();drawFireworks();drawFX();
@@ -1990,7 +2045,7 @@ function makeProps(){const T=[];let sd=99;const R=()=>{sd=(sd*16807)%2147483647;
 function sortBlds(){const items=Object.values(S.blds).map(b=>({b,y:b.fp[2][1],x:b.fp[0][0]}));for(const t of makeProps())items.push({t,y:t.y,x:t.x});ORDER=items.sort((a,b)=>(a.y-b.y)||(b.x-a.x));}
 function rrect(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
 function inPoly(pt,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[xi,yi]=poly[i],[xj,yj]=poly[j];if(((yi>pt[1])!==(yj>pt[1]))&&(pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi))c=!c;}return c;}
-function tapMap(x,y){const rt=S.t+acc;if(WILD)for(const a of WILD){if(a._s&&Math.hypot(a._s[0]-x,a._s[1]-y)<10&&wildHour(DATA.wild[a.k])&&cam.z>=1.25){toast(DATA.wild[a.k].emo+' '+pick(['A '+DATA.wild[a.k].label.toLowerCase()+'. It is minding its own business.','A '+DATA.wild[a.k].label.toLowerCase()+'. It looks at you like it knows something.','A '+DATA.wild[a.k].label.toLowerCase()+', living its best life.']));a._s=null;return;}}const rr=clamp(2.3*cam.z,2,6);let best=null,bd=16;
+function tapMap(x,y){const rt=S.t+acc;if(tapMarker(x,y))return;if(WILD)for(const a of WILD){if(a._s&&Math.hypot(a._s[0]-x,a._s[1]-y)<10&&wildHour(DATA.wild[a.k])&&cam.z>=1.25){toast(DATA.wild[a.k].emo+' '+pick(['A '+DATA.wild[a.k].label.toLowerCase()+'. It is minding its own business.','A '+DATA.wild[a.k].label.toLowerCase()+'. It looks at you like it knows something.','A '+DATA.wild[a.k].label.toLowerCase()+', living its best life.']));a._s=null;return;}}const rr=clamp(2.3*cam.z,2,6);let best=null,bd=16;
  for(const p of living()){const xy=personXY(p,rt);if(!xy)continue;const s=P2(xy[0],xy[1]);const d=Math.hypot(s[0]-x,s[1]-rr-y);if(d<bd){bd=d;best=p;}}
  if(best){openPerson(best.id,true);return;}
  for(let i=ORDER.length-1;i>=0;i--){const b=ORDER[i].b;if(b&&b._poly&&inPoly([x,y],b._poly)){openBuilding(b.id,true);return;}}
@@ -2139,12 +2194,14 @@ function showSheet(title){if(sheet.hidden&&typeof SND!=='undefined')SND.play('op
 function closeSheet(){sheet.hidden=true;stack=[];selB=null;document.body.classList.remove('sheet-open');pickFor=null;cv.focus({preventScroll:true});}
 function pushView(v){const top=stack[stack.length-1];if(top&&top.type===v.type&&top.id===v.id)return;stack.push(v);if(stack.length>12)stack.shift();}
 function render(){const v=stack[stack.length-1];if(!v)return;const vk=v.type+':'+(v.id||v.tab||v.idx||'');const keepScroll=body._vk===vk?body.scrollTop:0;body._vk=vk;
+ if(['hire','job'].includes(v.type)){body.innerHTML=v.type==='hire'?hireHTML(v):jobPageHTML(v);body.scrollTop=keepScroll;return;}
  if(['creator','library','calendar'].includes(v.type)){if(v.type==='creator'&&!CR){openCreator(null);return;}body.innerHTML=v.type==='creator'?creatorHTML():v.type==='library'?libraryHTML():calendarHTML();body.scrollTop=v.type==='calendar'?keepScroll:keepScroll;wireV6(v);return;}
- const html=v.type==='person'?personHTML(v.id):v.type==='building'?buildingHTML(v.id):v.type==='paper'?paperHTML(v.idx):v.type==='favs'?favsHTML():v.type==='town'?townHTML(v.tab||'overview'):v.type==='admin'?adminHTML():settingsHTML();
+ const html=v.type==='person'?personHTML(v.id):v.type==='building'?buildingHTML(v.id):v.type==='paper'?paperHTML0(v):v.type==='favs'?favsHTML():v.type==='town'?townHTML(v.tab||'overview'):v.type==='admin'?adminHTML():settingsHTML();
  body.innerHTML=html;body.scrollTop=keepScroll;body.querySelectorAll('details[data-k]').forEach(d=>{d.open=openSecs.has(d.dataset.k);d.addEventListener('toggle',()=>{d.open?openSecs.add(d.dataset.k):openSecs.delete(d.dataset.k);});});
  if(v.type==='building')requestAnimationFrame(drawDoll);
  if(v.type==='settings'||v.type==='admin')wireForm();}
-function openPerson(id,fromMap){const p=S.people[id];if(!p)return;if(follow&&id!==follow&&!pickFor)follow=null;if(pickFor){const pf=pickFor;const a=S.people[pf.id];pickFor=null;if(a&&a!==p&&a.alive&&p.alive){GOD[pf.g](a,p);toast(godDone(pf.g,a,p));}openPerson(a?a.id:id);return;}
+function openPerson(id,fromMap){const p=S.people[id];if(!p)return;if(follow&&id!==follow&&!pickFor)follow=null;if(pickFor&&(pickFor.hire||pickFor.owner)){const pf=pickFor;pickFor=null;if(p.alive)pickForAction(pf,p);return;}
+ if(pickFor){const pf=pickFor;const a=S.people[pf.id];pickFor=null;if(pf.g==='crush'&&a&&!(adult(a)&&adult(p))){toast('Romance is only for adults in town.');openPerson(a.id);return;}if(a&&a!==p&&a.alive&&p.alive){GOD[pf.g](a,p);toast(godDone(pf.g,a,p));}openPerson(a?a.id:id);return;}
  selP=id;if(p.alive&&!fromMap)focusPerson(p);pushView({type:'person',id});showSheet(fullName(p));render();announce(fullName(p)+', '+Math.floor(age(p))+'. '+(p.alive&&p.act?p.act.label:p.status));}
 function focusPerson(p){let xy=personXY(p,S.t);if(!xy&&p.loc){const b=S.blds[p.loc];xy=[(b.fp[0][0]+b.fp[2][0])/2,(b.fp[0][1]+b.fp[2][1])/2];}if(xy){cam.tx=xy[0];cam.ty=xy[1];}}
 function openBuilding(id,fromMap){{const fp=follow&&S.people[follow];if(fp&&!(fp.loc===id&&!fp.trip))follow=null;}selB=id;const b=S.blds[id];if(!fromMap){cam.tx=(b.fp[0][0]+b.fp[2][0])/2;cam.ty=(b.fp[0][1]+b.fp[2][1])/2;}pushView({type:'building',id});showSheet(bName(b));render();}
@@ -2161,7 +2218,7 @@ const money=n=>(n<0?'−$':'$')+Math.abs(Math.round(n)).toLocaleString();
 const plink=id=>{const p=S.people[id];return p?`<button class="plink" data-person="${id}">${esc(fullName(p))}</button>`:'';};
 const blink=id=>{const b=S.blds[id];return b?`<button class="plink" data-bld="${id}">${esc(bName(b))}</button>`:'';};
 function sec(k,title,inner,openDefault){if(openDefault&&!openSecs.has('_seen'+k)){openSecs.add(k);openSecs.add('_seen'+k);}return`<details data-k="${k}"><summary>${title}</summary><div class="sec">${inner}</div></details>`;}
-function personRow(p,extra){const b=moodB(p.mood);return`<button class="row" data-person="${p.id}"><span class="mdot m-${b}" aria-hidden="true"></span><span class="rname">${esc(fullName(p))}${p.fav?' ★':''}</span><span class="rsub">${extra!=null?extra:esc(p.alive?actLabel(p):p.status==='dead'?'Died '+(p.cause||''):'Moved away')}</span></button>`;}
+function personRow(p,extra){const b=moodB(p.mood);return`<button class="row" data-person="${p.id}"${extra==null?' data-live="1"':''}><span class="mdot m-${b}" aria-hidden="true"></span><span class="rname">${esc(fullName(p))}${p.fav?' ★':''}</span><span class="rsub">${extra!=null?extra:esc(p.alive?actLabel(p):p.status==='dead'?'Died '+(p.cause||''):'Moved away')}</span></button>`;}
 function personHTML(id){const p=S.people[id];if(!p)return'<p>This person no longer exists.</p>';const a=Math.floor(age(p));const u=unitOf(p);
  const st={baby:'Baby',child:'Child',teen:'Teen',adult:'Adult',elder:'Elder'}[stage(p)];
  let h=`<div class="phead"><div class="pname"><p class="big">${esc(fullName(p))}</p><p class="sub">${a}, ${st.toLowerCase()}${p.alive?'':p.status==='dead'?', died in Year '+yearOf(p.diedDay)+' '+esc(p.cause||''):', moved away'}</p></div><button class="portraitbtn" data-portrait="${p.id}" aria-label="${esc(p.first)}: ${esc(p.alive?actLabel(p):'no longer with us')}. Tap to ${p.alive?'see where they are':'see where they rest'}."><canvas id="portrait" class="portrait"></canvas></button>
@@ -2180,7 +2237,7 @@ function personHTML(id){const p=S.people[id];if(!p)return'<p>This person no long
  let life=`<dl class="kv"><dt>Work</dt><dd>${p.job&&p.job.b?esc(JOB[p.job.j].title)+' at '+blink(p.job.b):esc(jobTitle(p))}</dd><dt>Home</dt><dd>${u?blink(u.bld)+(u.owned&&u.ownerId===p.id?' (owns it)':''):p.alive?'None':'—'}</dd>
  <dt>Money</dt><dd>${money(p.money)}</dd><dt>Education</dt><dd>${['No diploma','High school','College','Graduate degree'][p.edu]}</dd>${p.goal?`<dt>Life goal</dt><dd>${esc(DATA.goals.find(g=>g.id===p.goal).label)}</dd>`:''}
  ${p.followers>300||p.onApp?`<dt>Online</dt><dd>${p.followers>300?Math.round(p.followers).toLocaleString()+' followers'+(p.followers>=5000?', a local celebrity':''):''}${p.followers>300&&p.onApp?'; ':''}${p.onApp?'on a dating app':''}</dd>`:''}${S.town&&S.town.mayor===p.id?'<dt>Office</dt><dd>Mayor of Sprungfeld</dd>':S.town&&S.town.candidates.some(c=>c.id===p.id)?'<dt>Campaign</dt><dd>Running for mayor</dd>':''}
- <dt>Attracted to</dt><dd>${p.attracted.length===2?'Men and women':p.attracted[0]==='m'?'Men':'Women'}</dd>
+ ${adult(p)?`<dt>Attracted to</dt><dd>${p.attracted.length===2?'Men and women':p.attracted[0]==='m'?'Men':'Women'}</dd>`:''}
  ${p.boat?`<dt>Boat</dt><dd>${esc(DATA.boats[p.boat.type].label)}${p.boat.name?' named “'+esc(p.boat.name)+'”':''}</dd>`:''}
  <dt>Gets around by</dt><dd>${p.car?esc(DATA.vehicles[p.car.type].label.toLowerCase())+(p.car.name?' named “'+esc(p.car.name)+'”':'')+(p.car.type!=='bike'?', condition '+Math.round(p.car.cond)+(p.car.broken?', broken down':'')+(p.carLoan?', '+money(p.carLoan.bal)+' left on the loan':''):''):'walking'}${p.noDriveUntil>S.ly?', license suspended':''}</dd>${petsOf(p).length?`<dt>Pets</dt><dd>${petsOf(p).map(x=>esc(x.name)+' ('+esc(x.breed)+')').join(', ')}</dd>`:''}
  <dt>Fitness</dt><dd>${Math.round(p.fitness)}</dd><dt>Health</dt><dd>${p.sick?'Sick with '+esc(p.sick.label):'Healthy'}${p.pregUntil?', expecting':''}</dd>${p.dep.alcohol>15?`<dt>Alcohol</dt><dd>${Math.round(p.dep.alcohol)}% dependent${p.quitting.alcohol?', trying to quit':''}</dd>`:''}${p.dep.nicotine>15?`<dt>Nicotine</dt><dd>${Math.round(p.dep.nicotine)}% dependent${p.quitting.nicotine?', trying to quit':''}</dd>`:''}
@@ -2215,24 +2272,19 @@ function buildingHTML(id){const b=S.blds[id];const u=DATA.uses[b.use];const z=S.
  if(u.cat==='home'){const units=Object.values(S.units).filter(x=>x.bld===id);h+='<h3>Who lives here</h3>';for(const un of units){const res=residents(un.id);h+=`<p class="small"><b>${units.length>1?'Unit '+(un.idx+1)+': ':''}</b>${res.length?res.map(r=>plink(r.id)).join(', '):'<span class="muted">Vacant, '+money(un.rent*4.33)+' a month'+(DATA.money.price[b.use]&&!un.owned?' or '+money(DATA.money.price[b.use])+' to buy':'')+'</span>'}</p>`;if(res.length&&petsOf(res[0]).length)h+='<div class="small">'+petsHTML(petsOf(res[0]))+'</div>';if(res.length)h+=sec('home'+un.id,'The state of the place'+(units.length>1?' (unit '+(un.idx+1)+')':''),homeHTML(un),units.length===1);}}
  if(b.use==='pound'){const sh=Object.values(S.pets||{}).filter(x=>x.alive&&!x.owner);h+='<h3>Waiting for a home ('+sh.length+')</h3>'+(petsHTML(sh)||'<p class="small muted">Every animal here has been adopted.</p>');}
  h+=sec('bgod','Play god',bldGodPanel(b));
- if(z){const staff=Object.entries(z.staff).flatMap(([j,ids])=>ids.map(i=>[j,i])).filter(([j,i])=>S.people[i]&&S.people[i].alive);h+='<h3>Who works here</h3>'+(staff.length?staff.map(([j,i])=>personRow(S.people[i],esc(JOB[j].title))).join(''):'<p class="small muted">No staff.</p>');
+ if(z){h+=staffHTML(b,z)+convertHTML(b,z);
   if(!z.civic)h+=sec('badmin','Admin tools',`<div class="btnrow wrap"><button data-act="badm" data-g="cash">+$10,000 cash</button>${z.open?'<button data-act="badm" data-g="close" class="danger">Force closure</button>':''}</div><p class="small muted">Market luck ${z.luck.toFixed(2)}, baseline sales ${money(z.baseA)} a year.</p>`);}
  return h;}
-function paperHTML(idx){const eds=S.paper;let h='';
- if(idx>=eds.length){const today=S.events.filter(e=>e.day===day()&&e.kind!=='town').sort((a,b)=>b.drama-a.drama);
-  h+=`<div class="paper"><p class="mast">${esc(paperName())}</p><p class="dateline">Today so far, ${esc(dateLabel())}, ${DAYN[wday()]}. ${DATA.wxIcon[S.wx.k]} ${DATA.wxLabel[S.wx.k]}, ${S.wx.temp}°F.${S.hol&&S.hol.length?' Today: '+S.hol.map(h=>esc(holLabel(h))).join(', ')+'.':''}</p>`;
-  h+=today.length?today.slice(0,10).map((e,i)=>`<article class="${i===0&&e.drama>=4?'lead':''}"><p>${fmt(e.text)}</p></article>`).join(''):'<p class="filler">Nothing yet today. The presses are warm and waiting.</p>';h+='</div>';}
- else{const ed=eds[idx];h+=`<div class="paper"><p class="mast">${esc(paperName())}</p><p class="dateline">${esc(ed.season)} ${dayOfSeason(ed.day)}, Year ${ed.year}, ${DAYN[ed.day%7]} edition. Population ${ed.pop}.</p>`;
-  h+=ed.items.length?ed.items.map((e,i)=>`<article class="${i===0?'lead':''}"><p>${fmt(e.text)}</p></article>`).join(''):'<p class="filler">Nothing happened. The Ledger regrets the inconvenience.</p>';h+='</div>';}
- h+=`<div class="btnrow"><button data-act="ed" data-i="${idx-1}" ${idx<=0?'disabled':''}>Earlier edition</button><button data-act="ed" data-i="${Math.min(eds.length,idx+1)}" ${idx>=eds.length?'disabled':''}>${idx+1>=eds.length?'Today':'Later edition'}</button></div>`;return h;}
+function paperHTML(idx){const v=stack[stack.length-1];return paperHTML0(v&&v.type==='paper'?v:{idx});}
 function favsHTML(){const f=Object.values(S.people).filter(p=>p.fav);let h='';
  h+=f.length?f.sort((a,b)=>b.alive-a.alive).map(p=>`<div class="favrow"><button class="miniwrap" data-portrait="${p.id}" aria-label="Where is ${esc(p.first)}?"><canvas class="miniport" data-pid="${p.id}"></canvas></button>${personRow(p)}</div>`).join(''):'<p class="empty">Tap the ☆ on anyone’s page to follow their life here. You’ll get a heads-up when something happens to them.</p>';
  h+=`<label class="tog"><input type="checkbox" data-set="passFav" ${SET.passFav?'checked':''}> When a favorite dies, follow their partner and kids</label><label class="tog"><input type="checkbox" data-set="favToasts" ${SET.favToasts?'checked':''}> Pop-up alerts for favorites</label>`;setTimeout(wireForm);return h;}
-function townHTML(tab){const tabs=[['overview','Overview'],['civic','Civic'],['people','People'],['biz','Businesses'],['legends','Legends']];
+function townHTML(tab){const tabs=[['overview','Overview'],['civic','Civic'],['people','People'],['biz','Businesses'],['jobs','Jobs'],['legends','Legends']];
  let h='<div class="tabs" role="tablist">'+tabs.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-act="tab" data-t="${k}">${l}</button>`).join('')+'</div>';
  if(tab==='overview'){const t=townStats();h+=`<dl class="kv"><dt>Population</dt><dd>${t.pop} (${t.kids} under 18)</dd><dt>Working</dt><dd>${t.employed} employed, ${t.unemployed} looking</dd><dt>Unhoused</dt><dd>${t.homeless}</dd><dt>Homes</dt><dd>${t.units-t.vacant} of ${t.units} occupied</dd><dt>Businesses</dt><dd>${t.open} open, ${t.closed} empty storefronts</dd><dt>Average mood</dt><dd>${t.mood} (${moodWord(t.mood).toLowerCase()})</dd><dt>Married couples</dt><dd>${t.couples}</dd><dt>Dating</dt><dd>${t.dating}</dd><dt>Sick today</dt><dd>${t.sick}</dd><dt>Struggling with drink</dt><dd>${t.drinkers}</dd><dt>In a cell</dt><dd>${t.jailed}</dd><dt>Vehicles</dt><dd>${living().filter(q=>q.car&&q.car.type!=='bike').length} cars and trucks, ${living().filter(q=>q.car&&q.car.type==='bike').length} bikes</dd><dt>Pets</dt><dd>${Object.values(S.pets||{}).filter(x=>x.alive&&x.owner).length} in homes, ${Object.values(S.pets||{}).filter(x=>x.alive&&!x.owner).length} at the shelter</dd><dt>Homeowners</dt><dd>${Object.values(S.units).filter(x=>x.owned&&residents(x.id).length).length} households</dd><dt>In debt</dt><dd>${living().filter(q=>adult(q)&&q.money<0).length} adults</dd><dt>Median income</dt><dd>${money((()=>{const a=living().filter(q=>adult(q)&&!q.student).map(annualIncome).sort((x,y)=>x-y);return a[a.length>>1]||0;})())} a year</dd><dt>Weather</dt><dd>${DATA.wxIcon[S.wx.k]} ${DATA.wxLabel[S.wx.k]}, ${S.wx.temp}°F</dd><dt>Richest</dt><dd>${t.richest?plink(t.richest.id)+' ('+money(t.richest.money)+')':'—'}</dd></dl>
   <p class="small muted">Since the town began: ${S.stats.births} births, ${S.stats.deaths} deaths, ${S.stats.weddings} weddings, ${S.stats.divorces} divorces, ${S.stats.arrivals} arrivals, ${S.stats.departures} departures, ${S.stats.opened} businesses opened, ${S.stats.closed} closed.</p>`;}
  if(tab==='civic')h+=civicHTML();
+ if(tab==='jobs')h+=jobsTabHTML();
  if(tab==='people'){h+=`<label class="field"><span>Find someone</span><input type="search" id="psearch" placeholder="Name, job, or street" autocomplete="off"></label><div id="plist">${peopleList('')}</div>`;setTimeout(()=>{const i=$('#psearch');if(i){i.value=townQ;i.oninput=()=>{townQ=i.value;$('#plist').innerHTML=peopleList(i.value);};}});}
  if(tab==='biz'){h+=Object.values(S.biz).filter(z=>z.use!=='park').sort((a,b)=>b.open-a.open||a.name.localeCompare(b.name)).map(z=>`<button class="row" data-bld="${z.id}"><span class="rname">${esc(z.open?z.name:'Empty: formerly '+z.name)}</span><span class="rsub">${esc(DATA.uses[z.use].label)}${z.civic?'':', '+money(z.cash)}, ${Object.values(z.staff).flat().length} staff</span></button>`).join('');}
  if(tab==='legends'){const gone=Object.values(S.people).filter(p=>!p.alive).sort((a,b)=>b.diedLy-a.diedLy);h+=gone.length?gone.slice(0,120).map(p=>personRow(p,(p.status==='dead'?'🪦 Died '+esc(p.cause||'')+' at '+Math.floor(p.diedLy-p.bornLy)+(p.epitaph?'. “'+esc(p.epitaph)+'”':''):'Left town at '+Math.floor(p.diedLy-p.bornLy))+', Year '+yearOf(p.diedDay))).join(''):'<p class="empty">Nobody has died or left yet. Give it time.</p>';}
@@ -2274,7 +2326,7 @@ body.addEventListener('click',async e=>{const t=e.target.closest('button');if(!t
  if(act==='fav'&&p){p.fav=!p.fav;render();}
  if(act==='follow'&&p){follow=follow===p.id?null:p.id;if(follow&&p.loc&&!p.trip){openBuilding(p.loc,true);}else render();}
  if(act==='unfollow'){follow=null;render();}
- if(act==='god'&&p){const g=t.dataset.g;if(TARGETED[g]){pickFor={id:p.id,g};toast(TARGETED[g].replace('{a}',p.first));return;}if(DANGER.includes(g)&&!armed(t,'Tap again to confirm'))return;if(g==='smite'){SND.play('thunder');fxAt(p,'bolt');}if(g==='fire'){SND.play('crash');fxAt(p,'fire');}if(g==='bless')SND.play('coin');if(g==='raccoons')SND.play('raccoon');if(g==='puppy')SND.play('bark');GOD[g](p);render();}
+ if(act==='god'&&p){const g=t.dataset.g;if(TARGETED[g]){pickFor={id:p.id,g};toast(TARGETED[g].replace('{a}',p.first));return;}if(DANGER.includes(g)&&!armed(t,'Tap again to confirm'))return;if(g==='smite'){SND.play('thunder');fxAt(p,'bolt');}if(g==='fire'){SND.play('crash');}if(g==='bless')SND.play('coin');if(g==='raccoons')SND.play('raccoon');if(g==='puppy')SND.play('bark');GOD[g](p);render();}
  if(act==='adm'&&p){const g=t.dataset.g;if(g==='mood+')moodlet(p,'Admin cheer',20,1);if(g==='mood-')moodlet(p,'Admin gloom',-20,1);if(g==='cash')p.money+=1000;if(g==='sicken')GOD.sicken(p);if(g==='heal')GOD.heal(p);if(g==='sober'){p.dep.alcohol=p.dep.nicotine=0;p.quitting={};}if(g==='fire'&&p.job)fire(p,'by order of a higher power');if(g==='hire'&&!p.job&&!hireSomewhere(p))toast('No openings fit '+p.first+' right now.');if(g==='age')p.bornLy-=5;if(g==='needs')for(const n of NEEDS)p.needs[n]=100;if(g==='edit'){openCreator({members:[personSpec(p)],pets:[]},p.id);return;}if(g==='savehh'){const sp=householdSpec(p);const lib=libLoad();lib.push(sp);libSave(lib);toast('Saved '+sp.name+' ('+sp.members.length+' people) to your library.');return;}updateMood(p);render();}
  if(act==='bgod'){const b=S.blds[v.id];const g=t.dataset.g;if(BDANGER.includes(g)&&!armed(t,'Tap again to confirm'))return;BGOD[g](b);render();return;}
  if(act==='tgod'){const g=t.dataset.g;if(['quake','tornado','recession','plague'].includes(g)&&!armed(t,'Tap again to confirm'))return;TGOD[g]();toast('Done. Check the paper.');render();return;}
@@ -2339,7 +2391,7 @@ function frame(now){const dt=Math.min(0.25,(now-last)/1000);last=now;
  if(now-lastUI>400){lastUI=now;const m=S.t%1440;$('#clock').textContent=DAYN[wday()]+' '+clock(S.t);$('#townLabel').textContent=townName()+(live?' · Live':'');$('#date').textContent=DATA.wxIcon[S.wx.k]+' '+S.wx.temp+'°F, '+dateLabel();
   if(day()!==lastDay){lastDay=day();autosave();}
   followTick();favBarTick();reminderTick();
-  const v=stack[stack.length-1];if(!sheet.hidden&&v&&(v.type==='person'||v.type==='building')&&!body.contains(document.activeElement)&&now-(window._lastRender||0)>1200&&now-lastTouch>1500){window._lastRender=now;liveRefresh(v);}}
+  const v=stack[stack.length-1];if(!sheet.hidden&&v&&now-(window._lastRender||0)>1000&&now-lastTouch>1200){window._lastRender=now;if((v.type==='person'||v.type==='building')&&!body.contains(document.activeElement))liveRefresh(v);refreshLiveRows();}}
  requestAnimationFrame(frame);}
 let lastTouch=0;['touchstart','touchmove','wheel','scroll','pointerdown'].forEach(ev=>body.addEventListener(ev,()=>{lastTouch=performance.now();},{passive:true,capture:true}));
 function liveRefresh(v){const tmp=document.createElement('div');if(v.type==='person'){tmp.innerHTML=personHTML(v.id);for(const id of['liveNow','liveNeeds']){const src=tmp.querySelector('#'+id),dst=body.querySelector('#'+id);if(src&&dst&&dst.innerHTML!==src.innerHTML)dst.innerHTML=src.innerHTML;}}
@@ -2426,7 +2478,7 @@ function mapFigure(x,y,p){const pose=p.trip?'walk':(p.act&&((ACT[p.act.id]||DATA
 
 function gradeWord(g){return g>=90?'Straight A’s':g>=78?'Mostly A’s and B’s':g>=62?'B’s and C’s':g>=45?'Scraping by':'Failing';}
 function roleOf(p,k,r){const q=S.people[k];const roles=[];const best=Object.entries(p.rel).filter(([i,x])=>!['family','spouse'].includes(x.st)&&x.a>60).sort((a,b)=>b[1].a-a[1].a)[0];if(best&&best[0]===k)roles.push('best friend');
- if(r.r>40&&q&&(q.rel[p.id]?q.rel[p.id].r:0)<20&&p.partner!==k)roles.push('crush');if(r.a<-60)roles.push('nemesis');
+ if(r.r>40&&q&&adult(p)&&adult(q)&&(q.rel[p.id]?q.rel[p.id].r:0)<20&&p.partner!==k)roles.push('crush');if(r.a<-60)roles.push('nemesis');
  const z=p.job&&p.job.b&&S.biz[p.job.b];if(z&&z.ownerId===k&&p.job.j!=='owner')roles.push('boss');if(q&&q.job&&z&&q.job.b===p.job.b&&p.job.j==='owner')roles.push('employee');else if(q&&q.job&&z&&q.job.b===p.job.b)roles.push('coworker');
  const u=unitOf(p);if(u&&u.landlordId===k)roles.push('landlord');if(q&&q.homeU&&S.units[q.homeU].landlordId===p.id)roles.push('tenant');if(r.mentor)roles.push('mentor');if(r.mentee)roles.push('mentee');
  return roles.length?roles.join(', '):(r.st==='acq'?'acquaintance':r.st);}
@@ -2558,7 +2610,7 @@ function godDone(g,a,p){return({introduce:a.first+' and '+p.first+' have crossed
 const OOPS=['still sleeps with a nightlight','has never actually read a book','is afraid of the dark parking lot behind the diner','cried at a car commercial','has been mispronouncing their own last name for years','keeps a shrine to a 1990s sitcom star'];
 const RUMORS=['shoplifted from the church bake sale','is secretly a Cardinals fan who roots against the Royals','has a second family in Branson','has never once returned a shopping cart','put raisins in the potato salad'];
 Object.assign(GOD,{
- fire(p){if(!p.homeU){toast(p.first+' doesn’t have a home to burn.');return;}destroyBld(S.blds[S.units[p.homeU].bld],'fire');},
+ fire(p){if(!p.homeU){toast(p.first+' doesn’t have a home to burn.');return;}const b=S.blds[S.units[p.homeU].bld];if(!startFire(b,'god'))toast('That house is already on fire.');else{cam.tx=(b.fp[0][0]+b.fp[2][0])/2;cam.ty=(b.fp[0][1]+b.fp[2][1])/2;}},
  raincloud(p){p.needs.hygiene=Math.max(0,p.needs.hygiene-30);p.cloudUntil=S.t+1440;moodlet(p,'A personal rain cloud',-14,1);news('weird',3,N(p)+' was followed all day by a single, personal rain cloud. Meteorologists remain baffled.',[p.id]);},
  badhair(p){p.needs.hygiene=Math.min(p.needs.hygiene,10);moodlet(p,'Catastrophic hair day',-10,1);logp(p,'Woke up with hair that defies explanation.');},
  foodpoison(p){p.sick={id:'stomach',label:'food poisoning',d:1,sev:2};moodlet(p,'Food poisoning',-14,1);news('health',2,N(p)+' has food poisoning and blames the potato salad.',[p.id]);},
@@ -2573,12 +2625,12 @@ Object.assign(GOD,{
  rumor(p){const L2=shuffle(living().filter(q=>q!==p&&adult(q))).slice(0,18);for(const q of L2){rel(q,p).a-=15;}moodlet(p,'Everyone is whispering',-15,2);news('gossip',3,'A rumor is going around that '+N(p)+' '+pick(RUMORS)+'. '+N(p)+' denies it.',[p.id]);},
  secret(p){let done=false;for(const[id,r]of Object.entries(p.rel)){if(r.affair&&p.partner){const pt=P(p.partner),z=P(id);r.affair=false;if(z&&z.rel[p.id])z.rel[p.id].affair=false;if(pt){rel(pt,p).a-=60;moodlet(pt,'Betrayed by '+p.first,-35,3,p.id);news('scandal',7,N(pt)+' found out about '+N(p)+' and '+(z?N(z):'someone')+'. The whole street heard.',[pt.id,p.id].concat(z?[z.id]:[]));}done=true;break;}}
   if(!done){moodlet(p,'Secret exposed',-12,2);news('gossip',2,'It has come out that '+N(p)+' '+pick(OOPS)+'.',[p.id]);}},
- crush(p,q){const r=rel(p,q);r.r=Math.max(r.r,65);r.a+=20;r.f=Math.max(r.f,25);moodlet(p,'Can’t stop thinking about '+q.first,8,2,q.id);logp(p,'Developed a sudden, powerful crush on '+fullName(q)+'.');if(canRomance(p,q))romanceCheck(p,q,r,rel(q,p));},
+ crush(p,q){if(!adult(p)||!adult(q))return;const r=rel(p,q);r.r=Math.max(r.r,65);r.a+=20;r.f=Math.max(r.f,25);moodlet(p,'Can’t stop thinking about '+q.first,8,2,q.id);logp(p,'Developed a sudden, powerful crush on '+fullName(q)+'.');if(canRomance(p,q))romanceCheck(p,q,r,rel(q,p));},
  feud(p,q){const r1=rel(p,q),r2=rel(q,p);r1.a=r2.a=-70;r1.st=r2.st='enemy';moodlet(p,'Feuding with '+q.first,-10,3,q.id);moodlet(q,'Feuding with '+p.first,-10,3,p.id);news('gossip',3,N(p)+' and '+N(q)+' are feuding. Nobody, including them, remembers why.',[p.id,q.id]);},
  forget(p,q){if(p.partner===q.id)breakup(p,q);delete p.rel[q.id];logp(p,'Woke up with no memory of '+fullName(q)+'.');if(q.rel[p.id]){moodlet(q,p.first+' doesn’t remember them',-14,2,p.id);}}});
 const PUPPET={
  quit(p){if(!p.job){toast(p.first+' doesn’t have a job.');return;}const z=p.job.b&&S.biz[p.job.b];clearJob(p);p.unemployedSince=day();moodlet(p,'Quit in a blaze of glory',10,1);news('job',3,N(p)+' quit'+(z?' '+z.name:' their job')+' on the spot, reportedly mid-sentence.',[p.id]);},
- propose(p){if(p.partner){const q=P(p.partner);if(p.pstat==='dating'){if(rel(q,p).a>0||chance(0.5)){marry(p,q);S.stats.weddings++;moodlet(p,'Engaged and married',30,3);moodlet(q,'Engaged and married',30,3);news('wedding',5,N(p)+' proposed to '+N(q)+', and they married the same afternoon. Nobody could talk them out of it.',[p.id,q.id]);cohabit(p,q);}else{moodlet(p,'Turned down',-25,3);news('romance',4,N(p)+' proposed to '+N(q)+' in the middle of '+pick(['the diner','the farmers market','a funeral'])+'. The answer was no.',[p.id,q.id]);}}else{moodlet(p,'Renewed vows',15,2);news('wedding',2,N(p)+' and '+N(q)+' renewed their vows. Again.',[p.id,q.id]);}return;}
+ propose(p){if(!adult(p)){toast('Only adults can propose.');return;}if(p.partner){const q=P(p.partner);if(p.pstat==='dating'){if(rel(q,p).a>0||chance(0.5)){marry(p,q);S.stats.weddings++;moodlet(p,'Engaged and married',30,3);moodlet(q,'Engaged and married',30,3);news('wedding',5,N(p)+' proposed to '+N(q)+', and they married the same afternoon. Nobody could talk them out of it.',[p.id,q.id]);cohabit(p,q);}else{moodlet(p,'Turned down',-25,3);news('romance',4,N(p)+' proposed to '+N(q)+' in the middle of '+pick(['the diner','the farmers market','a funeral'])+'. The answer was no.',[p.id,q.id]);}}else{moodlet(p,'Renewed vows',15,2);news('wedding',2,N(p)+' and '+N(q)+' renewed their vows. Again.',[p.id,q.id]);}return;}
   const c=Object.entries(p.rel).filter(([id,r])=>P(id)&&P(id).alive&&!P(id).partner&&canRomance(p,P(id))).sort((a,b)=>b[1].r-a[1].r)[0];if(!c){toast('There’s nobody for '+p.first+' to propose to.');return;}const q=P(c[0]);
   if((q.rel[p.id]?q.rel[p.id].r:0)>45){marry(p,q);S.stats.weddings++;news('wedding',5,N(p)+' proposed to '+N(q)+' out of nowhere, and they said yes.',[p.id,q.id]);cohabit(p,q);}else{rel(q,p).a-=5;moodlet(p,'Humiliated',-25,3);news('romance',4,N(p)+' proposed to '+N(q)+', who said “who are you, again?”',[p.id,q.id]);}},
  dump(p){if(!p.partner){toast(p.first+' isn’t with anyone.');return;}breakup(p,P(p.partner));},
@@ -2595,19 +2647,12 @@ const PUPPET={
 function godPanel(p){const B=(g,l,cls)=>`<button data-act="god" data-g="${g}"${cls?` class="${cls}"`:''}>${l}</button>`,M=(g,l)=>`<button data-act="make2" data-g="${g}">${l}</button>`;
  return`<p class="small muted">Blessings</p><div class="btnrow wrap">${B('bless','Lottery win')}${B('inheritance','Mystery inheritance')}${B('talent','Sudden talent')}${B('puppy','Surprise puppy')}${B('newcar','New car')}${B('youth','Fountain of youth')}</div>
  <p class="small muted">Curses</p><div class="btnrow wrap">${B('smite','Lightning strike','danger')}${B('fire','Burn down their house','danger')}${B('raincloud','Personal rain cloud')}${B('foodpoison','Food poisoning')}${B('badhair','Bad hair day')}${B('wallet','Lose their wallet')}${B('audit','IRS audit')}${B('cartrouble','Kill their car')}${B('bees','Bees')}${B('raccoons','Raccoons')}${B('elderly','Age them 10 years')}${B('rumor','Start a rumor')}${B('secret','Expose a secret')}</div>
- <p class="small muted">Meddling (tap the button, then tap a second person)</p><div class="btnrow wrap">${B('introduce','Introduce to…')}${B('crush','Make them fall for…')}${B('feud','Start a feud with…')}${B('forget','Make them forget…')}${B('midlife','Midlife crisis')}</div>
- <p class="small muted">Make them…</p><div class="btnrow wrap">${M('quit','Quit their job')}${M('propose','Propose')}${M('dump','Dump their partner')}${M('party','Throw a party now')}${M('adopt','Adopt a pet')}${M('car','Buy a car')}${M('business','Start a business')}${M('mayor','Run for mayor')}${M('drunk','Go get drunk')}${M('spree','Go on a spending spree')}${M('hobby','Take up a hobby')}${M('makeover','Get a makeover')}${M('leave','Move away')}</div>`;}
+ <p class="small muted">Meddling (tap the button, then tap a second person)</p><div class="btnrow wrap">${B('introduce','Introduce to…')}${adult(p)?B('crush','Make them fall for…'):''}${B('feud','Start a feud with…')}${B('forget','Make them forget…')}${B('midlife','Midlife crisis')}</div>
+ <p class="small muted">Make them…</p><div class="btnrow wrap">${M('quit','Quit their job')}${adult(p)?M('propose','Propose')+M('dump','Dump their partner'):''}${M('party','Throw a party now')}${M('adopt','Adopt a pet')}${M('car','Buy a car')}${M('business','Start a business')}${M('mayor','Run for mayor')}${M('drunk','Go get drunk')}${M('spree','Go on a spending spree')}${M('hobby','Take up a hobby')}${M('makeover','Get a makeover')}${M('leave','Move away')}</div>`;}
 /* ---- building and town powers ---- */
 const BDANGER=['fire','meteor'];
-function destroyBld(b,cause){const units=Object.values(S.units).filter(u=>u.bld===b.id);const res=units.flatMap(u=>residents(u.id));const home=DATA.uses[b.use].cat==='home';const word=cause==='meteor'?'a meteor strike':'a fire';
- for(const p of living())if(p.loc===b.id&&!p.trip){if(!p.sick&&chance(cause==='meteor'?0.3:0.15))p.sick={id:'injury',label:cause==='meteor'?'meteor-related injuries':'smoke inhalation',d:ri(1,2),sev:2};p.act=null;}
- if(home){for(const p of res){moodlet(p,'Lost everything in '+word,-35,4);const kin=[...p.parents,...p.children,p.partner].map(P).find(q=>q&&q.alive&&q.homeU&&!units.some(u=>u.id===q.homeU));p.homeU=kin?kin.homeU:null;if(!kin)p.homelessSince=day();}
-  for(const u of units)delete S.units[u.id];b.use='lot';b.growth=1;b.floors=1;
-  news('disaster',6,(cause==='meteor'?'A meteor flattened ':'Fire destroyed ')+b.addr+'. '+(cause==='fire'?'Fire Station No. 1 got everyone out. ':'')+(res.length?'The '+res[0].last+' household is staying with family or at Hope House.':'Nobody was home.'),res.map(p=>p.id).slice(0,5));}
- else{const z=S.biz[b.id];if(z&&!z.civic&&z.open)closeBiz(z);b.burned=day();news('disaster',5,(cause==='meteor'?'A meteor struck ':'Fire gutted ')+(z?z.name:b.addr)+'. '+(z&&z.civic?'It will reopen once the smoke clears.':'The building is a total loss.'),[]);}
- for(const p of living())if(!p.loc&&!p.trip){p.loc=homeBld(p);}S._layoutVer=(S._layoutVer||0)+1;rebuildCaches();S._dirty=true;}
 const BGOD={
- fire(b){SND.play('crash');fxAt(b,'fire');destroyBld(b,'fire');},
+ fire(b){SND.play('crash');if(!startFire(b,'god'))toast('It’s already burning.');},
  meteor(b){SND.play('crash');fxAt(b,'meteor');setTimeout(()=>SND.play('boom'),700);destroyBld(b,'meteor');},
  inspector(b){const z=S.biz[b.id];if(!z||z.civic)return;z.cash-=Math.round(z.baseA/dpy()*0.5);for(const p of(S._occ[b.id]||[]))moodlet(p,'Saw the health inspector’s face',-6,1);news('business',3,'A surprise health inspection at '+z.name+' found '+pick(['a family of mice','a raccoon in the walk-in','a “mystery drawer”','expired everything'])+'. Fines were issued.',z.ownerId?[z.ownerId]:[]);},
  celebrity(b){const z=S.biz[b.id];if(!z||z.civic)return;z.cash+=Math.round(z.baseA/dpy()*3);z.luck=Math.min(1.3,z.luck+0.1);news('business',4,'A minor celebrity was spotted at '+z.name+'. Business is booming and the owner has framed the receipt.',z.ownerId?[z.ownerId]:[]);},
@@ -2787,7 +2832,7 @@ function creatorHTML(){const m=CR.members[CR.cur];const L=DATA.look;const T=CR.t
  h+='<div class="tabs" role="tablist">'+[['basics','Basics'],['looks','Looks'],['mind','Personality'],['life','Life']].map(([k,l])=>`<button role="tab" aria-selected="${T===k}" data-cr="tab" data-t="${k}">${l}</button>`).join('')+'</div>';
  const f=(k,lab,inner)=>`<label class="field"><span>${lab}</span>${inner}</label>`;
  if(T==='basics'){h+=f('first','First name',`<input data-f="first" value="${esc(m.first)}">`)+f('last','Last name',`<input data-f="last" value="${esc(m.last)}">`)+f('sex','Sex',`<select data-f="sex"><option value="f" ${m.sex==='f'?'selected':''}>Female</option><option value="m" ${m.sex==='m'?'selected':''}>Male</option></select>`)
-  +f('age','Age',`<input type="number" min="0" max="100" data-f="age" value="${m.age}">`)+f('att','Attracted to',`<select data-f="attracted"><option value="f" ${m.attracted.join()==='f'?'selected':''}>Women</option><option value="m" ${m.attracted.join()==='m'?'selected':''}>Men</option><option value="m,f" ${m.attracted.length===2?'selected':''}>Both</option></select>`)
+  +f('age','Age',`<input type="number" min="0" max="100" data-f="age" value="${m.age}">`)+(m.age>=18?f('att','Attracted to',`<select data-f="attracted"><option value="f" ${m.attracted.join()==='f'?'selected':''}>Women</option><option value="m" ${m.attracted.join()==='m'?'selected':''}>Men</option><option value="m,f" ${m.attracted.length===2?'selected':''}>Both</option></select>`):'')
   +(CR.cur>0&&!CR.edit?f('role','Relationship to '+esc(CR.members[0].first),`<select data-f="role">${['spouse','child','parent','sibling','roommate'].map(r=>`<option value="${r}" ${m.role===r?'selected':''}>${{spouse:'Partner (married)',child:'Child',parent:'Parent',sibling:'Sibling',roommate:'Roommate'}[r]}</option>`).join('')}</select>`):'');}
  if(T==='looks'){const lk=m.look;h+=`<label class="slider"><span>Short</span><input type="range" min="0.86" max="1.14" step="0.01" data-f="look.h" value="${lk.h}" aria-label="Height"><span>Tall</span></label><label class="slider"><span>Slim</span><input type="range" min="0.82" max="1.32" step="0.01" data-f="look.w" value="${lk.w}" aria-label="Build"><span>Broad</span></label>`;
   h+=`<p class="small muted">Skin tone</p><div class="swatches">${L.skins.map(c=>`<button class="sw ${lk.skin===c?'on':''}" style="background:${c}" data-cr="skin" data-c="${c}" aria-label="Skin tone ${c}"></button>`).join('')}<input type="color" data-f="look.skin" value="${lk.skin}" aria-label="Custom skin tone"></div>`;
@@ -2812,7 +2857,7 @@ function drawCrPreview(){const c=$('#crPrev');if(!c||!CR)return;const m=CR.membe
  const p=fakeP(m);figure(g,75,166,m.age<3?2.2:m.age<13?2.9:3.4,'stand',null,p,0,TH.dark);}
 function wireV6(v){if(v.type==='creator'){drawCrPreview();body.querySelectorAll('[data-f]').forEach(el=>{const h=()=>{const m=CR.members[CR.cur];const k=el.dataset.f;let val=el.value;
   if(k==='attracted')val=val.split(',');else if(k.startsWith('quirk')){m.quirks[+k.slice(5)]=val;m.quirks=m.quirks.filter(Boolean);drawCrPreview();return;}else if(['age','money','edu'].includes(k)||k.startsWith('traits.')||k==='look.h'||k==='look.w')val=+val;
-  if(k==='job'&&!val)val=null;setPath(m,k,val);if(k==='age'||k==='first'||k==='role'){}drawCrPreview();if(el.tagName==='SELECT'&&['role','sex'].includes(k))render();};el.oninput=h;el.onchange=h;});}
+  if(k==='job'&&!val)val=null;setPath(m,k,val);if(k==='age'&&m.role==='spouse'&&m.age<18){m.age=18;el.value=18;toast('Partners are 18 or older.');}if(k==='role'&&m.role==='spouse'&&(m.age<18||CR.members[0].age<18)){m.role='roommate';toast('Partners are for adults only.');render();return;}if(k==='age'&&CR.cur===0&&m.age<18&&CR.members.some(x=>x.role==='spouse')){m.age=18;el.value=18;toast('This household has a partner, so the head stays 18 or older.');}if(k==='age'||k==='first'||k==='role'){}drawCrPreview();if(el.tagName==='SELECT'&&['role','sex'].includes(k))render();};el.oninput=h;el.onchange=h;});}
  if(v.type==='library'){const f=$('#libFile');if(f)f.onchange=async()=>{try{importSpec(await f.files[0].text());}catch(e){toast('That isn’t a household file.');}};}}
 function importSpec(txt){const o=JSON.parse(txt);if(!o||o.type!=='humanaquarium-household'||!Array.isArray(o.members))throw new Error('bad');const lib=libLoad();lib.push(o);libSave(lib);toast('Added '+(o.name||'a household')+' to your library.');render();}
 function libLoad(){try{return JSON.parse(LS.get('halverson:library')||'[]');}catch(e){return[];}}
@@ -2824,7 +2869,7 @@ function applySpecToPerson(p,m){p.first=m.first;p.last=m.last;p.sex=m.sex;p.attr
 async function crAction(t,btn){const a=btn.dataset.cr;
  if(a==='pick'){CR.cur=+btn.dataset.i;render();return;}
  if(a==='tab'){CR.tab=btn.dataset.t;render();return;}
- if(a==='add'){const r=btn.dataset.r;if(r==='spouse'&&CR.members.some(x=>x.role==='spouse')){toast('There’s already a partner in this household.');return;}CR.members.push(newMember(r,btn.dataset.s||'adult'));CR.cur=CR.members.length-1;render();return;}
+ if(a==='add'){const r=btn.dataset.r;if(r==='spouse'&&CR.members.some(x=>x.role==='spouse')){toast('There’s already a partner in this household.');return;}if(r==='spouse'&&CR.members[0].age<18){toast('Partners are for adults. Make the head of the household 18 or older first.');return;}CR.members.push(newMember(r,btn.dataset.s||'adult'));CR.cur=CR.members.length-1;render();return;}
  if(a==='del'){CR.members.splice(CR.cur,1);CR.cur=0;render();return;}
  if(a==='pet'){const k=pick(['dog','cat','dog','fish','bird','hamster']);const D=DATA.pets[k];CR.pets.push({kind:k,name:pick(D.names),breed:pick(D.breeds)});render();return;}
  if(a==='delpet'){CR.pets.splice(+btn.dataset.i,1);render();return;}
@@ -2938,6 +2983,92 @@ function portraitTick(){if(sheet.hidden)return;const v=stack[stack.length-1];if(
  if(v.type==='favs'||v.type==='person'||v.type==='building'||v.type==='town')body.querySelectorAll('canvas.miniport').forEach(c=>drawPortrait(c,S.people[c.dataset.pid],true));}
 function portraitTap(p){if(!p)return;if(!p.alive){toast(fullName(p)+' rests at '+((S._byUse.cemetery||[]).length?'Sprungfeld Cemetery':'the churchyard')+'.');return;}if(p.trip){focusPerson(p);toast(p.first+' is on the way to '+bName(S.blds[p.trip.to])+'.');return;}if(p.act&&p.act.boat){cam.tx=1150;cam.ty=815;toast(p.first+' is out on Lake Sprung.');return;}if(p.loc)openBuilding(p.loc);}
 body.addEventListener('click',e=>{const b=e.target.closest('[data-portrait]');if(!b)return;e.stopPropagation();portraitTap(S.people[b.dataset.portrait]);},true);
+
+/* ======================= v0.8: newspaper sections, archive and search ======================= */
+function classifiedsHTML(){let h='';const jobs={};for(const z of Object.values(S.biz)){if(!z.open)continue;for(const J of jobsFor(z.use)){const open=slotN(z,J)-staffCount(z,J.id);if(open>0)(jobs[J.title]=jobs[J.title]||[]).push(z);}}
+ const jk=Object.keys(jobs).sort();h+='<h3>Help wanted</h3>'+(jk.length?jk.slice(0,20).map(t=>`<p class="small"><b>${esc(t)}</b>: ${jobs[t].map(z=>blink(z.id)).join(', ')}</p>`).join(''):'<p class="small muted">Every job in town is filled.</p>');
+ const v=vacantUnits().filter(u=>S.blds[u.bld]);h+='<h3>Homes for rent and sale</h3>'+(v.length?v.slice(0,12).map(u=>{const b=S.blds[u.bld];const pr=DATA.money.price[b.use];return`<p class="small">${blink(b.id)}${b.use==='apartment'?' apt '+(u.idx+1):''}: ${money(u.rent*4.33)} a month${pr?', or '+money(pr)+' to buy':''}.</p>`;}).join(''):'<p class="small muted">No vacancies. Builders have been notified.</p>');
+ const sh=Object.values(S.pets||{}).filter(x=>x.alive&&!x.owner);h+='<h3>Pets for adoption</h3>'+(sh.length?sh.slice(0,8).map(x=>`<p class="small"><b>${esc(x.name)}</b>, ${esc(x.breed)}. Ask at the animal shelter.</p>`).join(''):'<p class="small muted">The shelter is empty, for once.</p>');
+ const fs=Object.values(S.biz).filter(z=>z.forSale&&z.open);if(fs.length)h+='<h3>Businesses for sale</h3>'+fs.map(z=>`<p class="small">${blink(z.id)}, asking ${money(z.baseA*0.6)}.</p>`).join('');
+ return h;}
+function editionItems(ed){return ed?ed.items:S.events.filter(e=>e.day===day()&&e.kind!=='town').sort((a,b)=>b.drama-a.drama);}
+function paperHTML0(v){const eds=S.paper;const sec=v.sec||'front';const mode=v.mode||'read';let h='';
+ h+=`<div class="ptabs">${[['read','Read'],['archive','Archive'],['search','Search']].map(([k,l])=>`<button data-pm="${k}" aria-pressed="${mode===k}">${l}</button>`).join('')}</div>`;
+ if(mode==='archive'){const groups={};for(let i=eds.length-1;i>=0;i--){const ed=eds[i];const k=ed.season+', Year '+ed.year;(groups[k]=groups[k]||[]).push(i);}
+  h+=`<div class="btnrow"><button data-pe="${eds.length}" class="primarybtn">Today’s paper</button></div>`;
+  h+=Object.keys(groups).length?Object.entries(groups).map(([k,ix])=>`<h3>${esc(k)}</h3>`+ix.map(i=>{const ed=eds[i];const lead=ed.items[0];return`<button class="row" data-pe="${i}"><span class="rname">${DAYN[ed.day%7].slice(0,3)} ${dayOfSeason(ed.day)}</span><span class="rsub">${lead?esc(plain(lead.text)):'A quiet day.'}</span></button>`;}).join('')).join(''):'<p class="empty">No past editions yet. Check back tomorrow.</p>';return h;}
+ if(mode==='search'){h+=`<label class="field"><span>Search every edition</span><input type="search" id="pq" placeholder="A name, a place, a word" value="${esc(v.q||'')}" autocomplete="off"></label><div class="chips">${SECTIONS.filter(x=>x[0]!=='classifieds').map(([k,l])=>`<button class="chip ${(v.fsec||'front')===k?'on':''}" data-pf="${k}">${k==='front'?'All sections':esc(l)}</button>`).join('')}</div><div id="presults">${paperResults(v)}</div>`;return h;}
+ const today=v.idx==null||v.idx>=eds.length;const ed=today?null:eds[v.idx];
+ h+=`<div class="ptabs secs">${SECTIONS.map(([k,l])=>`<button data-ps="${k}" aria-pressed="${sec===k}">${esc(l)}</button>`).join('')}</div>`;
+ h+=`<div class="paper"><p class="mast">${esc(paperName())}</p><p class="dateline">${today?'Today so far, '+esc(dateLabel())+', '+DAYN[wday()]+'. '+DATA.wxIcon[S.wx.k]+' '+DATA.wxLabel[S.wx.k]+', '+S.wx.temp+'°F.'+(S.hol&&S.hol.length?' Today: '+S.hol.map(x=>esc(holLabel(x))).join(', ')+'.':''):esc(ed.season)+' '+dayOfSeason(ed.day)+', Year '+ed.year+', '+DAYN[ed.day%7]+' edition. Population '+ed.pop+'.'}</p>`;
+ if(sec==='classifieds'){h+=today?classifiedsHTML():'<p class="filler">Classifieds are printed fresh each day. Switch to today’s paper to see them.</p>';}
+ else{let items=editionItems(ed);if(sec!=='front')items=items.filter(e=>sectionOf(e)===sec);else items=items.slice(0,8);
+  h+=items.length?items.map((e,i)=>`<article class="${i===0&&e.drama>=3?'lead':''}"><p>${fmt(e.text)}</p></article>`).join(''):`<p class="filler">${sec==='front'?(today?'Nothing yet today. The presses are warm and waiting.':'Nothing happened. The Ledger regrets the inconvenience.'):'Nothing in this section'+(today?' yet today.':' that day.')}</p>`;}
+ h+='</div>';const idx=today?eds.length:v.idx;
+ h+=`<div class="btnrow"><button data-pe="${idx-1}" ${idx<=0?'disabled':''}>‹ Earlier</button><button data-pm="archive">All editions</button><button data-pe="${Math.min(eds.length,idx+1)}" ${today?'disabled':''}>${idx+1>=eds.length?'Today':'Later ›'}</button></div>`;return h;}
+function paperResults(v){const q=(v.q||'').trim().toLowerCase();if(q.length<2)return'<p class="small muted">Type at least two letters. Search covers every edition this town has printed.</p>';const out=[];
+ for(let i=S.paper.length-1;i>=0&&out.length<80;i--){const ed=S.paper[i];for(const e of ed.items){if(v.fsec&&v.fsec!=='front'&&sectionOf(e)!==v.fsec)continue;if(plain(e.text).toLowerCase().includes(q))out.push([i,ed,e]);}}
+ return out.length?`<p class="small muted">${out.length>=80?'80+':out.length} result${out.length===1?'':'s'}</p>`+out.map(([i,ed,e])=>`<div class="sres"><button class="plink" data-pe="${i}">${esc(ed.season)} ${dayOfSeason(ed.day)}, Year ${ed.year}</button><p>${fmt(e.text)}</p></div>`).join(''):'<p class="empty">Nothing in the archive matches that.</p>';}
+body.addEventListener('click',e=>{const b=e.target.closest('[data-pm],[data-ps],[data-pe],[data-pf]');if(!b)return;const v=stack[stack.length-1];if(!v||v.type!=='paper')return;e.stopPropagation();
+ if(b.dataset.pm){v.mode=b.dataset.pm;}if(b.dataset.ps){v.sec=b.dataset.ps;v.mode='read';}if(b.dataset.pe!=null){v.idx=+b.dataset.pe;v.mode='read';}if(b.dataset.pf){v.fsec=b.dataset.pf;}
+ body._vk=null;render();if(v.mode==='search'){const i=$('#pq');if(i&&b.dataset.pf){i.focus();}}},true);
+body.addEventListener('input',e=>{if(e.target.id!=='pq')return;const v=stack[stack.length-1];if(!v||v.type!=='paper')return;v.q=e.target.value;const r=$('#presults');if(r)r.innerHTML=paperResults(v);});
+/* ======================= staffing tools ======================= */
+function staffHTML(b,z){let h='';const jobs=jobsFor(z.use);if(!jobs.length&&!z.civic)return'';
+ h+='<h3>Who works here</h3>';
+ if(z.ownerId&&S.people[z.ownerId])h+=`<div class="jobslot"><div class="jobhead"><b>Owner</b></div>${personRow(S.people[z.ownerId],'Owner')}</div>`;
+ for(const J of jobs){const ids=(z.staff[J.id]||[]).filter(i=>S.people[i]&&S.people[i].alive);const n=slotN(z,J);
+  h+=`<div class="jobslot"><div class="jobhead"><button class="plink" data-jobpage="${J.id}">${esc(J.title)}</button><span class="small muted">${ids.length} of ${n} filled, ${money(J.pay*260)} a year</span>${ADMIN_OPEN?`<span class="slotbtns"><button data-st="minus" data-j="${J.id}" aria-label="Remove a ${esc(J.title)} position">−</button><button data-st="plus" data-j="${J.id}" aria-label="Add a ${esc(J.title)} position">+</button></span>`:''}</div>`;
+  h+=ids.map(i=>{const p=S.people[i];return`<div class="staffrow">${personRow(p,esc(J.title)+', performance '+Math.round(p.perf||50))}${ADMIN_OPEN?`<div class="btnrow wrap mini"><button data-st="promote" data-p="${i}">Promote</button><button data-st="transfer" data-p="${i}">Transfer</button><button data-st="fire" data-p="${i}" class="danger">Fire</button></div>`:''}</div>`;}).join('');
+  if(ADMIN_OPEN&&ids.length<n)h+=`<div class="btnrow wrap mini"><button data-st="hire" data-j="${J.id}">Hire from a list…</button><button data-st="hirepick" data-j="${J.id}">Tap someone to hire…</button></div>`;
+  h+='</div>';}
+ if(!z.civic&&ADMIN_OPEN){h+=`<div class="btnrow wrap"><button data-st="owner">${z.ownerId?'Replace the owner…':'Set an owner…'}</button><button data-st="sale" aria-pressed="${!!z.forSale}">${z.forSale?'Take it off the market':'Put it up for sale'}</button></div>`;}
+ h+=`<label class="tog"><input type="checkbox" id="staffAdmin" ${ADMIN_OPEN?'checked':''}> Show staffing tools</label>`;return h;}
+let ADMIN_OPEN=false;
+function convertHTML(b,z){if(z.open||z.civic)return'';const types=[...new Set([z.use].concat(DATA.newBizTypes))];return`<h3>Reopen this storefront</h3><div class="btnrow wrap">${types.map(t=>`<button data-st="convert" data-u="${t}">${esc(DATA.uses[t].label)}</button>`).join('')}</div><p class="small muted">It opens with no owner and no staff; hire people above or let the town fill the jobs.</p>`;}
+function hireHTML(v){const z=S.biz[v.b],J=JOB[v.j];if(!z||!J)return'<p>That job no longer exists.</p>';const c=hireCandidates(z,J);
+ return`<p class="sub">${esc(J.title)} at ${blink(z.id)}, ${money(J.pay*260)} a year${J.edu?', needs '+['','a high school diploma','a college degree','a graduate degree'][J.edu]:''}.</p>`+(c.length?c.map(({p})=>`<div class="staffrow">${personRow(p,esc(Math.floor(age(p))+', '+jobTitle(p)+(J.interest&&p.skills[J.interest]?', '+DATA.interests.find(x=>x.id===J.interest).label.toLowerCase()+' '+Math.round(p.skills[J.interest]):'')))}<div class="btnrow mini"><button data-st="dohire" data-p="${p.id}" class="primarybtn">Hire</button></div></div>`).join(''):'<p class="empty">Nobody in town qualifies right now.</p>');}
+function jobPageHTML(v){const J=JOB[v.j];if(!J)return'';const hold=living().filter(p=>p.job&&p.job.j===J.id);const at=Object.values(S.biz).filter(z=>z.open&&jobsFor(z.use).some(x=>x.id===J.id));
+ return`<p class="sub">${money(J.pay*260)} a year, ${J.sh[0]}:00 to ${J.sh[1]===24?'midnight':J.sh[1]+':00'}${J.days==='wk'?' on weekdays':', any day of the week'}.${J.edu?' Needs '+['','a high school diploma','a college degree','a graduate degree'][J.edu]+'.':''}${DATA.ladder[J.id]?' Next step up: '+esc(JOB[DATA.ladder[J.id]].title.toLowerCase())+'.':''}</p>
+ <h3>Held by ${hold.length} ${hold.length===1?'person':'people'}</h3>${hold.map(p=>personRow(p,esc(S.biz[p.job.b]?S.biz[p.job.b].name:'self-employed'))).join('')||'<p class="small muted">Nobody, right now.</p>'}
+ ${at.length?'<h3>Workplaces</h3>'+at.map(z=>`<p class="small">${blink(z.id)}: ${staffCount(z,J.id)} of ${slotN(z,J)}</p>`).join(''):''}`;}
+function jobsTabHTML(){const by={};for(const J of Object.values(JOB)){if(J.id==='owner')continue;by[J.id]={J,n:0};}for(const p of living())if(p.job&&by[p.job.j])by[p.job.j].n++;
+ return Object.values(by).sort((a,b)=>b.n-a.n||a.J.title.localeCompare(b.J.title)).map(({J,n})=>`<button class="row" data-jobpage="${J.id}"><span class="rname">${esc(J.title)}</span><span class="rsub">${n} ${n===1?'person':'people'}, ${money(J.pay*260)} a year</span></button>`).join('');}
+body.addEventListener('change',e=>{if(e.target.id==='staffAdmin'){ADMIN_OPEN=e.target.checked;render();}});
+body.addEventListener('click',e=>{const jp=e.target.closest('[data-jobpage]');if(jp){e.stopPropagation();pushView({type:'job',j:jp.dataset.jobpage});showSheet(JOB[jp.dataset.jobpage].title);render();return;}
+ const b=e.target.closest('[data-st]');if(!b)return;e.stopPropagation();const v=stack[stack.length-1];const a=b.dataset.st;
+ if(a==='dohire'){const z=S.biz[v.b],J=JOB[v.j],p=S.people[b.dataset.p];if(z&&J&&p){adminHire(p,z,J);toast(fullName(p)+' is the new '+J.title.toLowerCase()+'.');stack.pop();const w=stack[stack.length-1];if(w){showSheet(bName(S.blds[w.id]));render();}}return;}
+ const z=v&&S.biz[v.id];if(!z)return;const J=b.dataset.j&&JOB[b.dataset.j];const p=b.dataset.p&&S.people[b.dataset.p];
+ if(a==='plus'){z.extra=z.extra||{};z.extra[J.id]=(z.extra[J.id]||0)+1;z.baseA+=J.pay*260;}
+ if(a==='minus'){if(slotN(z,J)<=0)return;z.extra=z.extra||{};z.extra[J.id]=(z.extra[J.id]||0)-1;z.baseA=Math.max(0,z.baseA-J.pay*260);const ids=(z.staff[J.id]||[]).filter(i=>S.people[i]&&S.people[i].alive);if(ids.length>slotN(z,J)){const q=S.people[ids[ids.length-1]];fire(q,'when the position was cut');}}
+ if(a==='fire'&&p){if(!armed(b,'Tap again'))return;fire(p,'by the management');}
+ if(a==='promote'&&p){const nx=DATA.ladder[p.job.j];if(!nx){toast('That job has no step up.');return;}const z2=Object.values(S.biz).find(x=>x.open&&x.id===z.id&&jobsFor(x.use).some(j=>j.id===nx))||Object.values(S.biz).find(x=>x.open&&jobsFor(x.use).some(j=>j.id===nx)&&staffCount(x,nx)<slotN(x,JOB[nx]));if(!z2){toast('There’s no open '+JOB[nx].title.toLowerCase()+' position.');return;}const old=JOB[p.job.j].title;setJob(p,z2.id,nx);p.raise=1;moodlet(p,'Promoted',20,3);news('job',2,N(p)+' was promoted from '+old.toLowerCase()+' to '+JOB[nx].title.toLowerCase()+' at '+z2.name+'.',[p.id]);}
+ if(a==='transfer'&&p){const jid=p.job.j;const z2=Object.values(S.biz).find(x=>x.open&&x.id!==z.id&&jobsFor(x.use).some(j=>j.id===jid)&&staffCount(x,jid)<slotN(x,JOB[jid]));if(!z2){toast('No other workplace has an opening for that job.');return;}setJob(p,z2.id,jid);toast(p.first+' now works at '+z2.name+'.');logp(p,'Transferred to '+z2.name+'.');}
+ if(a==='hire'){pushView({type:'hire',b:z.id,j:J.id});showSheet('Hire a '+J.title.toLowerCase());render();return;}
+ if(a==='hirepick'){pickFor={hire:{b:z.id,j:J.id}};toast('Tap anyone on the map, in a cutaway, or in a list to hire them as '+J.title.toLowerCase()+'.');return;}
+ if(a==='owner'){pickFor={owner:z.id};toast('Tap the person who should own '+z.name+'.');return;}
+ if(a==='sale'){z.forSale=!z.forSale;toast(z.forSale?z.name+' is on the market. An ambitious local may buy it.':z.name+' is off the market.');}
+ if(a==='convert'){const bb=S.blds[z.id];const nz=openBiz(bb,b.dataset.u,null,0);nz.baseA=baseAnnual(b.dataset.u);nz.cash=Math.round(nz.baseA/dpy()*3);rebuildCaches();S._layoutVer=(S._layoutVer||0)+1;news('business',3,nz.name+' has opened at '+bb.addr+'.',[]);showSheet(bName(bb));}
+ render();},true);
+function pickForAction(pf,p){if(pf.hire){const z=S.biz[pf.hire.b],J=JOB[pf.hire.j];if(!z||!J)return;if(age(p)<16){toast(p.first+' is too young to work there.');return;}if(J.edu>p.edu){toast(p.first+' doesn’t have the education for that job.');return;}adminHire(p,z,J);toast(fullName(p)+' is the new '+J.title.toLowerCase()+'.');openBuilding(z.id);return true;}
+ if(pf.owner){const z=S.biz[pf.owner];if(!z)return;if(!adult(p)){toast('Only adults can own a business.');return;}const old=z.ownerId&&P(z.ownerId);if(old&&old.job&&old.job.b===z.id){clearJob(old);old.unemployedSince=day();}z.ownerId=p.id;z.forSale=false;setJob(p,z.id,'owner');moodlet(p,'Owns a business now',16,2);news('business',3,N(p)+' is the new owner of '+z.name+'.',[p.id]);openBuilding(z.id);return true;}}
+/* ======================= live markers on the map ======================= */
+const MARK_ICON={event:null,party:'🎉',yardsale:'🏷️',funeral:'🕯️',fire:'🔥',police:'🚨',campaign:'📣',vote:'🗳️',gig:'🎤',concert:'🎸'};
+function eventIcon(eid){return({easter:'🥚',prom:'💃',graduation:'🎓',july4:'🎆',fair:'🎡',halloween:'🎃',thanksgiving:'🦃',christmas:'🎁',newyear:'🥂',valentine:'❤️',football:'🏈',market:'🥕',meeting:'🏛️'})[eid]||'✨';}
+function liveMarkers(rt){const out={};const add=(bid,icon,w,label)=>{if(!bid||!S.blds[bid])return;const m=out[bid]||(out[bid]={bid,icon,w:0,label});m.w+=w;if(w>=m._best||!m._best){m.icon=icon;m.label=label;m._best=w;}};
+ for(const p of living()){if(p.trip||!p.act||S.t<p.act.start)continue;const A=ACT[p.act.id];const id=p.act.id;
+  if(A&&A.special==='event'&&!['hand_candy','thanksgiving','presents','bbq'].includes(id)&&S.blds[p.loc]&&DATA.uses[S.blds[p.loc].use].cat!=='home')add(p.loc,eventIcon(A.eid),1,A.label);
+  else if(id==='host_party')add(p.loc,'🎉',3,'A party');else if(id==='yard_sale')add(p.loc,'🏷️',3,'A yard sale');else if(id==='funeral')add(p.loc,'🕯️',1,'A funeral');else if(id==='gig')add(p.loc,'🎤',3,'Live music');else if(id==='concert')add(p.loc,'🎸',1,'A concert');else if(id==='campaign')add(p.loc,'📣',2,'Campaigning');else if(id==='vote')add(p.loc,'🗳️',1,'Voting');}
+ for(const b of Object.values(S.blds))if(b.onFire)add(b.id,'🔥',99,'Fire!');
+ for(const c of(S._calls||[]))if(c.type==='police'&&rt-c.t<90)add(c.to,'🚨',5,'Police on the scene');
+ return Object.values(out).filter(m=>m.w>=(m.icon==='🕯️'||m.icon==='🗳️'?2:m._best>=3?1:3));}
+let MARKS=[];function drawMarkers(rt){MARKS=liveMarkers(rt);const t=animNow()/1000;for(const m of MARKS){const b=S.blds[m.bid];const h=bH(b);const c=P2((b.fp[0][0]+b.fp[2][0])/2,(b.fp[0][1]+b.fp[2][1])/2,h+6);const pulse=reduce()?0.5:(Math.sin(t*3)+1)/2;const R=(14+pulse*8)*Math.max(0.7,Math.min(1.5,cam.z));
+ const g=cx.createRadialGradient(c[0],c[1],0,c[0],c[1],R);const col=m.icon==='🔥'||m.icon==='🚨'?'255,110,60':m.icon==='🕯️'?'200,200,255':'255,215,90';g.addColorStop(0,'rgba('+col+',0.75)');g.addColorStop(1,'rgba('+col+',0)');cx.fillStyle=g;cx.beginPath();cx.arc(c[0],c[1],R,0,7);cx.fill();
+ cx.font=Math.round(12*Math.max(0.8,Math.min(1.4,cam.z)))+'px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(m.icon,c[0],c[1]-1);cx.textAlign='left';cx.textBaseline='alphabetic';m._s=c;}
+ for(const b of Object.values(S.blds))if(b.onFire){const c=P2((b.fp[0][0]+b.fp[2][0])/2,b.fp[2][1],0);cx.font=Math.round(13*Math.min(1.6,cam.z))+'px sans-serif';cx.textAlign='center';for(let i=0;i<4;i++){const bob=reduce()?0:Math.sin(t*6+i)*3;cx.fillText('🔥',c[0]-14+i*9,c[1]-10-bob-i%2*6);}cx.textAlign='left';}}
+function tapMarker(x,y){for(const m of MARKS){if(m._s&&Math.hypot(m._s[0]-x,m._s[1]-y)<16){toast(m.icon+' '+m.label+' at '+bName(S.blds[m.bid])+'.');openBuilding(m.bid,true);return true;}}return false;}
+/* ======================= favorites and lists stay live ======================= */
+function refreshLiveRows(){body.querySelectorAll('.row[data-live]').forEach(r=>{const p=S.people[r.dataset.person];if(!p)return;const sub=r.querySelector('.rsub');const t=p.alive?actLabel(p):p.status==='dead'?'Died '+(p.cause||''):'Moved away';if(sub&&sub.textContent!==t)sub.textContent=t;const d=r.querySelector('.mdot');const c='mdot m-'+moodB(p.mood);if(d&&d.className!==c)d.className=c;});}
 
 </script>
 </body>
