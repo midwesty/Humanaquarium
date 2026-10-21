@@ -1,0 +1,501 @@
+﻿ID,Category,Activity,Minimum (min),Typical (min),Maximum (min),Unit,Estimate basis
+1,Sleep & Rest,Sleep overnight,360,480,600,minutes,Activity-specific estimate
+2,Sleep & Rest,Take a nap,10,30,120,minutes,Activity-specific estimate
+3,Sleep & Rest,Go to bed,2,10,30,minutes,Activity-specific estimate
+4,Sleep & Rest,Wake up,1,5,15,minutes,Activity-specific estimate
+5,Sleep & Rest,Rest in bed,10,30,120,minutes,Activity-specific estimate
+6,Sleep & Rest,Set an alarm,1,2,5,minutes,Activity-specific estimate
+7,Sleep & Rest,Hit snooze,5,9,20,minutes,Activity-specific estimate
+8,Sleep & Rest,Make the bed,2,5,10,minutes,Activity-specific estimate
+9,Sleep & Rest,Change sleeping position,1,1,2,minutes,Activity-specific estimate
+10,Sleep & Rest,Daydream,5,30,90,minutes,Category-based estimate
+11,Sleep & Rest,Meditate quietly,5,30,90,minutes,Category-based estimate
+12,Sleep & Rest,Relax on the couch,5,30,90,minutes,Category-based estimate
+13,Sleep & Rest,Take a screen break,5,30,90,minutes,Category-based estimate
+14,Sleep & Rest,Rest during illness,5,30,90,minutes,Category-based estimate
+15,Sleep & Rest,Use a sleep aid,1,2,5,minutes,Activity-specific estimate
+16,Sleep & Rest,Prepare bedding,10,30,90,minutes,Action-based estimate
+17,Personal Hygiene & Grooming,Take a shower,5,12,30,minutes,Activity-specific estimate
+18,Personal Hygiene & Grooming,Take a bath,15,30,60,minutes,Activity-specific estimate
+19,Personal Hygiene & Grooming,Brush teeth,2,3,5,minutes,Activity-specific estimate
+20,Personal Hygiene & Grooming,Floss teeth,1,3,6,minutes,Activity-specific estimate
+21,Personal Hygiene & Grooming,Wash face,1,3,6,minutes,Activity-specific estimate
+22,Personal Hygiene & Grooming,Wash hands,1,1,3,minutes,Activity-specific estimate
+23,Personal Hygiene & Grooming,Shave,5,12,30,minutes,Activity-specific estimate
+24,Personal Hygiene & Grooming,Trim facial hair,2,10,25,minutes,Category-based estimate
+25,Personal Hygiene & Grooming,Style hair,2,10,25,minutes,Category-based estimate
+26,Personal Hygiene & Grooming,Wash hair,4,8,20,minutes,Activity-specific estimate
+27,Personal Hygiene & Grooming,Dry hair,3,10,25,minutes,Activity-specific estimate
+28,Personal Hygiene & Grooming,Apply deodorant,1,1,2,minutes,Activity-specific estimate
+29,Personal Hygiene & Grooming,Apply makeup,2,12,35,minutes,Action-based estimate
+30,Personal Hygiene & Grooming,Remove makeup,2,10,25,minutes,Category-based estimate
+31,Personal Hygiene & Grooming,Trim nails,2,10,25,minutes,Category-based estimate
+32,Personal Hygiene & Grooming,Apply skincare,2,12,35,minutes,Action-based estimate
+33,Personal Hygiene & Grooming,Use the toilet,2,5,15,minutes,Activity-specific estimate
+34,Personal Hygiene & Grooming,Apply sunscreen,2,4,10,minutes,Activity-specific estimate
+35,Personal Hygiene & Grooming,Put in contact lenses,1,3,6,minutes,Activity-specific estimate
+36,Personal Hygiene & Grooming,Clean ears,5,20,60,minutes,Action-based estimate
+37,Cooking & Meal Preparation,Plan a meal,10,30,90,minutes,Action-based estimate
+38,Cooking & Meal Preparation,Follow a recipe,5,25,70,minutes,Category-based estimate
+39,Cooking & Meal Preparation,Chop vegetables,5,25,70,minutes,Category-based estimate
+40,Cooking & Meal Preparation,Prepare ingredients,10,30,90,minutes,Action-based estimate
+41,Cooking & Meal Preparation,Cook breakfast,5,15,35,minutes,Activity-specific estimate
+42,Cooking & Meal Preparation,Cook lunch,5,20,45,minutes,Activity-specific estimate
+43,Cooking & Meal Preparation,Cook dinner,15,40,90,minutes,Activity-specific estimate
+44,Cooking & Meal Preparation,Bake bread,75,150,240,minutes,Activity-specific estimate
+45,Cooking & Meal Preparation,Bake dessert,25,60,120,minutes,Activity-specific estimate
+46,Cooking & Meal Preparation,Grill food,5,25,70,minutes,Category-based estimate
+47,Cooking & Meal Preparation,Make a sandwich,3,8,15,minutes,Activity-specific estimate
+48,Cooking & Meal Preparation,Prepare a salad,5,15,30,minutes,Activity-specific estimate
+49,Cooking & Meal Preparation,Cook soup,20,60,150,minutes,Activity-specific estimate
+50,Cooking & Meal Preparation,Fry food,5,25,70,minutes,Category-based estimate
+51,Cooking & Meal Preparation,Roast food,5,25,70,minutes,Category-based estimate
+52,Cooking & Meal Preparation,Prepare a snack,10,30,90,minutes,Action-based estimate
+53,Eating & Drinking,Eat breakfast,5,15,35,minutes,Activity-specific estimate
+54,Eating & Drinking,Eat lunch,10,25,50,minutes,Activity-specific estimate
+55,Eating & Drinking,Eat dinner,15,35,75,minutes,Activity-specific estimate
+56,Eating & Drinking,Eat a snack,2,10,20,minutes,Activity-specific estimate
+57,Eating & Drinking,Drink water,1,1,3,minutes,Activity-specific estimate
+58,Eating & Drinking,Drink coffee,5,15,40,minutes,Activity-specific estimate
+59,Eating & Drinking,Drink tea,5,15,40,minutes,Activity-specific estimate
+60,Eating & Drinking,Have a soft drink,3,10,25,minutes,Activity-specific estimate
+61,Eating & Drinking,Eat at a restaurant,30,75,150,minutes,Activity-specific estimate
+62,Eating & Drinking,Order takeout,3,10,25,minutes,Activity-specific estimate
+63,Eating & Drinking,Eat packed lunch,5,20,50,minutes,Category-based estimate
+64,Eating & Drinking,Share a meal,5,20,50,minutes,Category-based estimate
+65,Eating & Drinking,Taste-test food,5,20,50,minutes,Category-based estimate
+66,Eating & Drinking,Eat at a buffet,5,20,50,minutes,Category-based estimate
+67,Eating & Drinking,Attend a dinner party,60,150,300,minutes,Activity-specific estimate
+68,Eating & Drinking,Have a picnic,5,20,50,minutes,Category-based estimate
+69,Kitchen Cleanup & Food Management,Wash dishes,5,15,35,minutes,Activity-specific estimate
+70,Kitchen Cleanup & Food Management,Load dishwasher,3,8,15,minutes,Activity-specific estimate
+71,Kitchen Cleanup & Food Management,Unload dishwasher,3,8,15,minutes,Activity-specific estimate
+72,Kitchen Cleanup & Food Management,Wipe kitchen counters,2,5,10,minutes,Activity-specific estimate
+73,Kitchen Cleanup & Food Management,Clean stovetop,5,20,60,minutes,Action-based estimate
+74,Kitchen Cleanup & Food Management,Clean oven,20,50,100,minutes,Activity-specific estimate
+75,Kitchen Cleanup & Food Management,Clean refrigerator,20,45,90,minutes,Activity-specific estimate
+76,Kitchen Cleanup & Food Management,Empty kitchen trash,2,5,10,minutes,Activity-specific estimate
+77,Kitchen Cleanup & Food Management,Put away groceries,5,12,25,minutes,Activity-specific estimate
+78,Kitchen Cleanup & Food Management,Organize pantry,10,30,90,minutes,Action-based estimate
+79,Kitchen Cleanup & Food Management,Check expiration dates,2,12,35,minutes,Action-based estimate
+80,Kitchen Cleanup & Food Management,Store leftovers,5,15,45,minutes,Category-based estimate
+81,Kitchen Cleanup & Food Management,Freeze prepared food,5,15,45,minutes,Category-based estimate
+82,Kitchen Cleanup & Food Management,Defrost food,5,15,45,minutes,Category-based estimate
+83,Kitchen Cleanup & Food Management,Sharpen kitchen knives,5,15,45,minutes,Category-based estimate
+84,Kitchen Cleanup & Food Management,Clean sink,5,20,60,minutes,Action-based estimate
+85,Housecleaning,Sweep floors,5,20,60,minutes,Action-based estimate
+86,Housecleaning,Vacuum carpets,5,20,60,minutes,Action-based estimate
+87,Housecleaning,Mop floors,5,20,60,minutes,Action-based estimate
+88,Housecleaning,Dust furniture,5,20,60,minutes,Action-based estimate
+89,Housecleaning,Wash windows,5,20,60,minutes,Action-based estimate
+90,Housecleaning,Clean mirrors,5,20,60,minutes,Action-based estimate
+91,Housecleaning,Scrub toilet,5,20,60,minutes,Action-based estimate
+92,Housecleaning,Clean bathtub,5,20,60,minutes,Action-based estimate
+93,Housecleaning,Clean shower,5,20,60,minutes,Action-based estimate
+94,Housecleaning,Disinfect surfaces,5,20,60,minutes,Action-based estimate
+95,Housecleaning,Clean baseboards,5,20,60,minutes,Action-based estimate
+96,Housecleaning,Wipe doors,5,20,60,minutes,Action-based estimate
+97,Housecleaning,Remove cobwebs,5,20,60,minutes,Category-based estimate
+98,Housecleaning,Clean blinds,5,20,60,minutes,Action-based estimate
+99,Housecleaning,Wash walls,5,20,60,minutes,Action-based estimate
+100,Housecleaning,Clean ceiling fan,5,20,60,minutes,Action-based estimate
+101,Laundry & Clothing Care,Sort laundry,2,12,35,minutes,Action-based estimate
+102,Laundry & Clothing Care,Wash clothing,30,45,75,minutes,Activity-specific estimate
+103,Laundry & Clothing Care,Dry clothing,30,55,90,minutes,Activity-specific estimate
+104,Laundry & Clothing Care,Hang laundry to dry,5,20,60,minutes,Category-based estimate
+105,Laundry & Clothing Care,Fold laundry,5,15,35,minutes,Activity-specific estimate
+106,Laundry & Clothing Care,Put away clean clothes,2,12,35,minutes,Action-based estimate
+107,Laundry & Clothing Care,Treat clothing stains,5,20,60,minutes,Category-based estimate
+108,Laundry & Clothing Care,Hand-wash delicates,5,20,60,minutes,Category-based estimate
+109,Laundry & Clothing Care,Clean sneakers,5,20,60,minutes,Action-based estimate
+110,Laundry & Clothing Care,Wash bedding,5,20,60,minutes,Action-based estimate
+111,Laundry & Clothing Care,Wash towels,5,20,60,minutes,Action-based estimate
+112,Laundry & Clothing Care,Change bedsheets,5,12,25,minutes,Activity-specific estimate
+113,Laundry & Clothing Care,Clean a mattress,5,20,60,minutes,Action-based estimate
+114,Laundry & Clothing Care,Use a laundromat,60,105,180,minutes,Activity-specific estimate
+115,Laundry & Clothing Care,Pick up dry cleaning,5,15,40,minutes,Activity-specific estimate
+116,Laundry & Clothing Care,Sew a button,5,20,60,minutes,Category-based estimate
+117,Laundry & Clothing Care,Patch torn clothes,5,20,60,minutes,Category-based estimate
+118,Laundry & Clothing Care,Sort donations,2,12,35,minutes,Action-based estimate
+119,Laundry & Clothing Care,Organize a dresser,10,30,90,minutes,Action-based estimate
+120,Laundry & Clothing Care,Steam garments,5,20,60,minutes,Category-based estimate
+121,Home Maintenance & DIY,Replace a light bulb,2,12,35,minutes,Action-based estimate
+122,Home Maintenance & DIY,Fix a leaking faucet,10,45,180,minutes,Category-based estimate
+123,Home Maintenance & DIY,Unclog a drain,10,45,180,minutes,Category-based estimate
+124,Home Maintenance & DIY,Paint a room,15,45,120,minutes,Action-based estimate
+125,Home Maintenance & DIY,Assemble furniture,10,45,180,minutes,Category-based estimate
+126,Home Maintenance & DIY,Hang a picture,10,45,180,minutes,Category-based estimate
+127,Home Maintenance & DIY,Repair drywall,10,45,180,minutes,Category-based estimate
+128,Home Maintenance & DIY,Replace batteries,2,12,35,minutes,Action-based estimate
+129,Home Maintenance & DIY,Change an air filter,2,12,35,minutes,Action-based estimate
+130,Home Maintenance & DIY,Test smoke detectors,10,45,180,minutes,Category-based estimate
+131,Home Maintenance & DIY,Clean gutters,5,20,60,minutes,Action-based estimate
+132,Home Maintenance & DIY,Repair a door hinge,10,45,180,minutes,Category-based estimate
+133,Home Maintenance & DIY,Install shelving,10,45,180,minutes,Category-based estimate
+134,Home Maintenance & DIY,Caulk a bathtub,10,45,180,minutes,Category-based estimate
+135,Home Maintenance & DIY,Repair an appliance,10,45,180,minutes,Category-based estimate
+136,Home Maintenance & DIY,Inspect plumbing,10,45,180,minutes,Category-based estimate
+137,Yardwork & Gardening,Mow the lawn,20,50,100,minutes,Activity-specific estimate
+138,Yardwork & Gardening,Water the garden,5,20,50,minutes,Activity-specific estimate
+139,Yardwork & Gardening,Plant flowers,10,40,120,minutes,Category-based estimate
+140,Yardwork & Gardening,Plant vegetables,10,40,120,minutes,Category-based estimate
+141,Yardwork & Gardening,Pull weeds,10,30,90,minutes,Activity-specific estimate
+142,Yardwork & Gardening,Prune shrubs,10,40,120,minutes,Category-based estimate
+143,Yardwork & Gardening,Rake leaves,10,40,120,minutes,Category-based estimate
+144,Yardwork & Gardening,Trim hedges,10,40,120,minutes,Category-based estimate
+145,Yardwork & Gardening,Mulch garden beds,10,40,120,minutes,Category-based estimate
+146,Yardwork & Gardening,Harvest produce,10,40,120,minutes,Category-based estimate
+147,Yardwork & Gardening,Turn compost,10,40,120,minutes,Category-based estimate
+148,Yardwork & Gardening,Fertilize plants,10,40,120,minutes,Category-based estimate
+149,Yardwork & Gardening,Repot a plant,10,40,120,minutes,Category-based estimate
+150,Yardwork & Gardening,Grow herbs,10,40,120,minutes,Category-based estimate
+151,Yardwork & Gardening,Aerate lawn,10,40,120,minutes,Category-based estimate
+152,Yardwork & Gardening,Edge the lawn,10,40,120,minutes,Category-based estimate
+153,Shopping & Purchases,Buy groceries,15,45,100,minutes,Activity-specific estimate
+154,Shopping & Purchases,Shop for clothing,10,35,120,minutes,Category-based estimate
+155,Shopping & Purchases,Buy household supplies,10,35,120,minutes,Category-based estimate
+156,Shopping & Purchases,Shop online,5,20,60,minutes,Activity-specific estimate
+157,Shopping & Purchases,Compare prices,5,20,60,minutes,Activity-specific estimate
+158,Shopping & Purchases,Clip coupons,10,35,120,minutes,Category-based estimate
+159,Shopping & Purchases,Browse a store,10,40,120,minutes,Action-based estimate
+160,Shopping & Purchases,Buy electronics,10,35,120,minutes,Category-based estimate
+161,Shopping & Purchases,Purchase furniture,10,35,120,minutes,Category-based estimate
+162,Shopping & Purchases,Shop at a farmers market,10,35,120,minutes,Category-based estimate
+163,Shopping & Purchases,Buy gifts,10,35,120,minutes,Category-based estimate
+164,Shopping & Purchases,Visit a thrift store,30,90,240,minutes,Action-based estimate
+165,Shopping & Purchases,Purchase toiletries,10,35,120,minutes,Category-based estimate
+166,Shopping & Purchases,Buy pet supplies,10,35,120,minutes,Category-based estimate
+167,Shopping & Purchases,Purchase books,10,35,120,minutes,Category-based estimate
+168,Shopping & Purchases,Buy sporting goods,10,35,120,minutes,Category-based estimate
+169,Errands & Appointments,Go to the bank,30,90,240,minutes,Action-based estimate
+170,Errands & Appointments,Use an ATM,2,5,10,minutes,Activity-specific estimate
+171,Errands & Appointments,Pick up a prescription,5,15,40,minutes,Activity-specific estimate
+172,Errands & Appointments,Visit the post office,30,90,240,minutes,Action-based estimate
+173,Errands & Appointments,Mail a package,10,30,90,minutes,Category-based estimate
+174,Errands & Appointments,Drop off a package,10,30,90,minutes,Category-based estimate
+175,Errands & Appointments,Get a haircut,15,30,60,minutes,Activity-specific estimate
+176,Errands & Appointments,Visit a salon,30,90,240,minutes,Action-based estimate
+177,Errands & Appointments,Get a manicure,25,50,90,minutes,Activity-specific estimate
+178,Errands & Appointments,Visit a tailor,30,90,240,minutes,Action-based estimate
+179,Errands & Appointments,Visit a mechanic,30,90,240,minutes,Action-based estimate
+180,Errands & Appointments,Pick up a repair,2,12,35,minutes,Action-based estimate
+181,Errands & Appointments,Renew identification,10,30,90,minutes,Category-based estimate
+182,Errands & Appointments,Visit city hall,30,90,240,minutes,Action-based estimate
+183,Errands & Appointments,Attend a scheduled appointment,30,90,240,minutes,Action-based estimate
+184,Errands & Appointments,Get a document notarized,10,30,90,minutes,Category-based estimate
+185,Transportation & Travel,Drive a car,5,25,120,minutes,Activity-specific estimate
+186,Transportation & Travel,Ride a bicycle,10,30,120,minutes,Activity-specific estimate
+187,Transportation & Travel,Walk to a destination,5,20,75,minutes,Activity-specific estimate
+188,Transportation & Travel,Ride a bus,10,30,90,minutes,Activity-specific estimate
+189,Transportation & Travel,Ride a train,15,45,180,minutes,Activity-specific estimate
+190,Transportation & Travel,Take a taxi,5,20,70,minutes,Activity-specific estimate
+191,Transportation & Travel,Use a rideshare,5,20,70,minutes,Activity-specific estimate
+192,Transportation & Travel,Ride a motorcycle,5,25,90,minutes,Category-based estimate
+193,Transportation & Travel,Fly on an airplane,45,150,600,minutes,Activity-specific estimate
+194,Transportation & Travel,Ride a ferry,5,25,90,minutes,Category-based estimate
+195,Transportation & Travel,Carpool,5,25,90,minutes,Category-based estimate
+196,Transportation & Travel,Commute to work,10,30,90,minutes,Activity-specific estimate
+197,Transportation & Travel,Commute to school,10,25,75,minutes,Activity-specific estimate
+198,Transportation & Travel,Navigate with GPS,5,25,90,minutes,Category-based estimate
+199,Transportation & Travel,Wait for public transit,2,12,35,minutes,Activity-specific estimate
+200,Transportation & Travel,Transfer between transit lines,5,25,90,minutes,Category-based estimate
+201,Paid Work & Career,Perform regular job duties,30,240,480,minutes,Activity-specific estimate
+202,Paid Work & Career,Attend a work meeting,15,45,120,minutes,Activity-specific estimate
+203,Paid Work & Career,Respond to work email,3,15,45,minutes,Activity-specific estimate
+204,Paid Work & Career,Complete work paperwork,10,45,120,minutes,Category-based estimate
+205,Paid Work & Career,Take a work break,5,15,30,minutes,Activity-specific estimate
+206,Paid Work & Career,Collaborate with colleagues,10,45,120,minutes,Category-based estimate
+207,Paid Work & Career,Train a coworker,10,45,120,minutes,Category-based estimate
+208,Paid Work & Career,Supervise employees,10,45,120,minutes,Category-based estimate
+209,Paid Work & Career,Serve a customer,10,45,120,minutes,Category-based estimate
+210,Paid Work & Career,Make a sales pitch,2,12,35,minutes,Action-based estimate
+211,Paid Work & Career,Prepare a work presentation,10,30,90,minutes,Action-based estimate
+212,Paid Work & Career,Clock in or out,1,2,5,minutes,Activity-specific estimate
+213,Paid Work & Career,Travel for business,10,45,120,minutes,Category-based estimate
+214,Paid Work & Career,Work overtime,30,120,300,minutes,Activity-specific estimate
+215,Paid Work & Career,Complete a performance review,10,45,120,minutes,Category-based estimate
+216,Paid Work & Career,Attend workplace training,30,90,240,minutes,Action-based estimate
+217,Business & Money Management,Pay bills,5,20,45,minutes,Activity-specific estimate
+218,Business & Money Management,Make a household budget,2,12,35,minutes,Action-based estimate
+219,Business & Money Management,Review bank statements,10,25,60,minutes,Activity-specific estimate
+220,Business & Money Management,Transfer money,2,5,15,minutes,Activity-specific estimate
+221,Business & Money Management,Deposit a check,3,10,30,minutes,Activity-specific estimate
+222,Business & Money Management,Track expenses,2,12,35,minutes,Action-based estimate
+223,Business & Money Management,File taxes,45,150,420,minutes,Activity-specific estimate
+224,Business & Money Management,Prepare tax documents,10,30,90,minutes,Action-based estimate
+225,Business & Money Management,Review investments,10,30,90,minutes,Action-based estimate
+226,Business & Money Management,Pay down debt,5,25,90,minutes,Category-based estimate
+227,Business & Money Management,Apply for a loan,2,12,35,minutes,Action-based estimate
+228,Business & Money Management,Review insurance coverage,10,30,90,minutes,Action-based estimate
+229,Business & Money Management,Negotiate a purchase,5,25,90,minutes,Category-based estimate
+230,Business & Money Management,Set a savings goal,2,12,35,minutes,Action-based estimate
+231,Business & Money Management,Make a charitable donation,2,12,35,minutes,Action-based estimate
+232,Business & Money Management,Collect rent,5,25,90,minutes,Category-based estimate
+233,Business & Money Management,Manage a side business,10,30,90,minutes,Action-based estimate
+234,Business & Money Management,Send an invoice,2,12,35,minutes,Action-based estimate
+235,Business & Money Management,Pay a contractor,5,25,90,minutes,Category-based estimate
+236,Business & Money Management,Compare service plans,10,30,90,minutes,Action-based estimate
+237,Education & Studying,Attend class,30,60,180,minutes,Activity-specific estimate
+238,Education & Studying,Do homework,20,60,150,minutes,Activity-specific estimate
+239,Education & Studying,Study for an exam,20,75,180,minutes,Activity-specific estimate
+240,Education & Studying,Read a textbook,15,40,90,minutes,Activity-specific estimate
+241,Education & Studying,Take class notes,15,45,120,minutes,Category-based estimate
+242,Education & Studying,Complete a school project,15,45,120,minutes,Category-based estimate
+243,Education & Studying,Research a topic,10,30,90,minutes,Action-based estimate
+244,Education & Studying,Watch an educational lecture,10,40,120,minutes,Action-based estimate
+245,Education & Studying,Take an online course,15,50,120,minutes,Activity-specific estimate
+246,Education & Studying,Practice a foreign language,15,45,120,minutes,Action-based estimate
+247,Education & Studying,Attend tutoring,30,90,240,minutes,Action-based estimate
+248,Education & Studying,Visit office hours,30,90,240,minutes,Action-based estimate
+249,Education & Studying,Participate in a study group,30,90,240,minutes,Action-based estimate
+250,Education & Studying,Take an exam,20,75,180,minutes,Activity-specific estimate
+251,Education & Studying,Write an essay,15,45,120,minutes,Action-based estimate
+252,Education & Studying,Give a classroom presentation,15,45,120,minutes,Category-based estimate
+253,Reading & Writing,Read a novel,15,45,120,minutes,Activity-specific estimate
+254,Reading & Writing,Read a newspaper,5,20,50,minutes,Activity-specific estimate
+255,Reading & Writing,Read a magazine,10,40,120,minutes,Action-based estimate
+256,Reading & Writing,Read a blog,10,40,120,minutes,Action-based estimate
+257,Reading & Writing,Read a comic book,10,40,120,minutes,Action-based estimate
+258,Reading & Writing,Read poetry,10,40,120,minutes,Action-based estimate
+259,Reading & Writing,Listen to an audiobook,10,45,150,minutes,Activity-specific estimate
+260,Reading & Writing,Write a journal entry,5,15,40,minutes,Activity-specific estimate
+261,Reading & Writing,Write a letter,10,25,60,minutes,Activity-specific estimate
+262,Reading & Writing,Write a short story,15,45,120,minutes,Action-based estimate
+263,Reading & Writing,Write a poem,15,45,120,minutes,Action-based estimate
+264,Reading & Writing,Draft a blog post,10,35,100,minutes,Category-based estimate
+265,Reading & Writing,Write song lyrics,15,45,120,minutes,Action-based estimate
+266,Reading & Writing,Edit a manuscript,10,35,100,minutes,Category-based estimate
+267,Reading & Writing,Take personal notes,10,35,100,minutes,Category-based estimate
+268,Reading & Writing,Create a to-do list,2,8,20,minutes,Activity-specific estimate
+269,"Phone, Messaging & Internet",Make a phone call,2,15,60,minutes,Activity-specific estimate
+270,"Phone, Messaging & Internet",Send a text message,1,3,10,minutes,Activity-specific estimate
+271,"Phone, Messaging & Internet",Check voicemail,1,4,15,minutes,Activity-specific estimate
+272,"Phone, Messaging & Internet",Video call someone,10,30,90,minutes,Activity-specific estimate
+273,"Phone, Messaging & Internet",Send a personal email,2,10,25,minutes,Activity-specific estimate
+274,"Phone, Messaging & Internet",Check social media,2,12,35,minutes,Action-based estimate
+275,"Phone, Messaging & Internet",Post on social media,2,12,35,minutes,Action-based estimate
+276,"Phone, Messaging & Internet",Browse the internet,10,40,120,minutes,Action-based estimate
+277,"Phone, Messaging & Internet",Search for information online,2,15,60,minutes,Category-based estimate
+278,"Phone, Messaging & Internet",Participate in an online forum,30,90,240,minutes,Action-based estimate
+279,"Phone, Messaging & Internet",Use a messaging app,2,15,60,minutes,Category-based estimate
+280,"Phone, Messaging & Internet",Manage notifications,10,30,90,minutes,Action-based estimate
+281,"Phone, Messaging & Internet",Update an online profile,2,15,60,minutes,Category-based estimate
+282,"Phone, Messaging & Internet",Browse an online marketplace,10,40,120,minutes,Action-based estimate
+283,"Phone, Messaging & Internet",Read online comments,10,40,120,minutes,Action-based estimate
+284,"Phone, Messaging & Internet",Post a photo,2,12,35,minutes,Action-based estimate
+285,"Television, Movies & Audio",Watch television,15,60,180,minutes,Activity-specific estimate
+286,"Television, Movies & Audio",Watch a movie,75,110,180,minutes,Activity-specific estimate
+287,"Television, Movies & Audio",Watch a documentary,25,65,120,minutes,Activity-specific estimate
+288,"Television, Movies & Audio",Stream a TV episode,20,45,65,minutes,Activity-specific estimate
+289,"Television, Movies & Audio",Watch online videos,5,30,90,minutes,Activity-specific estimate
+290,"Television, Movies & Audio",Listen to music,5,40,120,minutes,Activity-specific estimate
+291,"Television, Movies & Audio",Listen to a podcast,15,45,120,minutes,Activity-specific estimate
+292,"Television, Movies & Audio",Listen to the radio,10,40,120,minutes,Action-based estimate
+293,"Television, Movies & Audio",Attend a movie theater,90,135,200,minutes,Activity-specific estimate
+294,"Television, Movies & Audio",Watch a livestream,10,40,120,minutes,Action-based estimate
+295,"Television, Movies & Audio",Watch a comedy special,10,40,120,minutes,Action-based estimate
+296,"Television, Movies & Audio",Watch a music video,10,40,120,minutes,Action-based estimate
+297,"Television, Movies & Audio",Listen to a live radio broadcast,10,40,120,minutes,Action-based estimate
+298,"Television, Movies & Audio",Watch a recorded sports event,10,40,120,minutes,Action-based estimate
+299,"Television, Movies & Audio",Watch a cooking show,10,40,120,minutes,Action-based estimate
+300,"Television, Movies & Audio",Watch the news,10,30,65,minutes,Activity-specific estimate
+301,Games & Puzzles,Play a video game,15,60,240,minutes,Activity-specific estimate
+302,Games & Puzzles,Play a board game,20,75,180,minutes,Activity-specific estimate
+303,Games & Puzzles,Play a card game,10,45,120,minutes,Activity-specific estimate
+304,Games & Puzzles,Play a tabletop role-playing game,60,180,360,minutes,Activity-specific estimate
+305,Games & Puzzles,Play chess,10,35,90,minutes,Activity-specific estimate
+306,Games & Puzzles,Play checkers,10,40,120,minutes,Action-based estimate
+307,Games & Puzzles,Solve a jigsaw puzzle,15,60,180,minutes,Activity-specific estimate
+308,Games & Puzzles,Play a word game,10,40,120,minutes,Action-based estimate
+309,Games & Puzzles,Play a trivia game,10,40,120,minutes,Action-based estimate
+310,Games & Puzzles,Play a mobile game,3,20,90,minutes,Activity-specific estimate
+311,Games & Puzzles,Play an arcade game,10,40,120,minutes,Action-based estimate
+312,Games & Puzzles,Play billiards,10,40,120,minutes,Action-based estimate
+313,Games & Puzzles,Play darts,10,40,120,minutes,Action-based estimate
+314,Games & Puzzles,Go bowling,45,90,150,minutes,Activity-specific estimate
+315,Games & Puzzles,Play miniature golf,30,75,120,minutes,Activity-specific estimate
+316,Games & Puzzles,Play a party game,10,40,120,minutes,Action-based estimate
+317,Creative Arts & Crafts,Draw a picture,15,45,120,minutes,Action-based estimate
+318,Creative Arts & Crafts,Paint a canvas,15,45,120,minutes,Action-based estimate
+319,Creative Arts & Crafts,Sculpt with clay,15,45,120,minutes,Action-based estimate
+320,Creative Arts & Crafts,Make pottery,2,12,35,minutes,Action-based estimate
+321,Creative Arts & Crafts,Knit,15,60,180,minutes,Category-based estimate
+322,Creative Arts & Crafts,Crochet,15,60,180,minutes,Category-based estimate
+323,Creative Arts & Crafts,Sew a craft,15,60,180,minutes,Category-based estimate
+324,Creative Arts & Crafts,Make jewelry,2,12,35,minutes,Action-based estimate
+325,Creative Arts & Crafts,Create a scrapbook,15,45,120,minutes,Action-based estimate
+326,Creative Arts & Crafts,Do calligraphy,15,60,180,minutes,Category-based estimate
+327,Creative Arts & Crafts,Make origami,2,12,35,minutes,Action-based estimate
+328,Creative Arts & Crafts,Build a model kit,15,45,120,minutes,Action-based estimate
+329,Creative Arts & Crafts,Do woodworking,15,60,180,minutes,Category-based estimate
+330,Creative Arts & Crafts,Create digital art,15,45,120,minutes,Action-based estimate
+331,Creative Arts & Crafts,Make a collage,2,12,35,minutes,Action-based estimate
+332,Creative Arts & Crafts,Decorate a cake,15,60,180,minutes,Category-based estimate
+333,"Music, Performance & Content Creation",Play guitar,10,40,120,minutes,Activity-specific estimate
+334,"Music, Performance & Content Creation",Play piano,10,40,120,minutes,Activity-specific estimate
+335,"Music, Performance & Content Creation",Play drums,10,40,120,minutes,Activity-specific estimate
+336,"Music, Performance & Content Creation",Sing,5,20,90,minutes,Activity-specific estimate
+337,"Music, Performance & Content Creation",Practice an instrument,15,45,120,minutes,Action-based estimate
+338,"Music, Performance & Content Creation",Write a song,20,90,240,minutes,Activity-specific estimate
+339,"Music, Performance & Content Creation",Record music,30,120,300,minutes,Activity-specific estimate
+340,"Music, Performance & Content Creation",Mix audio,30,120,360,minutes,Activity-specific estimate
+341,"Music, Performance & Content Creation",Perform at an open mic,10,30,90,minutes,Activity-specific estimate
+342,"Music, Performance & Content Creation",Attend band rehearsal,60,120,240,minutes,Activity-specific estimate
+343,"Music, Performance & Content Creation",Dance socially,10,45,150,minutes,Category-based estimate
+344,"Music, Performance & Content Creation",Practice choreography,15,45,120,minutes,Action-based estimate
+345,"Music, Performance & Content Creation",Act in a play,10,45,150,minutes,Category-based estimate
+346,"Music, Performance & Content Creation",Rehearse a performance,10,45,150,minutes,Category-based estimate
+347,"Music, Performance & Content Creation",Perform stand-up comedy,10,45,150,minutes,Category-based estimate
+348,"Music, Performance & Content Creation",Record a podcast,30,75,180,minutes,Activity-specific estimate
+349,Fitness & Sports,Walk for exercise,10,30,90,minutes,Activity-specific estimate
+350,Fitness & Sports,Jog,10,30,75,minutes,Activity-specific estimate
+351,Fitness & Sports,Run a race,15,45,180,minutes,Activity-specific estimate
+352,Fitness & Sports,Lift weights,20,50,90,minutes,Activity-specific estimate
+353,Fitness & Sports,Do yoga,15,45,90,minutes,Activity-specific estimate
+354,Fitness & Sports,Do Pilates,10,45,120,minutes,Category-based estimate
+355,Fitness & Sports,Stretch,5,15,30,minutes,Activity-specific estimate
+356,Fitness & Sports,Swim laps,15,45,90,minutes,Activity-specific estimate
+357,Fitness & Sports,Ride a stationary bike,10,45,120,minutes,Category-based estimate
+358,Fitness & Sports,Hike,30,120,360,minutes,Activity-specific estimate
+359,Fitness & Sports,Play basketball,10,40,120,minutes,Action-based estimate
+360,Fitness & Sports,Play soccer,10,40,120,minutes,Action-based estimate
+361,Fitness & Sports,Play tennis,10,40,120,minutes,Action-based estimate
+362,Fitness & Sports,Play baseball,10,40,120,minutes,Action-based estimate
+363,Fitness & Sports,Play volleyball,10,40,120,minutes,Action-based estimate
+364,Fitness & Sports,Practice martial arts,15,45,120,minutes,Action-based estimate
+365,Outdoor Recreation & Nature,Go camping,480,1440,2880,minutes,Activity-specific estimate
+366,Outdoor Recreation & Nature,Go fishing,30,150,480,minutes,Activity-specific estimate
+367,Outdoor Recreation & Nature,Go hunting,60,240,600,minutes,Activity-specific estimate
+368,Outdoor Recreation & Nature,Go birdwatching,15,60,180,minutes,Activity-specific estimate
+369,Outdoor Recreation & Nature,Go stargazing,15,60,180,minutes,Activity-specific estimate
+370,Outdoor Recreation & Nature,Explore a nature trail,30,90,240,minutes,Category-based estimate
+371,Outdoor Recreation & Nature,Go kayaking,30,90,240,minutes,Activity-specific estimate
+372,Outdoor Recreation & Nature,Go canoeing,30,90,240,minutes,Category-based estimate
+373,Outdoor Recreation & Nature,Go sailing,30,90,240,minutes,Category-based estimate
+374,Outdoor Recreation & Nature,Go paddleboarding,30,90,240,minutes,Category-based estimate
+375,Outdoor Recreation & Nature,Go surfing,30,90,240,minutes,Activity-specific estimate
+376,Outdoor Recreation & Nature,Go snorkeling,30,90,240,minutes,Category-based estimate
+377,Outdoor Recreation & Nature,Go scuba diving,30,90,240,minutes,Category-based estimate
+378,Outdoor Recreation & Nature,Go horseback riding,30,90,240,minutes,Category-based estimate
+379,Outdoor Recreation & Nature,Go geocaching,30,90,240,minutes,Category-based estimate
+380,Outdoor Recreation & Nature,Visit a park,30,90,240,minutes,Action-based estimate
+381,Socializing & Relationships,Visit friends,30,120,300,minutes,Activity-specific estimate
+382,Socializing & Relationships,Visit family,30,150,360,minutes,Activity-specific estimate
+383,Socializing & Relationships,Host guests,60,150,360,minutes,Activity-specific estimate
+384,Socializing & Relationships,Attend a party,60,150,300,minutes,Activity-specific estimate
+385,Socializing & Relationships,Go on a date,45,120,240,minutes,Activity-specific estimate
+386,Socializing & Relationships,Have a conversation,5,25,90,minutes,Activity-specific estimate
+387,Socializing & Relationships,Meet someone new,10,60,180,minutes,Category-based estimate
+388,Socializing & Relationships,Celebrate a birthday,60,150,300,minutes,Activity-specific estimate
+389,Socializing & Relationships,Attend a wedding,90,240,480,minutes,Activity-specific estimate
+390,Socializing & Relationships,Attend a funeral,45,100,180,minutes,Activity-specific estimate
+391,Socializing & Relationships,Attend a family reunion,30,90,240,minutes,Action-based estimate
+392,Socializing & Relationships,Go to a social club,30,90,240,minutes,Action-based estimate
+393,Socializing & Relationships,Spend time with a partner,15,90,240,minutes,Activity-specific estimate
+394,Socializing & Relationships,Make a new friend,2,12,35,minutes,Action-based estimate
+395,Socializing & Relationships,Reconnect with an old friend,10,60,180,minutes,Category-based estimate
+396,Socializing & Relationships,Give someone a gift,10,60,180,minutes,Category-based estimate
+397,Childcare & Family Support,Feed a baby,10,25,45,minutes,Activity-specific estimate
+398,Childcare & Family Support,Change a diaper,3,7,15,minutes,Activity-specific estimate
+399,Childcare & Family Support,Bathe a child,10,20,40,minutes,Activity-specific estimate
+400,Childcare & Family Support,Put a child to bed,10,30,75,minutes,Activity-specific estimate
+401,Childcare & Family Support,Read to a child,5,20,45,minutes,Activity-specific estimate
+402,Childcare & Family Support,Play with a child,10,40,120,minutes,Action-based estimate
+403,Childcare & Family Support,Help with homework,5,30,90,minutes,Category-based estimate
+404,Childcare & Family Support,Take a child to school,10,25,60,minutes,Activity-specific estimate
+405,Childcare & Family Support,Pick up a child from school,10,25,60,minutes,Activity-specific estimate
+406,Childcare & Family Support,Attend a school event,30,90,240,minutes,Action-based estimate
+407,Childcare & Family Support,Prepare a child's lunch,10,30,90,minutes,Action-based estimate
+408,Childcare & Family Support,Supervise playtime,5,30,90,minutes,Category-based estimate
+409,Childcare & Family Support,Schedule childcare,5,30,90,minutes,Category-based estimate
+410,Childcare & Family Support,Care for a sick child,5,30,90,minutes,Category-based estimate
+411,Childcare & Family Support,Teach a child a skill,5,30,90,minutes,Category-based estimate
+412,Childcare & Family Support,Help a child get dressed,5,30,90,minutes,Category-based estimate
+413,Childcare & Family Support,Accompany a child to an appointment,5,30,90,minutes,Category-based estimate
+414,Childcare & Family Support,Attend a parent-teacher conference,15,30,60,minutes,Activity-specific estimate
+415,Childcare & Family Support,Comfort an upset child,5,30,90,minutes,Category-based estimate
+416,Childcare & Family Support,Organize a child's activities,10,30,90,minutes,Action-based estimate
+417,Pet & Animal Care,Feed a pet,2,7,15,minutes,Activity-specific estimate
+418,Pet & Animal Care,Give a pet water,1,3,7,minutes,Activity-specific estimate
+419,Pet & Animal Care,Walk a dog,10,30,75,minutes,Activity-specific estimate
+420,Pet & Animal Care,Clean a litter box,3,7,15,minutes,Activity-specific estimate
+421,Pet & Animal Care,Groom a pet,5,25,75,minutes,Activity-specific estimate
+422,Pet & Animal Care,Bathe a pet,15,35,90,minutes,Activity-specific estimate
+423,Pet & Animal Care,Train a dog,10,25,60,minutes,Activity-specific estimate
+424,Pet & Animal Care,Play with a pet,5,20,60,minutes,Activity-specific estimate
+425,Pet & Animal Care,Take a pet to the veterinarian,30,75,180,minutes,Activity-specific estimate
+426,Pet & Animal Care,Administer pet medication,1,5,15,minutes,Activity-specific estimate
+427,Pet & Animal Care,Clean a pet enclosure,5,20,60,minutes,Action-based estimate
+428,Pet & Animal Care,Change aquarium water,15,40,90,minutes,Activity-specific estimate
+429,Pet & Animal Care,Maintain a terrarium,5,20,60,minutes,Category-based estimate
+430,Pet & Animal Care,Observe wildlife,5,20,60,minutes,Category-based estimate
+431,Pet & Animal Care,Care for livestock,5,20,60,minutes,Category-based estimate
+432,Pet & Animal Care,Collect chicken eggs,5,20,60,minutes,Category-based estimate
+433,Pet & Animal Care,Brush a horse,5,20,60,minutes,Category-based estimate
+434,Pet & Animal Care,Clean animal bedding,5,20,60,minutes,Action-based estimate
+435,Pet & Animal Care,Arrange pet sitting,5,20,60,minutes,Category-based estimate
+436,Pet & Animal Care,Adopt a pet,5,20,60,minutes,Category-based estimate
+437,Health & Medical Care,Visit a doctor,20,50,120,minutes,Activity-specific estimate
+438,Health & Medical Care,Visit a dentist,30,60,120,minutes,Activity-specific estimate
+439,Health & Medical Care,Attend a therapy session,30,50,90,minutes,Activity-specific estimate
+440,Health & Medical Care,Get vaccinated,5,15,45,minutes,Activity-specific estimate
+441,Health & Medical Care,Take prescribed medication,1,3,10,minutes,Activity-specific estimate
+442,Health & Medical Care,Check blood pressure,2,5,15,minutes,Activity-specific estimate
+443,Health & Medical Care,Monitor blood sugar,2,5,15,minutes,Activity-specific estimate
+444,Health & Medical Care,Get a medical test,10,40,120,minutes,Activity-specific estimate
+445,Health & Medical Care,Receive physical therapy,25,50,90,minutes,Activity-specific estimate
+446,Health & Medical Care,Attend a medical screening,30,90,240,minutes,Action-based estimate
+447,Health & Medical Care,Treat a minor injury,5,30,90,minutes,Category-based estimate
+448,Health & Medical Care,Apply a bandage,2,5,15,minutes,Activity-specific estimate
+449,Health & Medical Care,Use a first-aid kit,5,30,90,minutes,Category-based estimate
+450,Health & Medical Care,Pick up medical equipment,2,12,35,minutes,Action-based estimate
+451,Health & Medical Care,Call a medical advice line,5,30,90,minutes,Category-based estimate
+452,Health & Medical Care,Attend a specialist consultation,30,90,240,minutes,Action-based estimate
+453,"Community, Religion & Civic Life",Attend a religious service,30,75,150,minutes,Activity-specific estimate
+454,"Community, Religion & Civic Life",Pray,2,15,45,minutes,Activity-specific estimate
+455,"Community, Religion & Civic Life",Attend a spiritual gathering,30,90,240,minutes,Action-based estimate
+456,"Community, Religion & Civic Life",Volunteer at a shelter,10,60,150,minutes,Category-based estimate
+457,"Community, Religion & Civic Life",Volunteer at a food bank,60,120,300,minutes,Activity-specific estimate
+458,"Community, Religion & Civic Life",Participate in a fundraiser,30,90,240,minutes,Action-based estimate
+459,"Community, Religion & Civic Life",Vote in an election,10,30,100,minutes,Activity-specific estimate
+460,"Community, Religion & Civic Life",Attend a town hall,30,90,240,minutes,Action-based estimate
+461,"Community, Religion & Civic Life",Serve on a jury,120,360,540,minutes,Activity-specific estimate
+462,"Community, Religion & Civic Life",Attend a public hearing,30,90,240,minutes,Action-based estimate
+463,"Community, Religion & Civic Life",Participate in a neighborhood cleanup,30,90,240,minutes,Action-based estimate
+464,"Community, Religion & Civic Life",Join a community association,30,90,240,minutes,Action-based estimate
+465,"Community, Religion & Civic Life",Attend a protest,30,120,300,minutes,Activity-specific estimate
+466,"Community, Religion & Civic Life",Sign a petition,1,3,10,minutes,Activity-specific estimate
+467,"Community, Religion & Civic Life",Donate blood,30,60,120,minutes,Activity-specific estimate
+468,"Community, Religion & Civic Life",Mentor a young person,10,60,150,minutes,Category-based estimate
+469,"Entertainment, Events & Tourism",Visit a museum,45,120,240,minutes,Activity-specific estimate
+470,"Entertainment, Events & Tourism",Visit an art gallery,30,75,150,minutes,Activity-specific estimate
+471,"Entertainment, Events & Tourism",Attend a concert,60,120,240,minutes,Activity-specific estimate
+472,"Entertainment, Events & Tourism",Attend a theater performance,60,120,240,minutes,Activity-specific estimate
+473,"Entertainment, Events & Tourism",Visit a zoo,60,150,300,minutes,Activity-specific estimate
+474,"Entertainment, Events & Tourism",Visit an aquarium,45,120,240,minutes,Activity-specific estimate
+475,"Entertainment, Events & Tourism",Go to an amusement park,120,300,600,minutes,Activity-specific estimate
+476,"Entertainment, Events & Tourism",Attend a sporting event,60,150,300,minutes,Activity-specific estimate
+477,"Entertainment, Events & Tourism",Attend a fair,30,90,240,minutes,Action-based estimate
+478,"Entertainment, Events & Tourism",Visit a historic site,30,75,150,minutes,Activity-specific estimate
+479,"Entertainment, Events & Tourism",Go sightseeing,30,120,300,minutes,Category-based estimate
+480,"Entertainment, Events & Tourism",Take a guided tour,30,120,300,minutes,Category-based estimate
+481,"Entertainment, Events & Tourism",Visit a botanical garden,30,90,240,minutes,Action-based estimate
+482,"Entertainment, Events & Tourism",Attend a convention,120,300,540,minutes,Activity-specific estimate
+483,"Entertainment, Events & Tourism",Attend a festival,30,90,240,minutes,Action-based estimate
+484,"Entertainment, Events & Tourism",Go to a nightclub,60,150,300,minutes,Activity-specific estimate
+485,"Planning, Organization & Household Admin",Plan a daily schedule,5,15,30,minutes,Activity-specific estimate
+486,"Planning, Organization & Household Admin",Manage a calendar,3,12,30,minutes,Activity-specific estimate
+487,"Planning, Organization & Household Admin",Make a grocery list,3,10,20,minutes,Activity-specific estimate
+488,"Planning, Organization & Household Admin",Plan a vacation,30,90,240,minutes,Activity-specific estimate
+489,"Planning, Organization & Household Admin",Book lodging,10,25,70,minutes,Activity-specific estimate
+490,"Planning, Organization & Household Admin",Book transportation,10,25,70,minutes,Activity-specific estimate
+491,"Planning, Organization & Household Admin",Schedule home maintenance,5,25,90,minutes,Category-based estimate
+492,"Planning, Organization & Household Admin",Keep household records,5,25,90,minutes,Category-based estimate
+493,"Planning, Organization & Household Admin",Sort important documents,2,12,35,minutes,Action-based estimate
+494,"Planning, Organization & Household Admin",Back up personal files,10,30,120,minutes,Activity-specific estimate
+495,"Planning, Organization & Household Admin",Organize digital photos,10,30,90,minutes,Action-based estimate
+496,"Planning, Organization & Household Admin",Clean an email inbox,10,30,90,minutes,Activity-specific estimate
+497,"Planning, Organization & Household Admin",Manage passwords,5,20,60,minutes,Activity-specific estimate
+498,"Planning, Organization & Household Admin",Compare household subscriptions,10,30,90,minutes,Action-based estimate
+499,"Planning, Organization & Household Admin",Plan a home renovation,10,30,90,minutes,Action-based estimate
+500,"Planning, Organization & Household Admin",Create an emergency plan,15,45,120,minutes,Action-based estimate

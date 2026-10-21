@@ -1,0 +1,501 @@
+﻿Number,Industry / Field,Job role
+1,Retail & Sales,Retail Sales Associate
+1,Retail & Sales,Cashier
+1,Retail & Sales,Store Manager
+1,Retail & Sales,Sales Manager
+1,Retail & Sales,Sales Representative
+1,Retail & Sales,Account Executive
+1,Retail & Sales,Account Manager
+1,Retail & Sales,Sales Engineer
+1,Retail & Sales,Real Estate Agent
+1,Retail & Sales,Real Estate Broker
+1,Retail & Sales,Insurance Agent
+1,Retail & Sales,Travel Agent
+1,Retail & Sales,Automobile Salesperson
+1,Retail & Sales,Pharmaceutical Sales Representative
+1,Retail & Sales,Wholesale Sales Representative
+1,Retail & Sales,Telemarketer
+1,Retail & Sales,Merchandiser
+1,Retail & Sales,Retail Buyer
+1,Retail & Sales,Personal Shopper
+1,Retail & Sales,Demonstrator
+21,Food & Beverage,Restaurant Server
+21,Food & Beverage,Bartender
+21,Food & Beverage,Barista
+21,Food & Beverage,Cook
+21,Food & Beverage,Chef
+21,Food & Beverage,Baker
+21,Food & Beverage,Pastry Chef
+21,Food & Beverage,Butcher
+21,Food & Beverage,Food Preparation Worker
+21,Food & Beverage,Dishwasher
+21,Food & Beverage,Restaurant Manager
+21,Food & Beverage,Host
+21,Food & Beverage,Caterer
+21,Food & Beverage,Sommelier
+21,Food & Beverage,Fast-Food Worker
+21,Food & Beverage,Food Delivery Driver
+21,Food & Beverage,Food Service Supervisor
+21,Food & Beverage,Brewer
+21,Food & Beverage,Food Safety Inspector
+21,Food & Beverage,Banquet Coordinator
+41,Office & Administration,Administrative Assistant
+41,Office & Administration,Executive Assistant
+41,Office & Administration,Receptionist
+41,Office & Administration,Office Manager
+41,Office & Administration,Data Entry Clerk
+41,Office & Administration,Records Clerk
+41,Office & Administration,File Clerk
+41,Office & Administration,Secretary
+41,Office & Administration,Customer Service Representative
+41,Office & Administration,Call Center Supervisor
+41,Office & Administration,Scheduling Coordinator
+41,Office & Administration,Mail Clerk
+41,Office & Administration,Switchboard Operator
+41,Office & Administration,Office Clerk
+41,Office & Administration,Document Controller
+41,Office & Administration,Virtual Assistant
+41,Office & Administration,Personal Assistant
+41,Office & Administration,Typist
+41,Office & Administration,Proofreader
+41,Office & Administration,Transcriptionist
+61,Business & Management,General Manager
+61,Business & Management,Operations Manager
+61,Business & Management,Project Manager
+61,Business & Management,Program Manager
+61,Business & Management,Product Manager
+61,Business & Management,Business Analyst
+61,Business & Management,Management Consultant
+61,Business & Management,Business Development Manager
+61,Business & Management,Entrepreneur
+61,Business & Management,Chief Executive Officer
+61,Business & Management,Chief Operating Officer
+61,Business & Management,Franchise Owner
+61,Business & Management,Regional Manager
+61,Business & Management,Branch Manager
+61,Business & Management,Facilities Manager
+61,Business & Management,Quality Assurance Manager
+61,Business & Management,Compliance Manager
+61,Business & Management,Risk Manager
+61,Business & Management,Procurement Manager
+61,Business & Management,Change Management Specialist
+81,Accounting & Finance,Accountant
+81,Accounting & Finance,Bookkeeper
+81,Accounting & Finance,Auditor
+81,Accounting & Finance,Tax Preparer
+81,Accounting & Finance,Financial Analyst
+81,Accounting & Finance,Financial Advisor
+81,Accounting & Finance,Investment Banker
+81,Accounting & Finance,Bank Teller
+81,Accounting & Finance,Loan Officer
+81,Accounting & Finance,Mortgage Broker
+81,Accounting & Finance,Credit Analyst
+81,Accounting & Finance,Budget Analyst
+81,Accounting & Finance,Payroll Specialist
+81,Accounting & Finance,Accounts Payable Clerk
+81,Accounting & Finance,Accounts Receivable Clerk
+81,Accounting & Finance,Actuary
+81,Accounting & Finance,Underwriter
+81,Accounting & Finance,Debt Collector
+81,Accounting & Finance,Financial Controller
+81,Accounting & Finance,Treasurer
+101,Human Resources & Recruiting,Human Resources Generalist
+101,Human Resources & Recruiting,Human Resources Manager
+101,Human Resources & Recruiting,Recruiter
+101,Human Resources & Recruiting,Talent Acquisition Specialist
+101,Human Resources & Recruiting,Training Specialist
+101,Human Resources & Recruiting,Training Manager
+101,Human Resources & Recruiting,Compensation Analyst
+101,Human Resources & Recruiting,Benefits Administrator
+101,Human Resources & Recruiting,Labor Relations Specialist
+101,Human Resources & Recruiting,Employee Relations Specialist
+101,Human Resources & Recruiting,Onboarding Coordinator
+101,Human Resources & Recruiting,Career Counselor
+101,Human Resources & Recruiting,Job Coach
+101,Human Resources & Recruiting,Staffing Coordinator
+101,Human Resources & Recruiting,Workforce Development Specialist
+101,Human Resources & Recruiting,Payroll Manager
+101,Human Resources & Recruiting,Human Resources Information Systems Analyst
+101,Human Resources & Recruiting,Organizational Development Consultant
+101,Human Resources & Recruiting,Executive Recruiter
+101,Human Resources & Recruiting,Employment Interviewer
+121,Computers & IT,Software Developer
+121,Computers & IT,Web Developer
+121,Computers & IT,Mobile App Developer
+121,Computers & IT,Computer Programmer
+121,Computers & IT,IT Support Specialist
+121,Computers & IT,Systems Administrator
+121,Computers & IT,Network Administrator
+121,Computers & IT,Database Administrator
+121,Computers & IT,Cybersecurity Analyst
+121,Computers & IT,Cloud Engineer
+121,Computers & IT,DevOps Engineer
+121,Computers & IT,IT Project Manager
+121,Computers & IT,Computer Systems Analyst
+121,Computers & IT,IT Director
+121,Computers & IT,Network Engineer
+121,Computers & IT,Help Desk Technician
+121,Computers & IT,Site Reliability Engineer
+121,Computers & IT,Computer Hardware Technician
+121,Computers & IT,IT Auditor
+121,Computers & IT,Solutions Architect
+141,Data & Research,Data Analyst
+141,Data & Research,Data Scientist
+141,Data & Research,Data Engineer
+141,Data & Research,Statistician
+141,Data & Research,Research Assistant
+141,Data & Research,Market Research Analyst
+141,Data & Research,Survey Researcher
+141,Data & Research,Operations Research Analyst
+141,Data & Research,Business Intelligence Analyst
+141,Data & Research,Machine Learning Engineer
+141,Data & Research,AI Research Scientist
+141,Data & Research,Data Architect
+141,Data & Research,Database Developer
+141,Data & Research,Quantitative Analyst
+141,Data & Research,Demographer
+141,Data & Research,Research Scientist
+141,Data & Research,Clinical Research Coordinator
+141,Data & Research,User Researcher
+141,Data & Research,Economist
+141,Data & Research,GIS Analyst
+161,Healthcare Practitioners,Physician
+161,Healthcare Practitioners,Surgeon
+161,Healthcare Practitioners,Registered Nurse
+161,Healthcare Practitioners,Licensed Practical Nurse
+161,Healthcare Practitioners,Nurse Practitioner
+161,Healthcare Practitioners,Physician Assistant
+161,Healthcare Practitioners,Dentist
+161,Healthcare Practitioners,Dental Hygienist
+161,Healthcare Practitioners,Pharmacist
+161,Healthcare Practitioners,Physical Therapist
+161,Healthcare Practitioners,Occupational Therapist
+161,Healthcare Practitioners,Respiratory Therapist
+161,Healthcare Practitioners,Speech-Language Pathologist
+161,Healthcare Practitioners,Optometrist
+161,Healthcare Practitioners,Podiatrist
+161,Healthcare Practitioners,Chiropractor
+161,Healthcare Practitioners,Midwife
+161,Healthcare Practitioners,Radiologic Technologist
+161,Healthcare Practitioners,Diagnostic Medical Sonographer
+161,Healthcare Practitioners,Paramedic
+181,Healthcare Support & Services,Certified Nursing Assistant
+181,Healthcare Support & Services,Home Health Aide
+181,Healthcare Support & Services,Personal Care Aide
+181,Healthcare Support & Services,Medical Assistant
+181,Healthcare Support & Services,Dental Assistant
+181,Healthcare Support & Services,Pharmacy Technician
+181,Healthcare Support & Services,Phlebotomist
+181,Healthcare Support & Services,Emergency Medical Technician
+181,Healthcare Support & Services,Medical Laboratory Technician
+181,Healthcare Support & Services,Medical Laboratory Scientist
+181,Healthcare Support & Services,Surgical Technologist
+181,Healthcare Support & Services,Medical Receptionist
+181,Healthcare Support & Services,Medical Biller
+181,Healthcare Support & Services,Medical Coder
+181,Healthcare Support & Services,Medical Records Specialist
+181,Healthcare Support & Services,Patient Transporter
+181,Healthcare Support & Services,Orderly
+181,Healthcare Support & Services,Sterile Processing Technician
+181,Healthcare Support & Services,Dialysis Technician
+181,Healthcare Support & Services,Patient Care Coordinator
+201,Mental Health & Social Services,Psychologist
+201,Mental Health & Social Services,Psychiatrist
+201,Mental Health & Social Services,Mental Health Counselor
+201,Mental Health & Social Services,Marriage and Family Therapist
+201,Mental Health & Social Services,Social Worker
+201,Mental Health & Social Services,Substance Abuse Counselor
+201,Mental Health & Social Services,School Counselor
+201,Mental Health & Social Services,Crisis Counselor
+201,Mental Health & Social Services,Case Manager
+201,Mental Health & Social Services,Child Welfare Worker
+201,Mental Health & Social Services,Community Health Worker
+201,Mental Health & Social Services,Rehabilitation Counselor
+201,Mental Health & Social Services,Behavior Analyst
+201,Mental Health & Social Services,Behavior Technician
+201,Mental Health & Social Services,Youth Worker
+201,Mental Health & Social Services,Housing Counselor
+201,Mental Health & Social Services,Victim Advocate
+201,Mental Health & Social Services,Peer Support Specialist
+201,Mental Health & Social Services,Social Services Director
+201,Mental Health & Social Services,Community Outreach Coordinator
+221,Education & Training,Preschool Teacher
+221,Education & Training,Kindergarten Teacher
+221,Education & Training,Elementary School Teacher
+221,Education & Training,Middle School Teacher
+221,Education & Training,High School Teacher
+221,Education & Training,Special Education Teacher
+221,Education & Training,College Professor
+221,Education & Training,Teaching Assistant
+221,Education & Training,Substitute Teacher
+221,Education & Training,School Principal
+221,Education & Training,School Superintendent
+221,Education & Training,Academic Advisor
+221,Education & Training,Tutor
+221,Education & Training,Librarian
+221,Education & Training,Library Assistant
+221,Education & Training,Instructional Designer
+221,Education & Training,Corporate Trainer
+221,Education & Training,Adult Literacy Instructor
+221,Education & Training,School Bus Aide
+221,Education & Training,Education Administrator
+241,"Law, Government & Civic Work",Attorney
+241,"Law, Government & Civic Work",Paralegal
+241,"Law, Government & Civic Work",Judge
+241,"Law, Government & Civic Work",Court Clerk
+241,"Law, Government & Civic Work",Court Reporter
+241,"Law, Government & Civic Work",Bailiff
+241,"Law, Government & Civic Work",Legal Secretary
+241,"Law, Government & Civic Work",Mediator
+241,"Law, Government & Civic Work",Legal Researcher
+241,"Law, Government & Civic Work",Compliance Officer
+241,"Law, Government & Civic Work",Policy Analyst
+241,"Law, Government & Civic Work",Legislative Aide
+241,"Law, Government & Civic Work",City Planner
+241,"Law, Government & Civic Work",Public Administrator
+241,"Law, Government & Civic Work",Tax Examiner
+241,"Law, Government & Civic Work",Customs Officer
+241,"Law, Government & Civic Work",Postal Service Clerk
+241,"Law, Government & Civic Work",Postal Carrier
+241,"Law, Government & Civic Work",Elected Official
+241,"Law, Government & Civic Work",Diplomat
+261,Public Safety & Security,Police Officer
+261,Public Safety & Security,Detective
+261,Public Safety & Security,Sheriff's Deputy
+261,Public Safety & Security,Correctional Officer
+261,Public Safety & Security,Probation Officer
+261,Public Safety & Security,Firefighter
+261,Public Safety & Security,Fire Inspector
+261,Public Safety & Security,Emergency Dispatcher
+261,Public Safety & Security,Security Guard
+261,Public Safety & Security,Security Manager
+261,Public Safety & Security,Private Investigator
+261,Public Safety & Security,Lifeguard
+261,Public Safety & Security,Park Ranger
+261,Public Safety & Security,Animal Control Officer
+261,Public Safety & Security,Emergency Management Specialist
+261,Public Safety & Security,Forensic Science Technician
+261,Public Safety & Security,Border Patrol Agent
+261,Public Safety & Security,Transportation Security Officer
+261,Public Safety & Security,Crossing Guard
+261,Public Safety & Security,Hazardous Materials Responder
+281,Construction & Building Trades,Construction Laborer
+281,Construction & Building Trades,Carpenter
+281,Construction & Building Trades,Electrician
+281,Construction & Building Trades,Plumber
+281,Construction & Building Trades,Pipefitter
+281,Construction & Building Trades,Welder
+281,Construction & Building Trades,Mason
+281,Construction & Building Trades,Roofer
+281,Construction & Building Trades,Drywall Installer
+281,Construction & Building Trades,House Painter
+281,Construction & Building Trades,Flooring Installer
+281,Construction & Building Trades,Glazier
+281,Construction & Building Trades,Ironworker
+281,Construction & Building Trades,Concrete Finisher
+281,Construction & Building Trades,Heavy Equipment Operator
+281,Construction & Building Trades,Construction Manager
+281,Construction & Building Trades,Building Inspector
+281,Construction & Building Trades,Surveyor
+281,Construction & Building Trades,Insulation Installer
+281,Construction & Building Trades,Solar Panel Installer
+301,Maintenance & Repair,Automotive Mechanic
+301,Maintenance & Repair,Diesel Mechanic
+301,Maintenance & Repair,HVAC Technician
+301,Maintenance & Repair,Appliance Repair Technician
+301,Maintenance & Repair,Industrial Maintenance Mechanic
+301,Maintenance & Repair,Electric Motor Repair Technician
+301,Maintenance & Repair,Elevator Mechanic
+301,Maintenance & Repair,Bicycle Mechanic
+301,Maintenance & Repair,Aircraft Mechanic
+301,Maintenance & Repair,Marine Mechanic
+301,Maintenance & Repair,Small Engine Mechanic
+301,Maintenance & Repair,Locksmith
+301,Maintenance & Repair,Pest Control Technician
+301,Maintenance & Repair,General Maintenance Worker
+301,Maintenance & Repair,Building Superintendent
+301,Maintenance & Repair,Equipment Service Technician
+301,Maintenance & Repair,Telecommunications Technician
+301,Maintenance & Repair,Wind Turbine Technician
+301,Maintenance & Repair,Lineworker
+301,Maintenance & Repair,Computer Repair Technician
+321,Transportation & Logistics,Truck Driver
+321,Transportation & Logistics,Bus Driver
+321,Transportation & Logistics,Taxi Driver
+321,Transportation & Logistics,Rideshare Driver
+321,Transportation & Logistics,Delivery Courier
+321,Transportation & Logistics,Train Conductor
+321,Transportation & Logistics,Locomotive Engineer
+321,Transportation & Logistics,Airline Pilot
+321,Transportation & Logistics,Flight Attendant
+321,Transportation & Logistics,Air Traffic Controller
+321,Transportation & Logistics,Ship Captain
+321,Transportation & Logistics,Sailor
+321,Transportation & Logistics,Forklift Operator
+321,Transportation & Logistics,Warehouse Associate
+321,Transportation & Logistics,Logistics Coordinator
+321,Transportation & Logistics,Supply Chain Analyst
+321,Transportation & Logistics,Freight Broker
+321,Transportation & Logistics,Shipping Clerk
+321,Transportation & Logistics,Inventory Control Specialist
+321,Transportation & Logistics,Dispatch Coordinator
+341,Manufacturing & Production,Assembly Line Worker
+341,Manufacturing & Production,Machine Operator
+341,Manufacturing & Production,CNC Machinist
+341,Manufacturing & Production,Production Supervisor
+341,Manufacturing & Production,Production Planner
+341,Manufacturing & Production,Quality Control Inspector
+341,Manufacturing & Production,Factory Packer
+341,Manufacturing & Production,Industrial Engineer
+341,Manufacturing & Production,Manufacturing Engineer
+341,Manufacturing & Production,Tool and Die Maker
+341,Manufacturing & Production,Metal Fabricator
+341,Manufacturing & Production,Printing Press Operator
+341,Manufacturing & Production,Textile Machine Operator
+341,Manufacturing & Production,Food Processing Worker
+341,Manufacturing & Production,Packaging Machine Operator
+341,Manufacturing & Production,Chemical Plant Operator
+341,Manufacturing & Production,Plant Manager
+341,Manufacturing & Production,Robotics Technician
+341,Manufacturing & Production,Production Scheduler
+341,Manufacturing & Production,Materials Handler
+361,Engineering & Architecture,Civil Engineer
+361,Engineering & Architecture,Mechanical Engineer
+361,Engineering & Architecture,Electrical Engineer
+361,Engineering & Architecture,Chemical Engineer
+361,Engineering & Architecture,Aerospace Engineer
+361,Engineering & Architecture,Biomedical Engineer
+361,Engineering & Architecture,Environmental Engineer
+361,Engineering & Architecture,Structural Engineer
+361,Engineering & Architecture,Architect
+361,Engineering & Architecture,Landscape Architect
+361,Engineering & Architecture,Architectural Drafter
+361,Engineering & Architecture,Mechanical Drafter
+361,Engineering & Architecture,Electrical Engineering Technician
+361,Engineering & Architecture,Civil Engineering Technician
+361,Engineering & Architecture,Geotechnical Engineer
+361,Engineering & Architecture,Petroleum Engineer
+361,Engineering & Architecture,Nuclear Engineer
+361,Engineering & Architecture,Marine Engineer
+361,Engineering & Architecture,Transportation Engineer
+361,Engineering & Architecture,Safety Engineer
+381,Science & Environment,Biologist
+381,Science & Environment,Chemist
+381,Science & Environment,Physicist
+381,Science & Environment,Microbiologist
+381,Science & Environment,Environmental Scientist
+381,Science & Environment,Geologist
+381,Science & Environment,Meteorologist
+381,Science & Environment,Hydrologist
+381,Science & Environment,Ecologist
+381,Science & Environment,Conservation Scientist
+381,Science & Environment,Wildlife Biologist
+381,Science & Environment,Zoologist
+381,Science & Environment,Botanist
+381,Science & Environment,Marine Biologist
+381,Science & Environment,Astronomer
+381,Science & Environment,Archaeologist
+381,Science & Environment,Anthropologist
+381,Science & Environment,Laboratory Technician
+381,Science & Environment,Environmental Health Specialist
+381,Science & Environment,Forester
+401,"Arts, Design & Media",Graphic Designer
+401,"Arts, Design & Media",Illustrator
+401,"Arts, Design & Media",Photographer
+401,"Arts, Design & Media",Videographer
+401,"Arts, Design & Media",Video Editor
+401,"Arts, Design & Media",Animator
+401,"Arts, Design & Media",Fashion Designer
+401,"Arts, Design & Media",Interior Designer
+401,"Arts, Design & Media",Industrial Designer
+401,"Arts, Design & Media",Art Director
+401,"Arts, Design & Media",Copywriter
+401,"Arts, Design & Media",Journalist
+401,"Arts, Design & Media",News Editor
+401,"Arts, Design & Media",Public Relations Specialist
+401,"Arts, Design & Media",Social Media Manager
+401,"Arts, Design & Media",Content Creator
+401,"Arts, Design & Media",Broadcast Producer
+401,"Arts, Design & Media",Radio Host
+401,"Arts, Design & Media",Audio Engineer
+401,"Arts, Design & Media",Sound Designer
+421,"Entertainment, Sports & Recreation",Musician
+421,"Entertainment, Sports & Recreation",Singer
+421,"Entertainment, Sports & Recreation",Actor
+421,"Entertainment, Sports & Recreation",Dancer
+421,"Entertainment, Sports & Recreation",Choreographer
+421,"Entertainment, Sports & Recreation",Film Director
+421,"Entertainment, Sports & Recreation",Film Producer
+421,"Entertainment, Sports & Recreation",Stage Manager
+421,"Entertainment, Sports & Recreation",Camera Operator
+421,"Entertainment, Sports & Recreation",Lighting Technician
+421,"Entertainment, Sports & Recreation",Professional Athlete
+421,"Entertainment, Sports & Recreation",Sports Coach
+421,"Entertainment, Sports & Recreation",Personal Trainer
+421,"Entertainment, Sports & Recreation",Fitness Instructor
+421,"Entertainment, Sports & Recreation",Athletic Trainer
+421,"Entertainment, Sports & Recreation",Recreation Director
+421,"Entertainment, Sports & Recreation",Tour Guide
+421,"Entertainment, Sports & Recreation",Event Planner
+421,"Entertainment, Sports & Recreation",Disc Jockey
+421,"Entertainment, Sports & Recreation",Game Designer
+441,Personal Care & Hospitality,Hair Stylist
+441,Personal Care & Hospitality,Barber
+441,Personal Care & Hospitality,Cosmetologist
+441,Personal Care & Hospitality,Nail Technician
+441,Personal Care & Hospitality,Esthetician
+441,Personal Care & Hospitality,Massage Therapist
+441,Personal Care & Hospitality,Makeup Artist
+441,Personal Care & Hospitality,Tattoo Artist
+441,Personal Care & Hospitality,Hotel Front Desk Clerk
+441,Personal Care & Hospitality,Hotel Manager
+441,Personal Care & Hospitality,Housekeeper
+441,Personal Care & Hospitality,Janitor
+441,Personal Care & Hospitality,Laundry Worker
+441,Personal Care & Hospitality,Concierge
+441,Personal Care & Hospitality,Valet Attendant
+441,Personal Care & Hospitality,Childcare Worker
+441,Personal Care & Hospitality,Nanny
+441,Personal Care & Hospitality,Funeral Director
+441,Personal Care & Hospitality,Wedding Planner
+441,Personal Care & Hospitality,Laundry and Dry Cleaning Operator
+461,"Agriculture, Animals & Outdoors",Farmer
+461,"Agriculture, Animals & Outdoors",Farmworker
+461,"Agriculture, Animals & Outdoors",Rancher
+461,"Agriculture, Animals & Outdoors",Agricultural Equipment Operator
+461,"Agriculture, Animals & Outdoors",Agronomist
+461,"Agriculture, Animals & Outdoors",Agricultural Inspector
+461,"Agriculture, Animals & Outdoors",Gardener
+461,"Agriculture, Animals & Outdoors",Landscaper
+461,"Agriculture, Animals & Outdoors",Groundskeeper
+461,"Agriculture, Animals & Outdoors",Arborist
+461,"Agriculture, Animals & Outdoors",Veterinarian
+461,"Agriculture, Animals & Outdoors",Veterinary Technician
+461,"Agriculture, Animals & Outdoors",Animal Groomer
+461,"Agriculture, Animals & Outdoors",Pet Sitter
+461,"Agriculture, Animals & Outdoors",Dog Trainer
+461,"Agriculture, Animals & Outdoors",Animal Shelter Worker
+461,"Agriculture, Animals & Outdoors",Fisher
+461,"Agriculture, Animals & Outdoors",Fish Farm Worker
+461,"Agriculture, Animals & Outdoors",Logging Equipment Operator
+461,"Agriculture, Animals & Outdoors",Greenhouse Worker
+481,"Marketing, Communications & Nonprofit",Marketing Manager
+481,"Marketing, Communications & Nonprofit",Digital Marketing Specialist
+481,"Marketing, Communications & Nonprofit",SEO Specialist
+481,"Marketing, Communications & Nonprofit",Advertising Account Manager
+481,"Marketing, Communications & Nonprofit",Media Buyer
+481,"Marketing, Communications & Nonprofit",Brand Manager
+481,"Marketing, Communications & Nonprofit",Fundraiser
+481,"Marketing, Communications & Nonprofit",Grant Writer
+481,"Marketing, Communications & Nonprofit",Nonprofit Program Director
+481,"Marketing, Communications & Nonprofit",Volunteer Coordinator
+481,"Marketing, Communications & Nonprofit",Communications Director
+481,"Marketing, Communications & Nonprofit",Publicist
+481,"Marketing, Communications & Nonprofit",Email Marketing Specialist
+481,"Marketing, Communications & Nonprofit",Event Marketing Specialist
+481,"Marketing, Communications & Nonprofit",Campaign Manager
+481,"Marketing, Communications & Nonprofit",Community Manager
+481,"Marketing, Communications & Nonprofit",Advertising Sales Representative
+481,"Marketing, Communications & Nonprofit",Market Development Specialist
+481,"Marketing, Communications & Nonprofit",Public Relations Manager
+481,"Marketing, Communications & Nonprofit",Technical Writer
