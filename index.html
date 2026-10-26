@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Humanaquarium (v0.14)</title>
+<title>Humanaquarium (v0.17)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -184,7 +184,7 @@ button.armed{background:var(--warn)!important;color:#fff!important;border-color:
 <script>
 /* ==== DATA: every table the sim reads. Placeholder rows are marked; the real
    government datasets replace them row-for-row later. ==== */
-const VERSION='0.14.0', SAVE_VERSION=4;
+const VERSION='0.17.0', SAVE_VERSION=4;
 const NEEDS=['energy','hunger','fun','social','comfort'];
 const DATA={
 meta:{town:'Sprungfeld',paper:'The Sprungfeld Ledger',startYear:2026,realMinPerDay:10,daysPerYear:4,walk:70,targetPop:200,placeholder:true},
@@ -706,7 +706,7 @@ DATA.holidayInfo={easter:{time:'9 AM to noon',where:'park'},prom:{time:'7 to 11 
 DATA.acts.push({id:'clothes_shop',label:'Clothes shopping',pose:'walk',prop:'bag',at:['boutique','thrift'],room:'pub',fx:{fun:12},dur:[30,60],emo:'👗',cost:60,scale:3,special:'clothes',minAge:12,tw:{groomed:0.2,creativity:0.1}},
  {id:'skate',label:'Ice skating',pose:'walk',prop:null,at:['park'],room:'pub',fx:{fun:20,social:8,energy:-6},dur:[30,60],emo:'⛸️',special:'skate',outdoors:1,minAge:5});
 DATA.jobs.push(['plow_driver','Snowplow driver','cityhall',150,4,12,'wk',0,1,'sit',null,null]);
-DATA.uniforms.push(['plow_driver','vest','#FF8C2A','#3E4B5E','beanie','#FF8C2A']);
+DATA.uniforms.push(['j_corrections_officer','uniform','#4A5566','#2B2B2B','cap','#2B2B2B'],['j_warden','jacket','#3E4B5E','#3E4B5E'],['plow_driver','vest','#FF8C2A','#3E4B5E','beanie','#FF8C2A']);
 /* ==== v0.7 tables: Lake Sprung, east-side services, new jobs and activities ==== */
 Object.assign(DATA.uses,{
  postoffice:{label:'Post office',cat:'civic',open:[8,17],civic:1,rooms:[['lobby','*mailroom','*mailroom']]},
@@ -981,7 +981,7 @@ function genHousehold(u,use){
  for(const p of made){if(age(p)<18){p.money=0;p.edu=0;}if(age(p)>=66)p.retired=true;if(age(p)>=18&&age(p)<22&&p.traits.ambition>55){p.student=1;p.studentUntil=p.bornLy+22;}}
  if(!poor&&!rich&&chance(0.4))u.owned=true;if(u.owned)u.ownerId=made.find(p=>adult(p))?.id||null;
  return made.length;}
-function marry(a,b,silent){a.partner=b.id;b.partner=a.id;a.pstat=b.pstat='married';a.since=b.since=S.ly;const r1=rel(a,b),r2=rel(b,a);r1.st=r2.st='spouse';r1.a=Math.max(r1.a,ri(30,80));r2.a=Math.max(r2.a,ri(30,80));r1.r=Math.max(r1.r,60);r2.r=Math.max(r2.r,60);r1.f=r2.f=90;}
+function marry(a,b,silent){ixShow(a,b,'💍','💍',60);a.partner=b.id;b.partner=a.id;a.pstat=b.pstat='married';a.since=b.since=S.ly;const r1=rel(a,b),r2=rel(b,a);r1.st=r2.st='spouse';r1.a=Math.max(r1.a,ri(30,80));r2.a=Math.max(r2.a,ri(30,80));r1.r=Math.max(r1.r,60);r2.r=Math.max(r2.r,60);r1.f=r2.f=90;}
 function assignInitialJobs(){
  const workers=shuffle(living().filter(p=>{const a=age(p);return a>=18&&a<66&&!p.student;}));
  // owners: rich first for big outfits
@@ -1021,7 +1021,7 @@ function obligation(p){ // today's next fixed commitment
 function decide(p){
  const a=age(p),h=hour(),m=mod(),d=day();
  if(p.inmate){const r=inmateDecide(p);if(r)return r;}
- if(p.jailUntil>S.t){return setAct(p,'jail',(S._byUse.police||[])[0],p.jailUntil-S.t,{why:['arrested'],opts:[]});}
+ if(p.jailUntil>S.t){const rr=arrestRide(p);if(rr)return rr;return setAct(p,'jail',(S._byUse.police||[])[0],p.jailUntil-S.t,{why:['arrested'],opts:[]});}
  if(a<5){const dc=daycareB();const inDC=dc&&mod()>=8*60&&mod()<17*60&&daycareNeeded(p);if(inDC){p.loc=dc;p.trip=null;return setAct(p,'daycare',dc,Math.max(20,17*60-mod()),{why:['the grown-ups are at work'],opts:[]},true);}if(dc&&p.loc===dc){p.loc=homeBld(p);p.trip=null;}}
  if(p.sick&&p.sick.sev>=3&&hospitalB()&&!(p.hospDay===day()&&p.act&&p.act.id==='hospital')){if(p.hospDay===day()||hospitalAdmit(p)){p.trip=null;p.loc=hospitalB();return setAct(p,'hospital',hospitalB(),Math.max(60,1440-mod()+8*60),{why:['too sick to be home'],opts:[]},true);}}
  if(stage(p)==='baby'){const home=homeBld(p);p.loc=home;p.trip=null;const sl=p.needs.energy<45||h>=19||h<7;return setAct(p,sl?'sleep':'play',home,sl?ri(90,240):ri(30,60),{why:[sl?'babies sleep a lot':'babies play'],opts:[]},true);}
@@ -1169,11 +1169,11 @@ function bestFriendHome0(p,kids){let best=null,ba=30;for(const[id,r]of Object.en
 function setAct(p,id,bid,dur,trace,noTravel,kind,cand){
  if(p.inmate&&!INMATE_OK.has(id))return p.act;const A=ACT[id]||DATA.sysActs[id];if(!bid)bid=p.loc||homeBld(p);
  let start=S.t;
- if(!noTravel&&p.loc&&bid!==p.loc){const r=route(S.blds[p.loc],S.blds[bid]);start=planTrip(p,p.loc,bid,r);}
+ if(!noTravel&&p.loc&&bid!==p.loc){const r=route(S.blds[p.loc],S.blds[bid]);const cAt=p.carAt;start=planTrip(p,p.loc,bid,r);start=joinTrip(p,start,cAt);}
  else if(!p.loc){p.loc=bid;}
  p.act={id,start,until:start+dur,place:bid,started:false,label:A.label};
  if(id==='work'&&p.job){const J=JOB[p.job.j];p.act.label=J.title==='Owner'?'Running '+(S.biz[p.job.b]?.name||'the business'):J.title;if(J.away)p.act.label='Working out of town, at '+(p.job.emp||'a company');p.act.pose=J.pose;p.act.prop=J.prop;}
- p.lastAct=id;
+ p.lastAct=id;bringAlong(p,bid);
  if(trace){p.trace.unshift({t:S.t,act:p.act.label,why:trace.why||[],opts:trace.opts||[]});if(p.trace.length>4)p.trace.pop();}
  return p.act;}
 function onStart(p){
@@ -1193,7 +1193,7 @@ function onStart(p){
  if(A.special==='steal'){const cops=staffCount(S.biz[(S._byUse.police||[])[0]]||{staff:{}},'pol_officer');const caught=chance(0.16+cops*0.02-p.traits.impulse/800);const item=pick(DATA.items);
   if(caught){callOut('police',p.act.place);p.jailUntil=S.t+1440*ri(1,2);p.arrests=arrestCount(p)+1;recordOf(p).push({d:day(),c:'shoplifting',out:'Pleaded guilty',s:'$500 fine and a night or two in jail'});spend(p,500,'fines');news('crime',4,N(p)+' was arrested for shoplifting '+item+' from '+(z?z.name:'a store')+'.',[p.id]);moodlet(p,'Arrested',-25,2);
    for(const q of living())if(q.rel[p.id]&&q.rel[p.id].st==='family')rel(q,p).a-=8;if(p.job&&chance(0.5)){fire(p,'after an arrest');}p.act.until=S.t;}
-  else{earn(p,ri(15,60),'stolen');moodlet(p,'Got away with it',p.traits.kindness<20?8:-4,1);logp(p,'Walked out of '+(z?z.name:'a store')+' with '+item+'. Nobody noticed.');}}
+  else{earn(p,ri(15,60),'stolen');if(typeof openCase==='function')openCase('shoplift',p,null,p.act.place,{evidence:15});moodlet(p,'Got away with it',p.traits.kindness<20?8:-4,1);logp(p,'Walked out of '+(z?z.name:'a store')+' with '+item+'. Nobody noticed.');}}
  if(A.special==='clinic'&&p.sick){p.sick.d=Math.max(0,p.sick.d-1);moodlet(p,'Saw a doctor',6,1);}
  if(A.special==='date'&&p.partner){const q=P(p.partner);if(q){rel(p,q).r+=4;rel(p,q).a+=3;moodlet(p,'Date with '+q.first,10,1,q.id);}}}
 
@@ -1204,10 +1204,10 @@ function step(dt){
  if(day()!==d0)daily();if(Math.floor(S.t/60)!==Math.floor((S.t-dt)/60))tuSample();
  const L=living();const occ={};buildRes();
  for(const p of L){
-  if(p.trip&&S.t>=p.trip.t1){p.loc=p.trip.to;p.trip=null;}
+  if(p.trip&&S.t>=p.trip.t1){p.loc=p.trip.to;const w16=p.trip.with;p.trip=null;arriveGreet(p,w16);}
   const sleeping=p.act&&(p.act.id==='sleep'||p.act.id==='rough')&&!p.trip&&S.t>=p.act.start;
   for(const n of NEEDS){let dec=DATA.decay[n];if(sleeping){dec=n==='hunger'?dec*0.35:n==='energy'?0:n==='bladder'?dec*0.4:dec*0.3;}if(n==='social')dec*=(0.5+p.traits.social/100);if(p.sick&&n==='energy')dec*=1.5;p.needs[n]-=dec*dt/60;}
-  if(p.act&&!p.trip&&S.t>=p.act.start){if(!p.act.started){p.act.started=true;onStart(p);}const A=ACT[p.act.id]||DATA.sysActs[p.act.id];if(A&&A.fx)for(const n in A.fx)p.needs[n]+=A.fx[n]*dt/60;
+  if(p.act&&!p.trip&&S.t>=p.act.start){if(!p.act.started){p.act.started=true;onStart(p);}if(p.act&&p.act.resolveAt&&!p.act.done&&S.t>=p.act.resolveAt){p.act.done=true;crimeResolve(p);}const A=ACT[p.act.id]||DATA.sysActs[p.act.id];if(A&&A.fx)for(const n in A.fx)p.needs[n]+=A.fx[n]*dt/60;
    if(p.act.id==='work'&&p.job){const J=JOB[p.job.j];if(J.interest&&p.interests.includes(J.interest))p.needs.fun+=6*dt/60;}}
   if(p.homeU&&p.loc===homeBld(p)&&!p.trip){const H=S.units[p.homeU].home;if(H){const dirt=((100-H.tidy)+H.dishes*0.5+H.trash*0.5)/200;p.needs.comfort+=((H.furn-50)/40-dirt*p.traits.neat/35)*dt/60;}}
   for(const n of NEEDS)p.needs[n]=clamp(p.needs[n],0,100);
@@ -1244,7 +1244,7 @@ function interactions(dt,occ){
   const tries=Math.min(5,Math.ceil(list.length/2));for(let i=0;i<tries;i++){if(!chance(0.18*dt/10))continue;const a=pick(list),b=pick(list);if(a===b)continue;
    const A=ACT[a.act.id]||DATA.sysActs[a.act.id];if(!(A&&A.social)&&!SOCIAL_SYS.has(a.act.id)&&a.loc!==homeBld(a))continue;interact(a,b,bid);}}}
 function interact(a,b,bid){
- const r=rel(a,b),r2=rel(b,a);const I=wpick(INTER,I=>I.w(a,b,r));if(!I)return;
+ const r=rel(a,b),r2=rel(b,a);const I=wpick(INTER,I=>I.w(a,b,r));if(!I)return;ix16(a,b,bid,I.id);
  r.f=clamp(r.f+I.fx[1],0,100);r2.f=clamp(r2.f+I.fx[1],0,100);
  const soft=x=>x<0?x*(1.3-b.traits.kindness/150):x;
  r.a=clamp(r.a+I.fx[0]*(I.fx[0]<0?0.5:1),-100,100);r2.a=clamp(r2.a+soft(I.fx[0]),-100,100);
@@ -1274,7 +1274,7 @@ function romanceCheck(a,b,r,r2){
 /* ---- life events ---- */
 function fire(p,why){if(!p.job)return;const z=S.biz[p.job.b];const t=JOB[p.job.j].title;clearJob(p);p.unemployedSince=day();moodlet(p,'Fired',-25,2);news('job',3,N(p)+' was let go'+(z?' from '+z.name:'')+' '+why+'.',[p.id]);}
 function kill(p,cause,text,drama){
- if(!p.alive)return;p.alive=false;p.status='dead';p.diedLy=S.ly;p.diedDay=day();p.cause=cause;S.stats.deaths++;S._dirty=true;
+ if(!p.alive)return;pin(p.loc||(p.trip&&p.trip.to),'🕯️',120);p.alive=false;p.status='dead';p.diedLy=S.ly;p.diedDay=day();p.cause=cause;S.stats.deaths++;S._dirty=true;
  const a=Math.floor(p.diedLy-p.bornLy);
  if(p.job){const z=S.biz[p.job.b];if(z&&z.ownerId===p.id){const heir=heirsOf(p).find(adult);if(heir&&chance(0.6)){z.ownerId=heir.id;if(heir.job)clearJob(heir);setJob(heir,z.id,'owner');news('business',3,N(heir)+' takes over '+z.name+' after the death of '+N(p)+'.',[heir.id,p.id]);}else{z.ownerId=null;}}clearJob(p);}
  const partner=p.partner&&P(p.partner);if(partner){partner.partner=null;partner.pstat=null;partner.widowed=true;}
@@ -1393,7 +1393,7 @@ function birthday(p,ai){
 function cohabit(p,q){const up=unitOf(p),uq=unitOf(q);if(!up&&!uq)return;
  const score=u=>u?(u.owned?10:0)+(S.blds[u.bld].use==='house'||S.blds[u.bld].use==='mansion'?4:0)-residents(u.id).length:-99;
  const tgt=score(up)>=score(uq)?p:q;const mv=tgt===p?q:p;if(!tgt.homeU)return;moveTo(mv,tgt.homeU,true);logp(mv,'Moved in with '+fullName(tgt)+'.');logp(tgt,fullName(mv)+' moved in.');}
-function breakup(p,q){const wasMarried=p.pstat==='married';p.partner=q.partner=null;p.pstat=q.pstat=null;const r=rel(p,q),r2=rel(q,p);r.st=r2.st='ex';r.r=r2.r=10;
+function breakup(p,q){ixShow(p,q,'💔','💔',40);const wasMarried=p.pstat==='married';p.partner=q.partner=null;p.pstat=q.pstat=null;const r=rel(p,q),r2=rel(q,p);r.st=r2.st='ex';r.r=r2.r=10;
  moodlet(p,(wasMarried?'Divorced ':'Broke up with ')+q.first,-25,2,q.id);moodlet(q,(wasMarried?'Divorced ':'Broke up with ')+p.first,-25,2,p.id);
  if(wasMarried){S.stats.divorces++;news('divorce',6,N(p)+' and '+N(q)+' are divorcing. Both say the other one kept the good blender.',[p.id,q.id]);}else news('romance',2,N(p)+' and '+N(q)+' have split up.',[p.id,q.id]);
  if(p.homeU&&p.homeU===q.homeU){const u=unitOf(p);const stay=(u.ownerId===p.id?p:u.ownerId===q.id?q:(p.sex==='f'?p:q));const go=stay===p?q:p;
@@ -1756,9 +1756,9 @@ function migrateV3(o){S=o;S.v=4;S.cal=S.cal||{seasonDays:7,off:0};initTown();ini
 function holidayDay(h){return Math.min(calN(),Math.max(1,Math.ceil(h.f*calN())));}
 /* a town always has a mayor: appoint one at founding, or an interim one when the seat empties */
 function ensureMayor(silent,gone){const T=S.town;if(!T)return;const cur=living().find(p=>p.job&&p.job.j==='ch_mayor');if(cur){T.mayor=cur.id;return;}
- const ch=(S._byUse.cityhall||[])[0];if(!ch)return;const pool=living().filter(p=>adult(p)&&age(p)>=32&&age(p)<72&&p.homeU&&p.edu>=1&&!p.rough&&!(p.job&&p.job.j==='owner'));if(!pool.length)return;
+ const ch=(S._byUse.cityhall||[])[0];if(!ch)return;const pool=living().filter(p=>adult(p)&&age(p)>=32&&age(p)<72&&p.homeU&&p.edu>=1&&!p.rough&&!p.inmate&&!(p.jailUntil>S.t)&&!p.outfit&&!(p.job&&p.job.j==='owner')&&(!gone||p.id!==gone.id));if(!pool.length)return;
  const m=pool.sort((a,b)=>(b.traits.ambition+b.traits.social/2+b.edu*12)-(a.traits.ambition+a.traits.social/2+a.edu*12))[0];if(m.job)clearJob(m);setJob(m,ch,'ch_mayor');T.mayor=m.id;T.policy=issueOf(m);
- if(!silent)news('politics',4,(gone?'After the loss of '+N(gone)+', ':'')+N(m)+' has been appointed interim mayor until the next election. They promise '+DATA.issues[T.policy].label+'.',[m.id].concat(gone?[gone.id]:[]));}
+ if(!silent)news('politics',4,(gone?(gone.alive&&gone.inmate?'With '+N(gone)+' in prison, ':gone.alive?'With '+N(gone)+' out of office, ':'After the loss of '+N(gone)+', '):'')+N(m)+' has been appointed interim mayor until the next election. They promise '+DATA.issues[T.policy].label+'.',[m.id].concat(gone?[gone.id]:[]));}
 function migrateCalendar(){if(!S.cal){S.cal={seasonDays:7,off:0};}const T=S.town;if(T&&T.nextYear>1000){T.nextYear=year()+(season()==='Fall'||season()==='Winter'?1:0);T.candidates=[];T.electionDay=null;T.votes={};}if(T&&!T.mayor)ensureMayor(false);S.holDone=S.holDone||{};}
 /* ==== v0.6 SIM: looks, wardrobe, seasons on the ground, households in and out ==== */
 function genLook(p,par){const L=DATA.look;const a=age2(p.bornLy);const pa=(par||[]).filter(q=>q&&q.look);const t=p.traits;const f=p.sex==='f';
@@ -1777,7 +1777,7 @@ function genLook(p,par){const L=DATA.look;const a=age2(p.bornLy);const pa=(par||
  const hat=chance(0.22)?(a<30?pick(['cap','beanie','cap']):pick(p.interests.includes('gardening')&&f?['sunhat']:p.interests.includes('outdoors')||p.interests.includes('fishing')?['cap','cowboy']:['cap','beanie'])):'none';
  return{h,w,skin,hair,hairC,beard,glasses,top:{id:top,c:pick(cs),pat},bottom:{id:bottom,c:bottom==='jeans'?pick(L.denim):pick(L.neutral.concat(loud?L.loud:[]))},shoes:{id:shoes,c:pick(L.neutral)},hat:{id:hat,c:pick(cs)}};}
 function ensureLook(p){if(!p.look)p.look=genLook(p,(p.parents||[]).map(P));return p.look;}
-function uniformFor(p){if(!p.job||!p.act||p.act.id!=='work')return null;const j=p.job.j;return DATA.uniforms.find(u=>j===u[0]||j.startsWith(u[0]))||null;}
+function uniformFor(p){if(p.inmate)return['inmate','coverall','#E8742A','#E8742A'];if(!p.job||!p.act||p.act.id!=='work')return null;const j=p.job.j;return DATA.uniforms.find(u=>j===u[0]||j.startsWith(u[0]))||null;}
 function snowDaily(){if(S.snow==null)S.snow=0;const w=S.wx||{};if(w.k==='snow')S.snow=Math.min(100,S.snow+(w.snowDay?45:30));else if(season()==='Winter'&&w.temp<36)S.snow=Math.max(0,S.snow-6);else S.snow=Math.max(0,S.snow-(w.temp>45?60:30));if(S.snow<8)S.snowmen=[];}
 function onStartV6(p,A,z,u){if(A.id==='snowman'){const b=S.blds[p.act.place];if(b){S.snowmen=S.snowmen||[];const front=Math.abs(b.door[1]-b.fp[2][1])<1;S.snowmen.push({x:b.door[0]+ri(-8,8),y:front?b.fp[2][1]+6:b.fp[0][1]-6,d:day()});if(S.snowmen.length>30)S.snowmen.shift();}}
  if(A.special==='clothes'){const L=DATA.look;const lk=ensureLook(p);const slot=pick(['top','bottom','shoes']);const cs=p.traits.creativity>65?L.loud:L.calm;
@@ -2900,7 +2900,7 @@ function crime13Daily(p,d){const c=crOf(p);if(c.nerve>0)c.nerve=Math.max(0,c.ner
  if(c.plan&&d-c.plan.day>3)c.plan=null;if(c.plan||d-c.last<2)return;
  if(p.vigilante>d&&adult(p)&&chance(0.25)){const bad=living().filter(q=>q!==p&&adult(q)&&!q.inmate&&(q.felon||arrestCount(q)>0||(q.cr&&q.cr.nerve>40)));if(bad.length){const q=pick(bad);c.plan={type:'assault',target:q.id,day:d,why:['thinks '+q.first+' got off easy']};return;}}
  const pr=pressureOf(p);if(pr.v<-15)return;const ch=Math.min(0.3,0.04*Math.exp(pr.v/11))*crMult()*(S.crimeWave>d?3:1)*(S.cfg.chief>d?0.7:1);if(!chance(ch))return;
- const plan=pickCrime(p,pr);if(plan){plan.day=d;plan.why=pr.why.slice(0,3);c.plan=plan;}}
+ const plan=pickCrime(p,pr);if(plan){plan.day=d;plan.why=pr.why.slice(0,3);c.plan=plan;if(plan.type==='embezzle'){p.embezzle=true;c.plan=null;logp(p,'Started taking a little from the till at work.');}}}
 function pickCrime(p,pr){const a=age(p),t=p.traits,c=crOf(p);const g=grudgeOf(p);const needMoney=pr.why.some(w=>/debt|rent|broke|fix|nowhere|sinking|work/.test(w));const opts=[];
  const add=(type,w,extra)=>{if(w>0)opts.push(Object.assign({type,w},extra||{}));};
  if(a<18){add('shoplift',4);add('vandalism',3+(g?3:0),g?{target:g.q.id}:{});add('trespass',2);if(a>=15&&t.risk>60)add('joyride',2);if(g&&t.temper>70)add('assault',1,{target:g.q.id,teen:1});}
@@ -2937,7 +2937,7 @@ function crimeAct(p){const c=p.cr;if(!c||!c.plan||!crimeOn())return null;const p
  const why=(plan.why||[]).concat(tg.vic&&P(tg.vic)?[]:[]).slice(0,3);const dur={collect:15,shakedown:20,torch:15,deal:90,beatdown:15,hit:20,disorderly:30,shoplift:20,vandalism:25,trespass:40,joyride:60,burglary:30,cartheft:20,breakin:40,scam:40,mugging:15,armedrob:12,assault:15,murder:15}[plan.type]||20;
  const r=setAct(p,'crime',tg.bid,dur,{why:why.length?why:['felt like it'],opts:[]});p.act.label=lab;p.act.crime={type:plan.type,vic:tg.vic||null,unit:tg.unit||null,biz:tg.biz||null};return r;}
 /* system activity starts (crime, court, prison) */
-function sysStart13(p){const a=p.act;if(!a)return;if(a.id==='crime'&&a.crime)doCrime(p,a.crime);if(a.id==='p_phone')inmateCall(p);}
+function sysStart13(p){const a=p.act;if(!a)return;if(a.id==='crime'&&a.crime)crimeStage(p);if(a.id==='p_phone')inmateCall(p);}
 function copsOnDuty(){let n=0;for(const b of(S._byUse.police||[])){for(const id of(S._occ&&S._occ[b]||[]).map(q=>q.id))n++;}let w=0;for(const p of living())if(p.job&&p.act&&p.act.id==='work'&&JOB[p.job.j]&&['pol_officer','j_sheriff_s_deputy','pol_det'].includes(p.job.j))w++;return w;}
 function witnessesAt(bid,p,v){return((S._occ&&S._occ[bid])||[]).filter(q=>q!==p&&q.id!==v&&q.alive&&age(q)>=8&&!(q.act&&q.act.id==='sleep'));}
 function addr(bid){const b=S.blds[bid];return b?(S.biz[bid]&&!['house','duplex','apartment','trailer','mansion'].includes(b.use)?S.biz[bid].name:b.addr):'town';}
@@ -2984,7 +2984,7 @@ function investigate(){const det=detectives(),off=officers();const chief=S.cfg.c
   const pd=base*(0.55+0.4*det+0.08*off)*(0.6+cs.evidence/100)*rec*careful*chief*prot*(D.sev>=9?1.3:1);
   if(chance(pd)){arrest(p,cs,'after an investigation');}else if(chance(0.08))cs.evidence=Math.min(100,cs.evidence+ri(2,8));}
  for(const cs of Object.values(S.cases||{}))if(cs.status==='cold'&&chance(0.002)){const p=P(cs.perp);if(p&&p.alive){cs.status='open';cs.day=day()-5;cs.evidence+=25;news('crime',5,'New evidence has turned up in the unsolved '+caseLabel(cs)+' at '+addr(cs.bid)+'. Detectives have reopened the case.',[]);}}}
-function arrest(p,cs,how){if(!p.alive||p.inmate)return;if(p.jailUntil>S.t&&Object.values(S.cases||{}).some(x=>x.perp===p.id&&x.status==='charged'&&x!==cs)){if(DATA.crimes13[cs.type].sev<=2||!DATA.crimes13[cs.type].yrs){cs.status='done';return;}cs.status='charged';cs.court=Object.values(S.cases).find(x=>x.perp===p.id&&x.status==='charged'&&x!==cs).court;cs.arrestDay=day();return;}if(p.outfit&&OX(p.outfit)){OX(p.outfit).heat+=2;}cs.status='charged';cs.arrestDay=day();const D=DATA.crimes13[cs.type];p.arrests=arrestCount(p)+1;callOut('police',p.loc||cs.bid);
+function arrest(p,cs,how){if(!p.alive||p.inmate)return;if(p.act&&!['jail','court'].includes(p.act.id)&&p.act.until>S.t+1)p.act.until=S.t+1;if(p.jailUntil>S.t&&Object.values(S.cases||{}).some(x=>x.perp===p.id&&x.status==='charged'&&x!==cs)){if(DATA.crimes13[cs.type].sev<=2||!DATA.crimes13[cs.type].yrs){cs.status='done';return;}cs.status='charged';cs.court=Object.values(S.cases).find(x=>x.perp===p.id&&x.status==='charged'&&x!==cs).court;cs.arrestDay=day();return;}if(p.outfit&&OX(p.outfit)){OX(p.outfit).heat+=2;}cs.status='charged';cs.arrestDay=day();const D=DATA.crimes13[cs.type];p.arrests=arrestCount(p)+1;callOut('police',p.loc||cs.bid);
  const vic=cs.vic&&P(cs.vic);news('crime',D.sev>=9?9:D.sev>=4?6:D.sev>=3?4:2,N(p)+(age(p)<18?', '+Math.floor(age(p))+',':'')+' was arrested '+(how||'')+' and charged with '+caseLabel(cs)+(vic&&cs.type!=='embezzle'?', in the case of '+N(vic):'')+'.',[p.id].concat(vic?[vic.id]:[]));
  moodlet(p,'Arrested',-25,3);for(const[id,r]of Object.entries(p.rel)){const q=P(id);if(!q||!q.alive)continue;if(r.st==='family'||r.st==='spouse'||r.st==='partner'){moodlet(q,'Heard '+p.first+' was arrested',-12,2,p.id);rel(q,p).a-=(D.sev>=4?10:4);}}
  if(vic&&vic.alive){moodlet(vic,'They caught who did it',8,2);rel(vic,p).a=Math.min(rel(vic,p).a,-35-D.sev*8);}if(cs.type==='cartheft'&&vic&&vic.carGone&&!vic.car&&chance(0.5)){vic.car=vic.carGone.car;vic.carGone=null;moodlet(vic,'Got the car back',10,1);}
@@ -3020,7 +3020,7 @@ function staffPrison(){const pb=prisonB();if(!pb)return;const z=S.biz[pb];for(co
   for(const p of pool){if(need<=0)break;setJob(p,pb,J.id);need--;}}}
 function sendToPrison(p,years,cs,why){const pb=prisonB();if(p.inmate){if(p.inmate.until!=null)p.inmate.until=years>=999?null:p.inmate.until+Math.round(years*dpy());p.inmate.years=years>=999?999:p.inmate.years+years;p.inmate.crime+=' and '+(cs?caseLabel(cs):why||'more');return;}if(!pb){p.jailUntil=S.t+1440*Math.min(5,years);return;}const days=years>=999?99999:Math.max(2,Math.round(years*dpy()));
  if(p.job){const z=p.job.b&&S.biz[p.job.b];if(!(z&&z.ownerId===p.id))clearJob(p);else{clearJob(p);}}p.unemployedSince=0;
- p.inmate={since:day(),until:years>=999?null:day()+days,years,crime:cs?caseLabel(cs):why||'a crime',good:0,fights:0,solitary:0};p.jailUntil=0;p.trip=null;p.loc=pb;p.felon=true;crOf(p).plan=null;
+ p.inmate={since:day(),until:years>=999?null:day()+days,years,crime:cs?caseLabel(cs):why||'a crime',good:0,fights:0,solitary:0};p.jailUntil=0;{const from=p.trip?p.trip.to:p.loc;p.trip=null;if(typeof rideTo==='function'&&from&&from!==pb&&S.blds[from]){p.loc=from;rideTo(p,'police',pb,'p_cell',60,'Being driven to the County Correctional Center',4);}else p.loc=pb;}p.felon=true;crOf(p).plan=null;
  moodlet(p,'Locked up',-18,Math.min(40,days));
  const u=unitOf(p);if(u){const left=residents(u.id).filter(q=>q!==p&&!q.inmate);if(left.length&&!left.some(adult))for(const k of left)rehomeOrphan(k);}
  if(p.partner){const q=P(p.partner);if(q&&q.alive)moodlet(q,p.first+' went to prison',-22,5,p.id);}
@@ -3117,7 +3117,7 @@ const CRTOWN={
 AGECLS=(()=>{const m={},r=[];for(let ai=0;ai<=130;ai++){let sig='';for(const A of DATA.acts)sig+=(!(A.minAge&&ai<A.minAge-1)&&!(A.maxAge&&ai>A.maxAge))?'1':'0';if(!(sig in m))m[sig]=ai;r.push(m[sig]);}return r;})();for(const x in _AF)delete _AF[x];
 
 /* a bar fight can turn into an assault charge */
-function fightCase13(a,b,bid){if(!crimeOn()||!S.blds[bid]||!S.biz[bid]||S.biz[bid].civic)return;if(!chance(0.5))return;const cs=openCase('assault',a,b.id,bid,{evidence:65,seen:[]});crOf(a).rec.push({type:'assault',v:b.id,day:day()});if(chance(0.25+copsOnDuty()*0.05))arrest(a,cs,'after a fight');}
+function fightCase13(a,b,bid){if(!crimeOn()||!S.blds[bid]||!S.biz[bid]||S.biz[bid].civic)return;const cs=openCase('assault',a,b.id,bid,{evidence:65,seen:[]});crOf(a).rec.push({type:'assault',v:b.id,day:day()});if(chance(0.25+copsOnDuty()*0.05))arrest(a,cs,'after a fight');}
 
 /* ==== v0.14 SIM: organized crime. Outfits with ranks, rackets, turf, rivals, informants, raids; drugs, back-room games, loan sharks ==== */
 Object.assign(DATA.crimes13,{
@@ -3274,6 +3274,141 @@ const OXBIZ={
  rob(z){const c=living().filter(p=>adult(p)&&!p.inmate&&!(p.job&&p.job.b===z.id)).sort((a,b)=>crOf(b).nerve-crOf(a).nerve)[0];if(!c)return'Nobody will do it.';c.cr=crOf(c);c.cr.plan={type:'armedrob',day:day(),why:['a voice in their head']};c.cr.forceBiz=z.id;return c.first+' is going to hit '+z.name+'.';},
  cameras(z){z.cameras=true;return z.name+' has security cameras now. Anything that happens here will be on tape.';}};
 
+
+/* ==== v0.16 SIM: see it happen. Interactions you can see, crimes that play out, rides in police cars and ambulances, people who travel together ==== */
+Object.assign(DATA.sysActs,{
+ flee:{label:'Getting away fast',emo:'🏃',pose:'walk',prop:null,fx:{}},
+ shaken:{label:'Shaken up',emo:'😰',pose:'sit',prop:null,fx:{comfort:-4}},
+ callcops:{label:'On the phone with the police',emo:'📞',pose:'phone',prop:'phone',fx:{comfort:2}},
+ gawk:{label:'Watching what happened',emo:'😮',pose:'stand',prop:null,fx:{}}});
+DATA.ixEmo={chat:['💬','💬'],joke:['😂','😂'],deep:['🫂','🫂'],argue:['💢','💢'],insult:['😠','😢'],flirt:['😍','😊'],help:['🤝','🙏'],brag:['😏','🙄'],borrow:['🙏','💵'],lend:['💵','🙏'],gift:['🎁','😊'],teach:['📘','💡'],gossip:['🤫','👀'],bully:['😤','😢'],fight:['👊','👊']};
+/* who is doing what with whom, for a few minutes (not saved) */
+function ixShow(a,b,ea,eb,dur,bid){S._ix=S._ix||{};const u=S.t+(dur||20);if(a)S._ix[a.id]={emo:ea,w:b?b.id:null,until:u};if(b)S._ix[b.id]={emo:eb||ea,w:a?a.id:null,until:u};}
+function ixOf(p){const x=S._ix&&S._ix[p.id];return x&&x.until>S.t?x:null;}
+function pin(bid,emo,dur){if(!bid||!S.blds[bid])return;S._pins=(S._pins||[]).filter(q=>q.until>S.t);S._pins.push({bid,emo,until:S.t+(dur||45),t0:S.t});if(S._pins.length>40)S._pins.shift();}
+function ix16(a,b,bid,id){const e=DATA.ixEmo[id];if(!e)return;ixShow(a,b,e[0],e[1],id==='fight'?30:id==='chat'?12:20,bid);if(id==='fight'||id==='insult'&&chance(0.3))pin(bid,id==='fight'?'👊':'💢',30);}
+/* ---- crimes play out: casing, the moment, the getaway, the aftermath ---- */
+DATA.crimeStage={shoplift:6,vandalism:8,trespass:10,joyride:8,burglary:12,cartheft:8,breakin:12,scam:15,mugging:6,armedrob:4,assault:3,murder:5,disorderly:10,shakedown:8,torch:6,deal:30,beatdown:4,hit:6};
+function crimeStage(p){const a=p.act;if(!a||!a.crime)return;a.resolveAt=S.t+(DATA.crimeStage[a.crime.type]||8);if(p.fav&&S._onAlert)S._onAlert(N(p)+' is up to something at '+addr(a.place)+': '+a.label.toLowerCase()+'.',[p.id]);}
+function crimeResolve(p){const a=p.act;const k=a.crime;if(!k)return;const v=k.vic&&P(k.vic);const bid=a.place;
+ if(['mugging','assault','murder','beatdown','hit'].includes(k.type)){if(!v||!v.alive||v.loc!==bid||v.trip){a.label='Lost their chance';a.until=Math.min(a.until,S.t+5);moodlet(p,'Missed my chance',-3,1);return;}}
+ if(k.type==='burglary'){const u=S.units[k.unit];if(u&&residents(u.id).some(q=>q.loc===u.bld&&!q.trip)){a.label='Ran off when someone came home';a.until=S.t+5;const q=residents(u.id).find(q=>q.loc===u.bld);if(q){ixShow(q,null,'😱',null,20);moodlet(q,'Someone was trying to get in the house',-10,2);}return;}}
+ const before=new Set(Object.values(S.cases||{}).filter(c=>c.perp===p.id).map(c=>c.id));doCrime(p,k);const cs=Object.values(S.cases||{}).find(c=>c.perp===p.id&&!before.has(c.id));
+ const D=DATA.crimes13[cs?cs.type:k.type]||{sev:1};const pinE={shoplift:'🛍️',vandalism:'🎨',trespass:'🚧',joyride:'🚗',burglary:'🏚️',cartheft:'🚗',breakin:'💥',scam:'📞',mugging:'👊',armedrob:'🚨',assault:'👊',murder:'🚨',disorderly:'🍺',shakedown:'💥',torch:'🔥',deal:'💊',beatdown:'👊',hit:'🚨'}[k.type];
+ if(k.type!=='scam'&&k.type!=='deal'&&(D.sev>=3||!cs||cs.status!=='open'||chance(0.5)))pin(bid,pinE||'🚨',D.sev>=4?90:45);
+ ixShow(p,v&&v.loc===bid?v:null,D.sev>=4?'😠':'😈',D.sev>=4?'😱':'😧',15);
+ for(const w of witnessesAt(bid,p,k.vic).slice(0,4)){if(!w.act||w.act.id==='work')continue;ixShow(w,null,'😮',null,15);}
+ // the victim reacts: hurt people get an ambulance, everyone else is shaken and calls it in
+ if(v&&v.alive&&v.loc===bid&&!v.trip){if(v.sick&&v.sick.sev>=3&&hospitalB())rideTo(v,'ambulance',hospitalB(),'hospital',ri(6,10)*60,'Riding in an ambulance',6);
+  else if(!['scam','vandalism','cartheft','joyride','burglary','breakin'].includes(k.type)){setAct(v,'shaken',bid,ri(25,50),{why:['just got '+({mugging:'mugged',assault:'attacked',beatdown:'beaten up',armedrob:'held up'}[k.type]||'hurt')+' by '+(D.sev>=4&&v.rel[p.id]&&v.rel[p.id].a<0?p.first:'someone')],opts:[]},true);v.act.label=({mugging:'Shaken up after being mugged',assault:'Shaken up after being attacked',beatdown:'Hurting after a beating',armedrob:'Shaken up after a holdup'}[k.type]||'Shaken up');}}
+ if(k.type==='armedrob'){const clerk=witnessesAt(bid,p,null).find(q=>q.job&&q.job.b===bid);if(clerk&&clerk.sick&&clerk.sick.sev>=3&&hospitalB())rideTo(clerk,'ambulance',hospitalB(),'hospital',ri(6,10)*60,'Riding in an ambulance',6);else if(clerk){ixShow(clerk,null,'📞',null,20);}}
+ // the getaway, unless the police already have them
+ if(p.alive&&!(p.jailUntil>S.t)&&!p.inmate){const home=homeBld(p);if(home&&home!==bid){setAct(p,'flee',home,10,{why:['has to get out of there'],opts:[]});p.act.label=D.sev>=4?'Running from the scene':'Getting away fast';}else{a.until=S.t+2;}}}
+/* rides: police cars to the station, ambulances to the hospital */
+function rideTo(p,mode,to,actId,dur,label,delay){if(!to||!S.blds[to])return null;const from=p.loc||(p.trip&&p.trip.to);if(!from||!S.blds[from]){p.loc=to;return setAct(p,actId,to,dur,{why:[label||''],opts:[]},true);}
+ const r=route(S.blds[from],S.blds[to]);const t0=S.t+(delay!=null?delay:12),t1=t0+Math.max(3,r.len/260+1);p.trip={from,to,t0,t1,pts:r.pts,len:r.len,mode};p.loc=null;
+ p.act={id:actId,start:t1,until:t1+dur,place:to,started:false,label:(DATA.sysActs[actId]||ACT[actId]||{}).label};p.rideLabel=label;p.lastAct=actId;p.trace.unshift({t:S.t,act:label||p.act.label,why:[mode==='police'?'under arrest':'needs a doctor'],opts:[]});if(p.trace.length>4)p.trace.pop();return p.act;}
+function arrestRide(p){const pb=(S._byUse.police||[])[0];if(!pb||!(p.jailUntil>S.t)||p.inmate)return null;if(p.trip&&(p.trip.mode==='police'))return p.act;if(p.loc===pb)return null;const r=rideTo(p,'police',pb,'jail',Math.max(30,p.jailUntil-S.t),'In the back of a police car',p.loc&&S._calls&&S._calls.some(c=>c.to===p.loc&&S.t-c.t<18)?14:10);if(r)ixShow(p,null,'🚓',null,25);return r;}
+/* ---- going places together ---- */
+let _together=false;
+function tripIdx(){if(S._tjT!==S.t||!S._tj){S._tjT=S.t;S._tj={};for(const q of living())if(q.trip&&!q.trip.with&&S.t-q.trip.t0<=12){const k=q.trip.from+'|'+q.trip.to;(S._tj[k]=S._tj[k]||[]).push(q);}}return S._tj;}
+function joinTrip(p,start,carAt){if(!p.trip||p.trip.mode==='police'||p.trip.mode==='ambulance')return start;const T=p.trip;const idx=tripIdx();const key=T.from+'|'+T.to;
+ for(const q of(idx[key]||[])){if(q===p||!q.trip||q.trip.with||q.trip.from!==T.from||q.trip.to!==T.to||Math.abs(q.trip.t0-T.t0)>12)continue;if(['police','ambulance'].includes(q.trip.mode))continue;const r=p.rel[q.id];if(!(r&&r.a>15)&&q.homeU!==p.homeU)continue;
+  const wasCar=T.mode==='car';p.trip=Object.assign({},q.trip,{with:q.id});if(wasCar&&q.trip.mode!=='car'){/* they went the other's way */}if(wasCar){p.carAt=carAt;}
+  ixShow(p,q,'🙂','🙂',Math.max(6,Math.round(q.trip.t1-S.t)));return Math.max(q.trip.t1,S.t);}(idx[key]=idx[key]||[]).push(p);return start;}
+function bringAlong(p,bid){if(_together||!p.trip||p.trip.with)return;if(bid!==homeBld(p))return;const from=p.trip.from;const B=S.blds[from];if(!B)return;
+ for(const q of(S._occ&&S._occ[from]||[])){if(q===p||q.trip||q.homeU!==p.homeU||!q.act||['work','school','sleep','jail','wfh','study'].includes(q.act.id)||q.inmate)continue;const A=ACT[q.act.id]||DATA.sysActs[q.act.id]||{};if(!A.social&&!['date','eat_out','visit','host','movie','concert','drink_bar','dance','family_dinner','bowl','karaoke'].includes(q.act.id))continue;if(q.act.until-S.t>50)continue;
+  _together=true;try{setAct(q,'idle',bid,15,{why:['heading home with '+p.first],opts:[]});if(q.act)q.act.label='Home with '+p.first;}finally{_together=false;}}}
+function arriveGreet(p,w){const a=p.act;if(!a)return;const tid=a.target||w;const q=tid&&P(tid);if(!q||!q.alive)return;if(q.loc!==p.loc)return;const r=p.rel[q.id];const love=p.partner===q.id||['date','app_date'].includes(a.id);ixShow(p,q,love?'❤️':'👋',love?'❤️':'👋',12);}
+
+/* ==== v0.17 SIM: people remember who hurt them, and some of them get even. Big names make big news. ==== */
+DATA.wrongWhat={assault:'attacking them',mugging:'mugging them',armedrob:'the holdup',beatdown:'the beating',shakedown:'the shakedown',burglary:'breaking into the house',cartheft:'stealing the car',joyride:'taking the car',vandalism:'trashing the house',scam:'the scam',breakin:'breaking into the business',torch:'burning the place',murder:'the killing',hit:'the killing',collect:'the threats'};
+DATA.bigRoles={mayor:'Mayor',chief:'Police Chief',judge:'Judge',principal:'Principal',warden:'Warden'};
+function bigRole(p){if(!p||!p.alive)return null;if(S.polChief===p.id&&p.job)return'chief';const j=p.job&&p.job.j;return j==='ch_mayor'?'mayor':j==='j_judge'?'judge':j==='ch_principal'?'principal':j==='j_warden'?'warden':null;}
+function wrongText(e){const fv=e.fam&&S.people[e.fam];const w=DATA.wrongWhat[e.t]||'what they did';if(fv)return(e.t==='murder'||e.t==='hit'?'killing ':'hurting ')+fv.first;return w;}
+/* memory: who did what to me (saved on the person) */
+function remember(h,perp,type,cs,famId,gen){if(!h||!perp||h===perp||!h.alive||age(h)<13)return null;if(famId&&isKin(h,perp))return null;h.wr=h.wr||[];
+ let e=h.wr.find(x=>x.by===perp.id&&(x.c===(cs&&cs.id)||x.t===type&&day()-x.d<3));if(e)return e;const D=DATA.crimes13[type]||{sev:2};
+ e={by:perp.id,t:type,d:day(),sev:famId&&D.sev>=9?10:D.sev,c:cs?cs.id:null,fam:famId||null,g:gen||0};h.wr.unshift(e);if(h.wr.length>6)h.wr.pop();
+ rel(h,perp).a=Math.min(rel(h,perp).a,famId?-70:-30-D.sev*8);return e;}
+function wrongOf(h,e){const q=P(e.by);const cs=e.c&&S.cases&&S.cases[e.c];return{q,cs,st:cs?cs.status:null};}
+function revengeWant(h,e){const{q,st}=wrongOf(h,e);if(!q||!q.alive)return -99;const t=h.traits;let w=e.sev*9+(t.temper-50)*0.6+(50-t.kindness)*0.5+(t.impulse-50)*0.2-(e.g||0)*14;
+ if(st==='acquitted')w+=28;else if(st==='convicted')w-=22;else if(st==='cold')w+=10;else if(st==='done')w-=8;
+ if(e.fam)w+=12;if(h.cr&&h.cr.nerve>40)w+=8;if(age(h)>=65)w-=20;if(h.parole||h.probation)w-=10;const r=h.rel[q.id];if(r&&r.a<-70)w+=6;return w;}
+function revengeDaily(){if(!crimeOn())return;const d=day();
+ for(const h of living()){if(!h.wr||!h.wr.length)continue;
+  h.wr=h.wr.filter(e=>{const q=P(e.by);if(!q||!q.alive)return false;const life=e.sev>=9?99999:12+e.sev*6;const{st}=wrongOf(h,e);return d-e.d<life*(st==='acquitted'?2:1);});
+  if(!h.wr.length||h.inmate||h.jailUntil>S.t||age(h)<13)continue;
+  // kind people sometimes let it go
+  if(h.traits.kindness>62&&chance(0.006*(h.traits.kindness-55)/10)){const e=h.wr.shift();const q=P(e.by);if(q){moodlet(h,'Decided to let it go',8,2);logp(h,'Made peace with what '+q.first+' did ('+wrongText(e)+').');rel(h,q).a=Math.max(rel(h,q).a,-25);}continue;}
+  const c=crOf(h);if(c.plan||d-c.last<2)continue;
+  let best=null,bw=22;for(const e of h.wr){const q=P(e.by);if(!q||q.inmate||!q.alive)continue;const w=revengeWant(h,e);if(w>bw){best=e;bw=w;}}if(!best)continue;
+  if(!chance(Math.min(0.09,0.004*Math.exp(bw/22))*crMult()))continue;
+  revengePlan(h,best,bw);}}
+function revengePlan(h,e,w){const q=P(e.by);if(!q||!q.alive||q.inmate)return null;const c=crOf(h);const t=h.traits;const ad=adult(h);let type;
+ if(!ad)type=t.temper>65&&chance(0.4)?'assault':'vandalism';
+ else if(murderOn()&&adult(q)&&(e.sev>=9||e.fam&&e.sev>=4)&&t.temper>55&&t.kindness<55&&chance(0.25+(w-50)/120))type='murder';
+ else if(e.sev<=2&&chance(0.6))type='vandalism';else type=t.temper>45||e.sev>=3?'assault':'vandalism';
+ if(type==='vandalism'&&!q.homeU)type='assault';
+ c.plan={type,target:q.id,day:day(),why:['getting even with '+q.first+' for '+wrongText(e)],rev:{by:q.id,g:e.g||0,t:e.t,fam:e.fam||null},teen:!ad?1:0};return c.plan;}
+/* when revenge is carried out, the paper notices, and the other side remembers too */
+{const _ca=crimeAct;crimeAct=function(p){const pl=p.cr&&p.cr.plan;const r=_ca(p);if(r&&pl&&pl.rev&&p.act&&p.act.crime){p.act.crime.rev=pl.rev;if(pl.teen)p.act.crime.teen=1;const q=P(pl.rev.by);if(q)p.act.label=pl.type==='vandalism'?'Heading to '+q.first+'’s place after dark':pl.type==='murder'?'Going to settle things with '+q.first:'Going to get even with '+q.first;}return r;};}
+{const _res=crimeResolve;crimeResolve=function(p){const a=p.act;const k=a&&a.crime;if(!k)return _res(p);const v=k.vic&&P(k.vic);const role=bigRole(v);const bid=a.place;
+ const before=new Set(Object.values(S.cases||{}).filter(c=>c.perp===p.id).map(c=>c.id));_res(p);const cs=Object.values(S.cases||{}).find(c=>c.perp===p.id&&!before.has(c.id));if(!cs)return;
+ if(k.rev){cs.rg=(k.rev.g||0)+1;if(p.wr)p.wr=p.wr.filter(e=>e.by!==k.rev.by);const q=P(k.rev.by);if(q){moodlet(p,'Got even with '+q.first,p.traits.kindness>55?-4:8,2,q.id);
+   const D=DATA.crimes13[cs.type]||{sev:1};if(D.sev>=2)news('crime',D.sev>=9?8:5,'Police believe the '+caseLabel(cs).toLowerCase()+' at '+addr(cs.bid)+' was payback'+(k.rev.fam&&S.people[k.rev.fam]?' for '+S.people[k.rev.fam].first+' '+S.people[k.rev.fam].last:'')+'. '+(cs.status==='charged'?N(p)+' has already been charged.':'Detectives are looking at people with a reason to want '+N(q)+' hurt.'),[p.id,q.id]);
+   if(cs.status==='open'){cs.evidence=Math.min(100,cs.evidence+20);}}}
+ // victims who saw who did it remember them, and can tell the police
+ const vic=cs.vic&&P(cs.vic);const D=DATA.crimes13[cs.type]||{sev:1};
+ if(vic&&vic.alive&&vic.loc===bid){const knew=!!(vic.rel[p.id]&&Math.abs(vic.rel[p.id].a)>5);const see={assault:1,beatdown:1,shakedown:1,collect:1,mugging:knew?0.85:0.3,armedrob:0.15,hit:0.6,murder:0.6}[cs.type]||0;
+  if(see&&chance(see)){remember(vic,p,cs.type,cs,null,cs.rg||0);if(cs.status==='open'){cs.evidence=Math.min(100,cs.evidence+25);cs.named=true;}logp(vic,'Got a good look at '+(knew?p.first:'the person who did it')+'. Won’t forget that face.');}}
+ if(role&&vic&&cs.vic===vic.id&&D.sev>=2)bigVictim(cs,vic,role);};}
+/* arrests: now the victim (and family, for serious cases) knows who did it */
+{const _ar=arrest;arrest=function(p,cs,how){const was=cs&&cs.status;_ar(p,cs,how);if(!cs||was==='charged')return;const D=DATA.crimes13[cs.type]||{sev:1};if(D.sev<2)return;const vic=cs.vic&&P(cs.vic);const g=cs.rg||0;
+ if(vic&&vic.alive&&!(cs.type==='embezzle'))remember(vic,p,cs.type,cs,null,g);
+ const famOf=vic||(cs.vic&&S.people[cs.vic]);if(famOf&&D.sev>=4){for(const[id,r]of Object.entries(famOf.rel)){const q=P(id);if(!q||!q.alive||q===p||!(r.st==='family'||r.st==='spouse'||r.st==='partner')||r.a<30)continue;remember(q,p,cs.type,cs,famOf.id,g);}}};}
+/* ---- big names: the mayor, the police chief, a judge, the principal, the warden ---- */
+function bigVictim(cs,v,role){if(cs.big)return;cs.big=role;const T=DATA.bigRoles[role];const dead=!v.alive||cs.victimDead;const D=DATA.crimes13[cs.type]||{sev:1};cs.evidence=Math.min(100,cs.evidence+25);
+ S.cfg.chief=Math.max(S.cfg.chief||0,day()+(dead?30:D.sev>=3?14:6));
+ const verb={assault:'attacked',mugging:'mugged',armedrob:'caught in a holdup',beatdown:'beaten',shakedown:'threatened',burglary:'robbed',cartheft:'robbed of their car',joyride:'robbed of their car',vandalism:'targeted by vandals',scam:'scammed',breakin:'robbed',torch:'targeted by an arsonist'}[cs.type]||'targeted';
+ if(dead){news('crime',10,(role==='mayor'?'TOWN IN SHOCK: ':role==='chief'?'OFFICER DOWN: ':'')+T+' '+N(v)+' has been killed at '+addr(cs.bid)+'. '+({mayor:'Flags at City Hall are at half-staff. State police have joined the investigation.',chief:'Every officer in town has been called in. “We will find who did this,” said a detective, who had not slept.',judge:'Every case on the court calendar has been pushed back. State investigators are on the way.',principal:'School is closed tomorrow. Counselors will be in the gym.',warden:'The County Correctional Center is on lockdown.'}[role]),[v.id]);}
+ else news('crime',D.sev>=3?8:6,T+' '+N(v)+' was '+verb+' at '+addr(cs.bid)+'. '+(D.sev>=3?'Police have made it their top priority.':'“Nobody is above a broken window,” said a spokesperson, while assigning three officers to it.'),[v.id]);
+ const cops=living().filter(q=>q.job&&['pol_officer','pol_det','j_sheriff_s_deputy'].includes(q.job.j));
+ if(dead){for(const q of cops)moodlet(q,role==='chief'?'Lost the chief':'Working the '+T.toLowerCase()+' case',role==='chief'?-20:-4,4,v.id);
+  if(role==='chief')S.polChief=null;
+  if(role==='judge')for(const c of Object.values(S.cases||{}))if(c.status==='charged'&&c.court>=day())c.court+=2;
+  if(role==='mayor')specialElection(v);
+  for(const q of living())if(q!==P(cs.perp)&&adult(q)&&chance(0.25))moodlet(q,'The '+T.toLowerCase()+' was killed',-6,3,v.id);}
+ else if(role==='mayor'&&S.town){S.town.approval=Math.min(95,S.town.approval+8);}}
+function specialElection(v){const T=S.town;if(!T)return;if(year()===T.nextYear){news('politics',5,'The regular election this year will decide who replaces '+N(v)+'. Until then the town will have an interim mayor.',[v.id]);return;}
+ T.special={day:day()+6,for:v.id,announced:false};news('politics',6,'City Hall has called a special election for six days from now to replace Mayor '+N(v)+'. Candidates have until the weekend to sign up.',[v.id]);}
+{const _td=townDaily;townDaily=function(){const T=S.town;if(!T||!T.special)return _td();const sp=T.special;const d=day();
+ if(!sp.announced&&d>=sp.day-4){sp.announced=true;const L=living();const pool=L.filter(p=>adult(p)&&age(p)>=30&&age(p)<76&&p.homeU&&!p.rough&&!p.inmate&&!(p.jailUntil>S.t)&&!p.outfit);const sc=p=>p.traits.ambition+p.traits.social/2+p.traits.kindness/3+rand()*30+(p.id===T.mayor?40:0);
+  const pl=(T.pledged||[]).map(P).filter(q=>q&&q.alive);const c=pl.concat(pool.filter(q=>!pl.includes(q)).sort((a,b)=>sc(b)-sc(a))).slice(0,Math.max(pl.length,chance(0.5)?3:2));T.pledged=[];
+  T.candidates=c.map(p=>({id:p.id,issue:p.id===T.mayor?T.policy:issueOf(p)}));for(const x of T.candidates){const p=P(x.id);news('politics',3,N(p)+' is running in the special election on a promise of '+DATA.issues[x.issue].label+'.',[p.id]);moodlet(p,'Running for mayor',10,4);}}
+ if(sp.announced&&d===sp.day&&!T.electionDay&&T.candidates.length){T.electionDay=d;T.votes={};news('politics',4,'It’s special election day. Polls at City Hall are open 7 a.m. to 8 p.m.',T.candidates.map(c=>c.id));}
+ if(T.electionDay&&d>T.electionDay){const ny=T.nextYear;_td();T.nextYear=ny;T.special=null;const w=P(T.mayor);if(w)news('politics',4,'With the special election over, '+N(w)+' takes over at City Hall for the rest of the term.',[w.id]);return;}
+ if(d>sp.day+2&&!T.electionDay){T.special=null;}
+ _td();};}
+/* the police chief: the senior officer at the station */
+function chiefDaily(){const pb=(S._byUse.police||[]).map(b=>S.biz[b]).filter(Boolean);const staff=[];for(const z of pb)for(const j of['pol_det','pol_officer'])for(const id of(z.staff[j]||[])){const q=P(id);if(q&&q.alive&&!q.inmate&&!(q.jailUntil>S.t))staff.push({q,j});}
+ const cur=S.polChief&&P(S.polChief);if(cur&&staff.some(x=>x.q===cur))return;if(!staff.length){S.polChief=null;return;}
+ const had=S.polChiefSet;const pickd=staff.sort((a,b)=>(b.j==='pol_det')-(a.j==='pol_det')||(b.q.onTake?-1:0)-(a.q.onTake?-1:0)||age(b.q)-age(a.q))[0].q;S.polChief=pickd.id;S.polChiefSet=1;
+ if(had){news('crime',4,N(pickd)+' has been named police chief.',[pickd.id]);moodlet(pickd,'Named police chief',18,3);}}
+{const _jt=jobTitle;jobTitle=function(p){if(S.polChief===p.id&&p.job&&!p.inmate){const z=p.job.b&&S.biz[p.job.b];return'Police chief'+(z?' at '+z.name:'');}return _jt(p);};}
+/* big cases get a task force */
+function bigCaseDaily(){for(const cs of Object.values(S.cases||{})){if(!cs.big)continue;const p=P(cs.perp);if(!p||!p.alive)continue;
+  if(cs.status==='open'&&chance(cs.victimDead?0.1:0.07)){arrest(p,cs,'by a special task force');}
+  else if(cs.status==='cold'&&!cs.tf){cs.tf=1;cs.status='open';cs.day=day()-3;cs.evidence=Math.min(100,cs.evidence+30);news('crime',6,'A state task force has taken over the '+caseLabel(cs).toLowerCase()+' case involving '+DATA.bigRoles[cs.big].toLowerCase()+' '+(S.people[cs.vic]?N(S.people[cs.vic]):'')+'. “Cold” is not a word they use.',[cs.vic].filter(Boolean));}}}
+{const _jd=justiceDaily;justiceDaily=function(){chiefDaily();_jd();bigCaseDaily();revengeDaily();};}
+/* god: make someone want payback now, or let it all go */
+const RVGOD={
+ now(p){const e=(p.wr||[]).find(e=>{const q=P(e.by);return q&&q.alive&&!q.inmate;});if(!e)return p.first+' has nobody to get even with right now (they need to know who hurt them, and that person can’t be locked up).';if(!crimeOn())return'Crime is turned off for this town.';const pl=revengePlan(p,e,80);return pl?p.first+' is going after '+P(e.by).first+'.':'Nothing happened.';},
+ forgive(p){const n=(p.wr||[]).length;if(!n)return p.first+' isn’t holding onto anything.';for(const e of p.wr){const q=P(e.by);if(q)rel(p,q).a=Math.max(rel(p,q).a,-20);}p.wr=[];if(p.cr&&p.cr.plan&&p.cr.plan.rev)p.cr.plan=null;moodlet(p,'Let it all go',12,3);return p.first+' let it go.';},
+ wrong(a,b){if(!b||a===b)return'Pick someone else.';if(age(a)<13)return a.first+' is too young to hold that kind of grudge.';const e=remember(a,b,'assault',null,null,0);if(!e)return'That can’t happen (family doesn’t feud this way here).';e.sev=4;return a.first+' now believes '+b.first+' did them real harm.';}};
+/* elected officials and the chief don't quit for a commute job down the highway */
+{const _taj=takeAwayJob;takeAwayJob=function(p,J,silent){if(p.job&&(ELECTED.has(p.job.j)||S.polChief===p.id||p.job.j==='j_judge'))return false;return _taj(p,J,silent);};}
+
 /* ==== UI ==== */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3322,13 +3457,14 @@ function drawMap(){
  const rr=clamp(2.3*cam.z,2,6);
  for(const p of living()){const xy=personXY(p,rt);if(!xy)continue;const s=P2(xy[0],xy[1]);if(s[0]<-10||s[0]>VW+10||s[1]<-10||s[1]>VH+10)continue;
   if(SET.paths&&p.trip){cx.strokeStyle=TH.accent;cx.globalAlpha=0.35;cx.lineWidth=1;cx.beginPath();p.trip.pts.forEach((q,i)=>{const t=P2(q[0],q[1]);i?cx.lineTo(t[0],t[1]):cx.moveTo(t[0],t[1]);});cx.stroke();cx.globalAlpha=1;}
+  if(p.trip&&p.trip.with&&['car','taxi','ride','bus','police','ambulance'].includes(p.trip.mode))continue;if(p.trip&&(p.trip.mode==='police'||p.trip.mode==='ambulance')){drawRide(xy,p.trip,rt,p);continue;}
   if(p.trip&&p.trip.mode==='car'){drawCar(xy,p.trip,rt,p.car,p);continue;}if(p.trip&&p.trip.mode==='taxi'){const L=tripLeg(p.trip,rt);if(L&&L.k==='car'){drawCar(xy,p.trip,rt,{type:'sedan',color:p.trip.cc},p);continue;}}
   if(p.act&&p.act.pet&&!p.trip){}
   const dogp=p.act&&p.act.pet&&S.pets&&S.pets[p.act.pet];if(dogp&&(p.trip||p.act.id==='walk_dog')){const d2=P2(xy[0]+3,xy[1]+1);drawDog(d2[0],d2[1],dogp);}
-  if(SET.figures&&cam.z>=2)mapFigure(s[0],s[1],p);else dot(s[0],s[1]-rr,rr,p);
+  if(p.trip&&p.trip.with){s[0]+=4;s[1]+=1;}if(SET.figures&&cam.z>=2)mapFigure(s[0],s[1],p);else dot(s[0],s[1]-rr,rr,p);drawEmote(s,p,rr);
   if(p.act&&p.act.id==='trick_or_treat'&&cam.z>=1.1){cx.font=Math.round(8+cam.z*2)+'px sans-serif';cx.textAlign='center';cx.fillText('🎃',s[0],s[1]-rr-8);cx.textAlign='left';}
   if(p.trip&&p.trip.mode==='bike'&&cam.z>=1.4){cx.strokeStyle=TH.ink;cx.lineWidth=1;cx.beginPath();cx.arc(s[0]-3,s[1]+1,2.2*cam.z*0.5,0,7);cx.arc(s[0]+3,s[1]+1,2.2*cam.z*0.5,0,7);cx.stroke();}}
- drawParked();drawSeasonExtras(rt);drawLakeExtras(rt);drawServices(rt);drawTransit(rt);drawTurf();callSounds();drawMarkers(rt);drawHoodLabels();drawYardPets();drawWild(rt);drawBus(rt);
+ drawParked();drawSeasonExtras(rt);drawLakeExtras(rt);drawServices(rt);drawTransit(rt);drawTurf();drawPins();callSounds();drawMarkers(rt);drawHoodLabels();drawYardPets();drawWild(rt);drawBus(rt);
  // selection
  if(selP){const p=S.people[selP];if(p&&p.alive){let xy=personXY(p,rt);if(!xy&&p.loc){const b=S.blds[p.loc];xy=[(b.fp[0][0]+b.fp[2][0])/2,(b.fp[0][1]+b.fp[2][1])/2];}if(xy){const s=P2(xy[0],xy[1]);cx.strokeStyle=TH.accent;cx.lineWidth=2.5;cx.beginPath();cx.arc(s[0],s[1]-rr,rr+6,0,7);cx.stroke();if(follow===selP){cam.tx=xy[0];cam.ty=xy[1];}}}}
  drawWeather();drawFireworks();drawFX();
@@ -3473,13 +3609,13 @@ function drawDoll(){const c=$('#doll');if(!c||!selB)return;const b=S.blds[selB];
    if(SET.labels!=='off'){g.font='500 '+Math.round(10*SET.text)+'px "Barlow Semi Condensed",sans-serif';g.fillStyle=dark?'#8D9A90':'#6B746C';g.fillText(r.k==='apt'?'Apt '+(+r.unit.split('u')[1]+1):r.k.replace(/2$/,''),x+5,y0+12);}});}
  if(yardW){const x=gx+gw+6,y=top+(F.length-1)*FL;g.fillStyle=dark?'#2F4630':'#BFD8AE';g.fillRect(x,y+FL*0.35,yardW-6,FL*0.65);furn(g,'tree',x+yardW*0.5,y+FL,yardW*0.3,FL,dark);}
  const tnow=animNow()/1000;
- const placed=occ.map(p=>{const pl=place(p);return{p,pl,key:pl.yard?'y':pl.f+':'+pl.r};});const cnt={};for(const q of placed)cnt[q.key]=(cnt[q.key]||0)+1;
+ const placed=occ.map(p=>{const pl=place(p);return{p,pl,key:pl.yard?'y':pl.f+':'+pl.r};});placed.sort((a,b)=>a.key<b.key?-1:a.key>b.key?1:(pairK(a.p)<pairK(b.p)?-1:pairK(a.p)>pairK(b.p)?1:0));const cnt={};for(const q of placed)cnt[q.key]=(cnt[q.key]||0)+1;
  for(const {p,pl,key} of placed){let x,y;const n=slots[key]=(slots[key]||0)+1;const tot=cnt[key];
   if(pl.yard){x=gx+gw+16+(n-1)*Math.min(16,(yardW-20)/Math.max(1,tot-1));y=top+F.length*FL;}else{const row=F[pl.f];const rw=gw/row.length;const step=tot>1?Math.min(40,(rw-36)/(tot-1)):0;x=gx+pl.r*rw+18+(n-1)*step;y=top+(F.length-pl.f)*FL;}
   const A=ACT[p.act.id]||DATA.sysActs[p.act.id]||{};const pose=p.act.pose||A.pose||'stand',prop=p.act.prop!==undefined?p.act.prop:A.prop;
   const sc=Math.min(1.25,FL/96)*(age(p)<13?0.68:age(p)<18?0.88:1);const bob=reduce()?0:Math.sin(tnow*2+hash(p.id))*0.8;
   figure(g,x,y-3,sc,pose,prop,p,bob,dark);
-  const hy=y-3-(pose==='lie'?16:pose==='sit'?34:42)*sc;g.font=Math.round(14*SET.text)+'px sans-serif';g.textAlign='center';g.fillText(A.emo||'💭',x,hy-4);
+  const hy=y-3-(pose==='lie'?16:pose==='sit'?34:42)*sc;g.font=Math.round(14*SET.text)+'px sans-serif';g.textAlign='center';{const ix=ixOf(p);if(ix)dollBubble(g,x,hy-4,ix.emo,dark);else g.fillText(A.emo||'💭',x,hy-4);}
   if(SET.names){g.font='600 '+Math.round(10*SET.text)+'px "Barlow Semi Condensed",sans-serif';g.fillStyle=dark?'#E4EAE3':'#1F2A24';g.fillText(p.first.length>8?p.first.slice(0,7)+'…':p.first,x,y+(pose==='lie'?-2:9)+((n-1)%3)*10);}
   g.textAlign='left';if(p.id===selP){g.strokeStyle=TH.accent;g.lineWidth=2;g.strokeRect(x-14,hy-20,28,y-hy+22);}
   dollHits.push({x0:x-16,x1:x+16,y0:hy-22,y1:y+10,id:p.id});}
@@ -3629,7 +3765,7 @@ function personHTML(id){const p=S.people[id];if(!p)return'<p>This person no long
   h+=sec('padmin','Admin tools',`<div class="btnrow wrap"><button data-act="adm" data-g="mood+">Mood +20</button><button data-act="adm" data-g="mood-">Mood −20</button><button data-act="adm" data-g="cash">+$1,000</button><button data-act="adm" data-g="sicken">Make sick</button><button data-act="adm" data-g="heal">Heal</button><button data-act="adm" data-g="sober">Clear addictions</button><button data-act="adm" data-g="fire">Fire from job</button><button data-act="adm" data-g="hire">Find a job</button><button data-act="adm" data-g="age">Age 5 years</button><button data-act="adm" data-g="needs">Fill needs</button><button data-act="adm" data-g="edit">Edit in the creator</button><button data-act="adm" data-g="savehh">Save household to library</button></div>`);}
  return h;}
 const cap=s=>s?s[0].toUpperCase()+s.slice(1):s;
-function actLabel(p){if(!p.act)return'';const A=ACT[p.act.id];if(SET.detail==='simple'&&A&&A.chore)return'Doing chores';return p.act.label||(DATA.sysActs[p.act.id]||A||{}).label||'';}
+function actLabel(p){if(!p.act)return'';if(p.trip&&p.rideLabel&&(p.trip.mode==='police'||p.trip.mode==='ambulance'))return p.rideLabel;if(p.trip&&p.trip.with&&S.people[p.trip.with])return(p.trip.mode==='walk'?'Walking':'Riding')+' with '+S.people[p.trip.with].first+': '+(p.act.label||((DATA.sysActs[p.act.id]||ACT[p.act.id]||{}).label||'')).replace(/^./,c=>c.toLowerCase());const A=ACT[p.act.id];if(SET.detail==='simple'&&A&&A.chore)return'Doing chores';return p.act.label||(DATA.sysActs[p.act.id]||A||{}).label||'';}
 function clock(t){const m=t%1440;let hh=Math.floor(m/60),mm=Math.floor(m%60);const ap=hh>=12?'PM':'AM';hh=hh%12||12;return hh+':'+String(mm).padStart(2,'0')+' '+ap;}
 function dateStr(t){const d=Math.floor(t/1440);return dateLabel(d)+', '+DAYN[d%7].slice(0,3);}
 function buildingHTML(id){const b=S.blds[id];const u=DATA.uses[b.use];const z=S.biz[id];const occ=(S._occ&&S._occ[id]||[]);
@@ -3766,7 +3902,7 @@ function frame(now){const dt=Math.min(0.25,(now-last)/1000);last=now;
  if(now-lastUI>400){lastUI=now;const m=S.t%1440;$('#clock').textContent=DAYN[wday()]+' '+clock(S.t);$('#townLabel').textContent=townName()+(live?' · Live':'');$('#date').textContent=DATA.wxIcon[S.wx.k]+' '+S.wx.temp+'°F, '+dateLabel();
   if(day()!==lastDay){lastDay=day();autosave();}
   followTick();favBarTick();reminderTick();fullTick();townAria();
-  const v=stack[stack.length-1];if(!sheet.hidden&&v&&now-(window._lastRender||0)>1000&&now-lastTouch>1200){window._lastRender=now;if((v.type==='person'||v.type==='building')&&!body.contains(document.activeElement))liveRefresh(v);refreshLiveRows();}}
+  const v=stack[stack.length-1];if(!sheet.hidden&&v&&now-(window._lastRender||0)>1000&&now-lastTouch>1200){window._lastRender=now;if((v.type==='person'||v.type==='building')&&!typing())liveRefresh(v);refreshLiveRows();}}
  requestAnimationFrame(frame);}
 let lastTouch=0;['touchstart','touchmove','wheel','scroll','pointerdown'].forEach(ev=>body.addEventListener(ev,()=>{lastTouch=performance.now();},{passive:true,capture:true}));
 function liveRefresh(v){const tmp=document.createElement('div');if(v.type==='person'){tmp.innerHTML=tn(personHTML(v.id));for(const id of['liveNow','liveNeeds']){const src=tmp.querySelector('#'+id),dst=body.querySelector('#'+id);if(src&&dst&&dst.innerHTML!==src.innerHTML)dst.innerHTML=src.innerHTML;}}
@@ -4368,7 +4504,8 @@ function classifiedsHTML(){let h='';const jobs={};for(const z of Object.values(S
  return h;}
 function editionItems(ed){return ed?ed.items:S.events.filter(e=>e.day===day()&&e.kind!=='town').sort((a,b)=>b.drama-a.drama);}
 function paperHTML0(v){const eds=S.paper;const sec=v.sec||'front';const mode=v.mode||'read';let h='';
- h+=`<div class="ptabs">${[['read','Read'],['archive','Archive'],['search','Search']].map(([k,l])=>`<button data-pm="${k}" aria-pressed="${mode===k}">${l}</button>`).join('')}</div>`;
+ h+=`<div class="ptabs">${[['read','Read'],['archive','Archive'],['search','Search'],['alerts','Alerts']].map(([k,l])=>`<button data-pm="${k}" aria-pressed="${mode===k}">${l}</button>`).join('')}</div>`;
+ if(mode==='alerts'){return h+alertsHTML(v);}
  if(mode==='archive'){const groups={};for(let i=eds.length-1;i>=0;i--){const ed=eds[i];if(v.fy!=null&&ed.year!==v.fy)continue;const k=ed.season+', Year '+ed.year;(groups[k]=groups[k]||[]).push(i);}
   h+=`<div class="btnrow"><button data-pe="${eds.length}" class="primarybtn">Today’s paper</button></div>`;{const ys=[...new Set(eds.map(e=>e.year))];if(ys.length>1)h+=`<div class="chips"><button class="chip ${v.fy==null?'on':''}" data-p12="year" data-k="">All years</button>${ys.map(y=>`<button class="chip ${v.fy===y?'on':''}" data-p12="year" data-k="${y}">Year ${y}</button>`).join('')}</div>`;}
   h+=Object.keys(groups).length?Object.entries(groups).map(([k,ix])=>`<h3>${esc(k)}</h3>`+ix.map(i=>{const ed=eds[i];const lead=ed.items[0];return`<button class="row" data-pe="${i}"><span class="rname">${DAYN[ed.day%7].slice(0,3)} ${dayOfSeason(ed.day)}</span><span class="rsub">${lead?esc(plain(lead.text)):'A quiet day.'}</span></button>`;}).join('')).join(''):'<p class="empty">No past editions yet. Check back tomorrow.</p>';return h;}
@@ -4664,6 +4801,7 @@ function crimeHTML(p){let h=typeof oxPersonHTML==='function'?oxPersonHTML(p):'';
  const R=p.record||[];if(R.length)h+=`<p class="small muted">Record</p><ul class="feel">`+R.slice().reverse().map(r=>`<li>Year ${yearOf(r.d)}: ${esc(r.c)}. <b>${esc(r.out)}</b>${r.s?', '+fmt(r.s):''}</li>`).join('')+'</ul>';
  // the god's-eye view: things the police don't know
  const open=Object.values(S.cases||{}).filter(x=>x.perp===p.id&&['open','cold'].includes(x.status));if(open.length)h+=`<p class="small muted">Got away with (only you know)</p><ul class="feel">`+open.map(x=>`<li class="neg">${esc(cap(caseLabel(x)))} at ${blink(x.bid)||'somewhere'}${x.vic&&S.people[x.vic]?', '+plink(x.vic):''}, Year ${yearOf(x.day)}. ${x.status==='cold'?'The case went cold.':'Police are still looking.'}</li>`).join('')+'</ul>';
+ if(p.embezzle&&p.job&&p.job.b&&S.biz[p.job.b])h+=`<p class="small warn">Secretly skimming from ${blink(p.job.b)}${p.embezzled?': $'+p.embezzled.toLocaleString()+' so far':''} (only you know).</p>`;
  if(c&&c.plan)h+=`<p class="small"><b>Planning:</b> ${esc(DATA.crimes13[c.plan.type].label)}${c.plan.target&&S.people[c.plan.target]?' ('+plink(c.plan.target)+')':''}. Why: ${esc((c.plan.why||[]).join(', ')||'unclear')}.</p>`;
  if(p.alive&&age(p)>=13&&!I&&crimeOn()){const pr=pressureOf(p);const st=strainOf(p);if(st.s>15||(c&&c.nerve>20))h+=`<p class="small muted">Pressure ${Math.round(st.s)}, holding back ${Math.round(restraintOf(p))}, nerve ${Math.round(c?c.nerve:0)}${st.why.length?': '+esc(st.why.join(', ')):''}.</p>`;}
  const vic=Object.values(S.cases||{}).filter(x=>x.vic===p.id).slice(-4);if(vic.length)h+=`<p class="small muted">Victim of</p><ul class="feel">`+vic.map(x=>`<li>${esc(cap(caseLabel(x)))}, Year ${yearOf(x.day)}. ${x.status==='convicted'?'Someone was convicted.':x.status==='charged'?'Someone has been charged.':x.status==='acquitted'?'The suspect was found not guilty.':'No arrest yet.'}</li>`).join('')+'</ul>';
@@ -4719,7 +4857,7 @@ function oxPersonHTML(p){let h='';const o=p.outfit&&OX(p.outfit);if(o)h+=`<p cla
  if(p.shark){const so=OX(p.shark.o);h+=`<p class="small"><b>Owes $${p.shark.owed.toLocaleString()}</b> to ${so?esc(so.name):'a loan shark'}${p.shark.missed?', behind on '+p.shark.missed+' payment'+(p.shark.missed===1?'':'s'):''}. Interest is 10% a week.</p>`;}
  if(p.onTake){const co=OX(p.onTake);h+=`<p class="small warn">On ${co?esc(co.name):'an outfit'}’s payroll.</p>`;}
  if((p.dep.drugs||0)>10)h+=`<p class="small">Drugs: ${Math.round(p.dep.drugs)}% dependent${p.quitting.drugs?', trying to quit':''}.</p>`;return h;}
-function oxGodHTML(p){if(age(p)<16)return'';const B=(g,l,cls)=>`<button data-oxg="${g}"${cls?` class="${cls}"`:''}>${l}</button>`;return`<p class="small muted">Organized crime</p><div class="btnrow wrap">${adult(p)?B('boss','Make them a boss'):''}${p.outfit?B('flip','Make them an informant')+B('leave','Walk away from the outfit'):B('join','Recruit into an outfit')}${adult(p)?B('shark','Borrow from a loan shark'):''}${p.job&&['pol_officer','pol_det','j_sheriff_s_deputy','j_judge'].includes(p.job.j)?B('corrupt','Put them on the take'):''}${B('calloff','Call off anything against them')}${murderOn()&&adult(p)?`<button data-act="god" data-g="hit" class="danger">Put out a hit on…</button>`:''}</div>`;}
+function oxGodHTML(p){if(age(p)<16)return'';const B=(g,l,cls)=>`<button data-oxg="${g}"${cls?` class="${cls}"`:''}>${l}</button>`;return`<p class="small muted">Organized crime</p><div class="btnrow wrap">${adult(p)?B('boss','Make them a boss'):''}${p.outfit?B('flip','Make them an informant')+B('leave','Walk away from the outfit'):''}${adult(p)?B('shark','Borrow from a loan shark'):''}${p.job&&['pol_officer','pol_det','j_sheriff_s_deputy','j_judge'].includes(p.job.j)?B('corrupt','Put them on the take'):''}${B('calloff','Call off anything against them')}${murderOn()&&adult(p)?`<button data-act="god" data-g="hit" class="danger">Put out a hit on…</button>`:''}</div>`+joinPickHTML(p);}
 function oxBizHTML(z){const parts=[];for(const o of outfits()){if(o.front===z.id)parts.push('A front for '+esc(o.name)+' (only you know)');if(o.turf.includes(z.id))parts.push('Pays protection to '+esc(o.name));}if(z.cameras)parts.push('Has security cameras');if(z.strikes)parts.push('Has refused to pay '+z.strikes+' time'+(z.strikes===1?'':'s'));return parts.length?`<p class="small">${parts.join('. ')}.</p>`:'';}
 function oxBizGodHTML(z){const B=(g,l)=>`<button data-oxb="${g}">${l}</button>`;return(outfits().length?B('front','Make it a mob front')+B('protect','Put it under protection'):'')+B('rob','Have it robbed')+(z.cameras?'':B('cameras','Install security cameras'));}
 Object.assign(TARGETED,{hit:'Tap the person to put a hit on. Only adults can be targeted.'});DANGER.push('hit');
@@ -4734,6 +4872,49 @@ body.addEventListener('change',e=>{const el=e.target.closest('[data-ox14s]');if(
 function drawTurf(){if(!SET.turf||!S.outfits)return;cx.save();cx.lineWidth=Math.max(1.5,2*cam.z);cx.setLineDash([5,4]);
  for(const o of outfits()){cx.strokeStyle=o.color;cx.fillStyle=o.color+'22';for(const id of o.turf.concat(o.front?[o.front]:[])){const b=S.blds[id];if(!b||!b.fp)continue;cx.beginPath();b.fp.forEach((pt,i)=>{const q=P2(pt[0],pt[1],0);if(i)cx.lineTo(q[0],q[1]);else cx.moveTo(q[0],q[1]);});cx.closePath();cx.fill();cx.stroke();}}
  cx.restore();}
+
+/* ======================= v0.15: the alerts log, calmer pop-ups, live pages, jumpsuits, choosing an outfit ======================= */
+function logAlert(e,fav){if(!S)return;S.alerts=S.alerts||[];S.alerts.push({t:S.t,text:e.text,ids:(e.ids||[]).slice(0,6),fav:!!fav,d:e.drama||0});if(S.alerts.length>500)S.alerts.splice(0,S.alerts.length-500);}
+function hookSim(){S._favFamily=SET.passFav;S._onNews=e=>{const fav=e.ids.some(i=>S.people[i]&&S.people[i].fav);const pop=(fav&&e.drama>=2)||e.drama>=6;if(pop)logAlert(e,fav);if(busy)return;SND.event(e);if((fav&&SET.favToasts&&e.drama>=2)||(SET.bigToasts&&e.drama>=6))toast(plain(e.text));};
+ S._onAlert=(t,ids)=>{logAlert({text:t,ids,drama:3},true);if(!busy&&SET.favToasts)toast(plain(t));};S._onDeath=p=>{if(!p.fav||!SET.passFav)return;const heirs=[p.partner,...p.children].map(i=>S.people[i]).filter(q=>q&&q.alive);heirs.forEach(q=>q.fav=true);if(heirs.length){const t='Now following '+heirs.map(q=>q.first).join(', ')+'.';logAlert({text:t,ids:heirs.map(q=>q.id),drama:3},true);if(!busy)toast(t);}};}
+/* two pop-ups at a time; the rest wait behind a "more" button that opens the log */
+let toastMore=0;
+function toast(t){const box=$('#toasts');const live=[...box.querySelectorAll('.toast:not(.more):not(.out)')];announce(t);
+ if(live.length>=2){toastMore++;let m=box.querySelector('.toast.more');if(!m){m=document.createElement('button');m.className='toast more';m.onclick=()=>{toastMore=0;m.remove();stack=[];openView('paper',{idx:S.paper.length,mode:'alerts'});};box.appendChild(m);}m.textContent='+'+toastMore+' more. Tap to see them in the paper’s Alerts.';clearTimeout(m._t);m._t=setTimeout(()=>{toastMore=0;m.remove();},7000);return;}
+ const el=document.createElement('div');el.className='toast';el.textContent=tn(t);const m=box.querySelector('.toast.more');if(m)box.insertBefore(el,m);else box.appendChild(el);setTimeout(()=>el.classList.add('out'),reduce()?6200:6000);setTimeout(()=>el.remove(),6600);}
+function alertsHTML(v){const A=(S.alerts||[]).slice().reverse();const f=v.af||'all';const L=f==='fav'?A.filter(a=>a.fav):A;
+ let h=`<div class="chips ptopics"><button class="chip ${f==='all'?'on':''}" data-af="all">Everything</button><button class="chip ${f==='fav'?'on':''}" data-af="fav">Favorites only</button></div><p class="small muted">Every pop-up you’ve been sent, newest first, including the ones that went by while you were skipping ahead.</p>`;
+ if(!L.length)return h+'<p class="empty">Nothing yet. Follow someone with the ☆ and you’ll hear about their life here.</p>';
+ let last=null;for(const a of L.slice(0,200)){const d=Math.floor(a.t/1440);if(d!==last){h+=`<h3>${esc(dateLabel(d))}, ${DAYN[d%7]}</h3>`;last=d;}h+=`<div class="sres"><p><span class="muted small">${clock(a.t)}</span> ${a.fav?'★ ':''}${fmt(a.text)}</p></div>`;}return h;}
+body.addEventListener('click',e=>{const b=e.target.closest('button[data-af]');if(!b)return;const v=stack[stack.length-1];if(!v||v.type!=='paper')return;e.stopPropagation();v.af=b.dataset.af;render();},true);
+/* pages stay live: refresh unless someone is typing, and refresh the "why" and mood sections too */
+function liveRefresh(v){const tmp=document.createElement('div');if(v.type==='person'){tmp.innerHTML=tn(personHTML(v.id));for(const id of['liveNow','liveNeeds']){const src=tmp.querySelector('#'+id),dst=body.querySelector('#'+id);if(src&&dst&&dst.innerHTML!==src.innerHTML)dst.innerHTML=src.innerHTML;}
+  for(const k of['why','mood','crimerec']){const src=tmp.querySelector('details[data-k="'+k+'"] .sec'),dst=body.querySelector('details[data-k="'+k+'"] .sec');if(src&&dst&&dst.innerHTML!==src.innerHTML)dst.innerHTML=src.innerHTML;}
+  const hs=tmp.querySelector('.pname .sub'),hd=body.querySelector('.pname .sub');if(hs&&hd&&hd.innerHTML!==hs.innerHTML)hd.innerHTML=hs.innerHTML;}
+ else if(v.type==='building'){const b=S.blds[v.id];if(!b||['lot','site'].includes(b.use))return;const occ=(S._occ&&S._occ[v.id]||[]);const h=body.querySelector('#liveOccH');if(!h)return;const t='Inside now ('+occ.length+')';const list=occ.length?occ.map(p=>personRow(p)).join(''):'<p class="small muted">Nobody’s here right now.</p>';let box=body.querySelector('#liveOcc');if(!box){box=document.createElement('div');box.id='liveOcc';let n=h.nextSibling;while(n&&!(n.tagName==='H3')&&!(n.tagName==='DETAILS')){const nx=n.nextSibling;box.appendChild(n);n=nx;}h.after(box);}if(h.textContent!==t)h.textContent=t;if(box.innerHTML!==list)box.innerHTML=list;}}
+function typing(){const a=document.activeElement;return!!(a&&body.contains(a)&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName));}
+/* choosing which outfit someone joins */
+function joinPickHTML(p){const os=outfits();if(!os.length||p.outfit||age(p)<16)return'';const best=os.map(o=>[o,recruitScore(p,o)]).sort((a,b)=>b[1]-a[1])[0][0];
+ return`<p class="small muted">Recruit into an outfit${os.length>1?' ('+esc(p.first)+' would lean toward '+esc(best.name)+')':''}</p><div class="btnrow wrap">${os.map(o=>`<button data-oxj="${o.id}"><span style="display:inline-block;width:9px;height:9px;border-radius:5px;background:${o.color};margin-right:5px"></span>${esc(cap(o.name))}</button>`).join('')}</div>`;}
+body.addEventListener('click',e=>{const b=e.target.closest('button[data-oxj]');if(!b)return;e.stopPropagation();const v=stack[stack.length-1];const p=v&&v.type==='person'&&S.people[v.id];const o=OX(b.dataset.oxj);if(!p||!o)return;setRank(p,o,age(p)<20?'runner':'associate');logp(p,'Started doing jobs for '+o.name+'.');toast(tn(p.first+' is doing jobs for '+o.name+' now.'));render();},true);
+(function(){const st=document.createElement('style');st.textContent='.toast.more{pointer-events:auto;cursor:pointer;font-weight:600;border:0;text-align:left;width:auto}';document.head.appendChild(st);})();
+
+/* ======================= v0.16: emotes over heads, pins over buildings, rides with lights ======================= */
+function drawEmote(s,p,rr){const ix=ixOf(p);if(!ix||cam.z<1)return;const fs=Math.round(9+cam.z*2.2);const y=s[1]-rr-(SET.figures&&cam.z>=2?22*cam.z*0.5:8)-fs*0.6;cx.font=fs+'px sans-serif';cx.textAlign='center';cx.fillStyle=TH.dark?'rgba(30,34,32,.85)':'rgba(255,255,255,.9)';cx.beginPath();cx.arc(s[0],y,fs*0.7,0,7);cx.fill();cx.fillStyle=TH.ink;cx.fillText(ix.emo,s[0],y+fs*0.35);cx.textAlign='left';}
+function drawPins(){if(!S._pins||!S._pins.length)return;const t=animNow()/1000;for(const q of S._pins){if(q.until<S.t)continue;const b=S.blds[q.bid];if(!b||!b.fp)continue;const cxm=(b.fp[0][0]+b.fp[2][0])/2,cym=(b.fp[0][1]+b.fp[2][1])/2;const h=(b.floors||1)*12+14;const s=P2(cxm,cym,h);const fs=Math.round(11+cam.z*3);const bob=reduce()?0:Math.sin(t*3+q.t0)*2;
+ cx.fillStyle=TH.dark?'rgba(30,34,32,.9)':'rgba(255,255,255,.95)';cx.strokeStyle='#D33A32';cx.lineWidth=2;cx.beginPath();cx.arc(s[0],s[1]-fs+bob,fs*0.8,0,7);cx.fill();cx.stroke();cx.font=fs+'px sans-serif';cx.textAlign='center';cx.fillStyle=TH.ink;cx.fillText(q.emo,s[0],s[1]-fs*0.62+bob);cx.textAlign='left';}}
+function drawRide(xy,trip,rt,p){const pol=trip.mode==='police';drawCar(xy,trip,rt,{type:'sedan',color:pol?'#22355A':'#F2F2F2'},p);if(rt<trip.t1&&rt>=trip.t0&&Math.floor(animNow()/250)%2){const s=P2(xy[0],xy[1],4.6);cx.fillStyle=pol?'#3A6FD3':'#D33A32';cx.fillRect(s[0]-2,s[1]-1.2,4,2.4);}}
+function dollBubble(g,x,y,emo,dark){const fs=Math.round(15*SET.text);g.fillStyle=dark?'rgba(30,34,32,.92)':'rgba(255,255,255,.96)';g.strokeStyle=dark?'#5A6460':'#B7BFB9';g.lineWidth=1;g.beginPath();if(g.roundRect)g.roundRect(x-fs*0.8,y-fs*1.05,fs*1.6,fs*1.35,6);else g.rect(x-fs*0.8,y-fs*1.05,fs*1.6,fs*1.35);g.fill();g.stroke();g.beginPath();g.moveTo(x-3,y+0.3*fs);g.lineTo(x,y+0.3*fs+5);g.lineTo(x+3,y+0.3*fs);g.fill();g.fillStyle=dark?'#E4EAE3':'#1F2A24';g.textAlign='center';g.font=fs+'px sans-serif';g.fillText(emo,x,y);}
+function pairK(p){const ix=ixOf(p);return ix&&ix.w?(p.id<ix.w?p.id+'~'+ix.w:ix.w+'~'+p.id):p.id;}
+
+/* ======================= v0.17 UI: grudges on the person page, big-name titles ======================= */
+PFILT.push(['grudge','Holding a grudge',p=>!!(p.wr&&p.wr.length)],['bigname','Big names',p=>!!bigRole(p)]);
+{const _ch=crimeHTML;crimeHTML=function(p){let h=_ch(p)||'';const role=bigRole(p);if(role)h=`<p class="small"><b>${DATA.bigRoles[role]}.</b> If anything happens to them, the whole town will hear about it.</p>`+h;
+ const W=(p.wr||[]).filter(e=>S.people[e.by]);if(W.length){h+=`<p class="small"><b>Remembers:</b></p><ul class="small">`+W.map(e=>{const{q,st}=wrongOf(p,e);const w=q&&q.alive?revengeWant(p,e):-99;const mood=!q||!q.alive?'':q.inmate?' They’re locked up for now.':w>55?' <span class="warn">Wants payback.</span>':w>22?' Hasn’t let it go.':' Trying to move on.';
+   return`<li>${plink(e.by)}, for ${esc(wrongText(e))} (Day ${e.d})${st==='acquitted'?', and walked free':st==='convicted'?', and was convicted':''}.${mood}</li>`;}).join('')+'</ul>';
+  if(adult(p)||age(p)>=13)h+=`<div class="btnrow wrap"><button data-rvg="now" class="danger">Get even now</button><button data-rvg="forgive">Let it all go</button></div>`;}
+ return h;};}
+body.addEventListener('click',e=>{const b=e.target.closest('button[data-rvg]');if(!b)return;e.stopPropagation();const v=stack[stack.length-1];const p=v&&v.type==='person'&&S.people[v.id];if(!p)return;toast(tn(RVGOD[b.dataset.rvg](p)));render();},true);
 
 </script>
 </body>
