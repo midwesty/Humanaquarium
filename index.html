@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Humanaquarium (v0.18.1)</title>
+<title>Humanaquarium (v0.19)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -184,7 +184,7 @@ button.armed{background:var(--warn)!important;color:#fff!important;border-color:
 <script>
 /* ==== DATA: every table the sim reads. Placeholder rows are marked; the real
    government datasets replace them row-for-row later. ==== */
-const VERSION='0.18.1', SAVE_VERSION=4;
+const VERSION='0.19.0', SAVE_VERSION=4;
 const NEEDS=['energy','hunger','fun','social','comfort'];
 const DATA={
 meta:{town:'Sprungfeld',paper:'The Sprungfeld Ledger',startYear:2026,realMinPerDay:10,daysPerYear:4,walk:70,targetPop:200,placeholder:true},
@@ -3499,6 +3499,7 @@ function drawMap(){
  for(const it of ORDER){if(it.b)drawBld(it.b,occ,night);else drawTree(it.t);}
  if(night>0&&!SET.contrast){cx.fillStyle=TH.night;cx.globalAlpha=night*0.42;cx.fillRect(0,0,VW,VH);cx.globalAlpha=1;
   for(const it of ORDER){const b=it.b;if(!b||S.blackout===day())continue;const o=occ[b.id];if(!o||!o.some(p=>p.act&&!['sleep','rough'].includes(p.act.id)))continue;drawWindows(b,TH.lit,true);}}
+ drawOverlay19(occ,night);
  // people outdoors / travelling
  const rr=clamp(2.3*cam.z,2,6);
  for(const p of living()){const xy=personXY(p,rt);if(!xy)continue;const s=P2(xy[0],xy[1]);if(s[0]<-10||s[0]>VW+10||s[1]<-10||s[1]>VH+10)continue;
@@ -3510,7 +3511,7 @@ function drawMap(){
   if(p.trip&&p.trip.with){s[0]+=4;s[1]+=1;}if(SET.figures&&cam.z>=2)mapFigure(s[0],s[1],p);else dot(s[0],s[1]-rr,rr,p);drawEmote(s,p,rr);
   if(p.act&&p.act.id==='trick_or_treat'&&cam.z>=1.1){cx.font=Math.round(8+cam.z*2)+'px sans-serif';cx.textAlign='center';cx.fillText('🎃',s[0],s[1]-rr-8);cx.textAlign='left';}
   if(p.trip&&p.trip.mode==='bike'&&cam.z>=1.4){cx.strokeStyle=TH.ink;cx.lineWidth=1;cx.beginPath();cx.arc(s[0]-3,s[1]+1,2.2*cam.z*0.5,0,7);cx.arc(s[0]+3,s[1]+1,2.2*cam.z*0.5,0,7);cx.stroke();}}
- drawParked();drawSeasonExtras(rt);drawLakeExtras(rt);drawServices(rt);drawTransit(rt);drawTurf();drawPins();callSounds();drawMarkers(rt);drawHoodLabels();drawYardPets();drawWild(rt);drawBus(rt);
+ drawParked();drawSeasonExtras(rt);drawLakeExtras(rt);drawServices(rt);drawTransit(rt);drawTurf();drawOverlayTop19();drawPins();callSounds();drawMarkers(rt);drawHoodLabels();drawYardPets();drawWild(rt);drawBus(rt);
  // selection
  if(selP){const p=S.people[selP];if(p&&p.alive){let xy=personXY(p,rt);if(!xy&&p.loc){const b=S.blds[p.loc];xy=[(b.fp[0][0]+b.fp[2][0])/2,(b.fp[0][1]+b.fp[2][1])/2];}if(xy){const s=P2(xy[0],xy[1]);cx.strokeStyle=TH.accent;cx.lineWidth=2.5;cx.beginPath();cx.arc(s[0],s[1]-rr,rr+6,0,7);cx.stroke();if(follow===selP){cam.tx=xy[0];cam.ty=xy[1];}}}}
  drawWeather();drawFireworks();drawFX();
@@ -3796,7 +3797,7 @@ function personHTML(id){const p=S.people[id];if(!p)return'<p>This person no long
  <dt>Fitness</dt><dd>${Math.round(p.fitness)}</dd><dt>Health</dt><dd>${p.sick?'Sick with '+esc(p.sick.label):'Healthy'}${p.pregUntil?', expecting':''}</dd>${p.dep.alcohol>15?`<dt>Alcohol</dt><dd>${Math.round(p.dep.alcohol)}% dependent${p.quitting.alcohol?', trying to quit':''}</dd>`:''}${p.dep.nicotine>15?`<dt>Nicotine</dt><dd>${Math.round(p.dep.nicotine)}% dependent${p.quitting.nicotine?', trying to quit':''}</dd>`:''}
  ${p.job&&p.job.b&&p.job.j!=='owner'?`<dt>Job performance</dt><dd>${Math.round(p.perf)}${DATA.ladder[p.job.j]?', next step '+esc(JOB[DATA.ladder[p.job.j]].title.toLowerCase()):''}</dd>`:''}${age(p)>=5&&age(p)<18?`<dt>Grades</dt><dd>${gradeWord(p.grades)}</dd>`:''}${p.quirks&&p.quirks.length?`<dt>Quirks</dt><dd>${esc(p.quirks.map(cap).join('; '))}</dd>`:''}${p.prefs?`<dt>Favorites</dt><dd>${esc(p.prefs.food)}, ${esc(p.prefs.music)}, ${esc(p.prefs.season.toLowerCase())}, ${esc(p.prefs.place)}</dd>`:''}
  <dt>Into</dt><dd>${p.interests.map(i=>esc(DATA.interests.find(x=>x.id===i).label)+' <span class="num">'+Math.round(p.skills[i]||0)+'</span>').join(', ')}</dd></dl>`;
- h+=sec('life','Life details',life);{const ch=crimeHTML(p);if(ch)h+=sec('crimerec','Record and trouble',ch,!!p.inmate);}h+=`<div class="btnrow"><button data-news="p:${p.id}">📰 News about ${esc(p.first)}</button></div>`;
+ h+=sec('life','Life details',life);{const ch=crimeHTML(p);if(ch)h+=sec('crimerec','Record and trouble',ch,!!p.inmate);}h+=`<div class="btnrow"><button data-news="p:${p.id}">📰 News about ${esc(p.first)}</button>${p.alive?`<button data-ovw="${p.id}">🧭 Show their world</button>`:""}</div>`;
  {const pp=petPlanHTML(p);if(pp)h+=sec('petplan','Pet care schedule',pp);}
  h+=sec('traits','Personality',DATA.traits.map(t=>`<div class="trait"><span>${t.lo}</span>${bar(p.traits[t.id],t.label)}<span>${t.label}</span></div>`).join(''));
  const fam=[];if(p.partner&&S.people[p.partner])fam.push(['Partner ('+p.pstat+')',[p.partner]]);const par=p.parents.filter(x=>S.people[x]);if(par.length)fam.push(['Parents',par]);const sib=siblings(p).map(s=>s.id);if(sib.length)fam.push(['Siblings',sib]);
@@ -3820,7 +3821,7 @@ function buildingHTML(id){const b=S.blds[id];const u=DATA.uses[b.use];const z=S.
  if(b.use==='site')return`<p class="sub">${esc(b.addr)}</p><p>Under construction: ${b.plan==='apartment'?'an apartment building':'a new '+esc((DATA.uses[b.plan]||{label:b.plan}).label.toLowerCase())}${b.hood&&S.hoods&&S.hoods[b.hood]?', part of '+esc(S.hoods[b.hood].name):''}. Ready in about ${Math.max(1,b.siteUntil-day())} day${b.siteUntil-day()>1?'s':''}.</p>`;
  let h=fbar+`<p class="sub">${u.cat==='home'?'':esc(u.label)+', '}${esc(b.addr)}${b.floors>1?', '+b.floors+' floors':''}${z&&!z.open?' <b class="warn">Closed</b>':''}</p>`;
  if(z&&!z.civic&&z.open){h+=`<p class="small">${ownerNote(z)}${hoursText(id)}. Cash on hand ${money(z.cash)}.</p>`;}
- h+=(z?oxBizHTML(z):'')+`<div class="btnrow"><button data-news="b:${id}">📰 News about this place</button></div>`;
+ h+=(z?oxBizHTML(z):'')+`<div class="btnrow"><button data-news="b:${id}">📰 News about this place</button>${z&&!z.civic&&z.open?`<button data-ovr="${id}">🆚 Show competitors</button>`:""}</div>`;
  h+=`<div class="dollwrap"><canvas id="doll" aria-label="Cutaway view of ${esc(bName(b))}. People inside are listed below."></canvas></div>`;
  h+=`<h3 id="liveOccH">Inside now (${occ.length})</h3>`+(occ.length?occ.map(p=>personRow(p)).join(''):'<p class="small muted">Nobody’s here right now.</p>');
  if(u.cat==='home'){const units=Object.values(S.units).filter(x=>x.bld===id);h+='<h3>Who lives here</h3>';for(const un of units){const res=residents(un.id);h+=`<p class="small"><b>${units.length>1?'Unit '+(un.idx+1)+': ':''}</b>${res.length?res.map(r=>plink(r.id)).join(', '):'<span class="muted">Vacant, '+money(un.rent*4.33)+' a month'+(DATA.money.price[b.use]&&!un.owned?' or '+money(DATA.money.price[b.use])+' to buy':'')+'</span>'}</p>`;if(res.length&&petsOf(res[0]).length)h+='<div class="small">'+petsHTML(petsOf(res[0]))+'</div>';if(res.length)h+=sec('home'+un.id,'The state of the place'+(units.length>1?' (unit '+(un.idx+1)+')':''),homeHTML(un),units.length===1);}}
@@ -4993,6 +4994,140 @@ LS.set=(k,v)=>{if(!bigKey(k)||!SDB)return LS0.set(k,v);storeWrite(k,v).then(asyn
  const what=k==='halverson:auto'?'Autosave':'Saving';toast(full?what+' failed: this device is out of space. Export a save from Admin to keep your town.':what+' didn’t go through this time ('+(SINFO.lastErr||'storage hiccup')+'). It will try again; export a save from Admin if it keeps happening.');});return true;};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&SDB)SDB_STALE=true;});
 {const _lr=liveRefresh;liveRefresh=function(v){_lr(v);const fb=body.querySelector('.followbar span');const fp=follow&&S.people[follow];if(fb&&fp){const t=`👁 Following <b>${esc(fp.first)}</b>: ${esc(actLabel(fp))}`;if(fb.innerHTML!==t)fb.innerHTML=t;}};}
+
+/* ======================= v0.19: map overlays. One at a time, read-only, never changes the town. ======================= */
+const OC={blue:'#0072B2',orange:'#E69F00',sky:'#56B4E9',green:'#009E73',yellow:'#F0E442',red:'#D55E00',pink:'#CC79A7',gray:'#9A9A9A',purple:'#7A5BB8'};
+let OV=null;/* {id,param} */let OVC=null;/* cached result */
+function bCenter(b){return[(b.fp[0][0]+b.fp[2][0])/2,(b.fp[0][1]+b.fp[2][1])/2];}
+function ucat(b){return(DATA.uses[b.use]||{}).cat;}
+function homeMap(){const m={};for(const p of living()){if(!p.homeU||p.inmate)continue;const u=S.units[p.homeU];if(!u)continue;(m[u.bld]=m[u.bld]||[]).push(p);}return m;}
+function bizOpen(){return Object.values(S.biz).filter(z=>z.open&&!z.civic&&S.blds[z.id]);}
+function bizClass(z){const w=ledSum(z,7);if(!w.days)return'new';if(z.failDays>0)return'closing';const per=w.net/w.days;const bd=z.baseA/dpy();return per<0?'losing':per<bd*0.15?'ok':'thrive';}
+const BIZGRP={food:['diner','cafe','grocery','bakery','fastfood','restaurant','brewpub'],night:['bar','club','theater','bowling','venue'],shops:['record','boutique','thrift','hardware','gallery','dealer','gas','petshop','baitshop','pharmacy','techshop','marina'],care:['salon','gym','vet','daycare','dentist','laundromat','printshop','tattoo','barbershop','spa','physio','eyecare','motel','hotel']};
+function grpOf(b){for(const[k,L]of Object.entries(BIZGRP))if(L.includes(b.use))return k;const c=ucat(b);return c==='work'?'work':c==='civic'?'civic':c==='farm'?'farm':null;}
+function fourStep(v,cuts,keys){for(let i=0;i<cuts.length;i++)if(v>=cuts[i])return keys[i];return keys[keys.length-1];}
+const OVL=[
+ {id:'vacant',g:'Places',i:'🏚️',l:'Empty storefronts and lots',f(){const m={};for(const b of Object.values(S.blds)){const z=S.biz[b.id];if(z&&!z.open&&!z.civic)m[b.id]='store';else if(b.use==='lot')m[b.id]='lot';else if(b.use==='site')m[b.id]='site';}
+   return{m,keys:[{k:'store',l:'Closed storefront',c:OC.orange,i:'🏚️'},{k:'lot',l:'Empty lot',c:OC.sky,i:'⬜'},{k:'site',l:'Being built',c:OC.yellow,i:'🏗️'}],note:'Storefronts reopen when someone with money and ambition starts a business. Empty lots fill as the town grows.'};}},
+ {id:'health',g:'Places',i:'📈',l:'How businesses are doing',f(){const m={};for(const z of bizOpen())m[z.id]=bizClass(z);return{m,keys:[{k:'thrive',l:'Doing well',c:OC.green,i:'💰'},{k:'ok',l:'Getting by',c:OC.sky,i:'🙂'},{k:'losing',l:'Losing money',c:OC.orange,i:'📉'},{k:'closing',l:'About to close',c:OC.red,i:'⚠️'},{k:'new',l:'No books yet',c:OC.gray,i:'✨'}],note:'From each business’s books over the past week.'};}},
+ {id:'type',g:'Places',i:'🏪',l:'Kinds of places',f(){const m={};for(const b of Object.values(S.blds)){const z=S.biz[b.id];if(z&&!z.open&&!z.civic)continue;const k=grpOf(b);if(k)m[b.id]=k;}
+   return{m,keys:[{k:'food',l:'Food',c:OC.orange,i:'🍔'},{k:'night',l:'Nightlife and fun',c:OC.pink,i:'🎳'},{k:'shops',l:'Shops',c:OC.blue,i:'🛍️'},{k:'care',l:'Services',c:OC.sky,i:'✂️'},{k:'work',l:'Offices and industry',c:OC.gray,i:'🏭'},{k:'civic',l:'Public buildings',c:OC.green,i:'🏛️'},{k:'farm',l:'Farms',c:OC.yellow,i:'🌾'}]};}},
+ {id:'open',g:'Places',i:'🕘',l:'Open right now',f(){const m={};const h=hour();for(const b of Object.values(S.blds)){const u=DATA.uses[b.use];if(!u||!u.open||u.cat==='home'||u.cat==='lot'||u.cat==='park')continue;const z=S.biz[b.id];if(z&&!z.open)continue;m[b.id]=isOpenAt(b.id,h)?'open':'closed';}
+   return{m,keys:[{k:'open',l:'Open',c:OC.green,i:'✅'},{k:'closed',l:'Closed for now',c:OC.gray,i:'💤'}],note:'Changes with the time of day.'};}},
+ {id:'hiring',g:'Places',i:'📋',l:'Hiring',f(){const m={};let slots=0;for(const z of Object.values(S.biz)){if(!z.open||!S.blds[z.id])continue;let n=0;for(const J of jobsFor(z.use)){if(ELECTED.has(J.id))continue;n+=Math.max(0,slotN(z,J)-staffCount(z,J.id));}if(n>0){m[z.id]=n>=3?'lots':'some';slots+=n;}}
+   return{m,keys:[{k:'some',l:'1–2 openings',c:OC.sky,i:'📋'},{k:'lots',l:'3 or more openings',c:OC.blue,i:'📢'}],note:slots+' open jobs in town.'};}},
+ {id:'homes',g:'Places',i:'🔑',l:'Empty homes',f(){const m={};for(const u of Object.values(S.units)){if(!S.blds[u.bld])continue;const n=residents(u.id).length;if(!n)m[u.bld]=m[u.bld]==='full'?'some':'empty';else if(m[u.bld]==='empty')m[u.bld]='some';else if(!m[u.bld])m[u.bld]='full';}
+   for(const k in m)if(m[k]==='full')delete m[k];return{m,keys:[{k:'empty',l:'Empty, for rent or sale',c:OC.blue,i:'🔑'},{k:'some',l:'Has an empty apartment',c:OC.sky,i:'🚪'}]};}},
+ {id:'cond',g:'Places',i:'🔨',l:'House condition',f(){const m={};const by={};for(const u of Object.values(S.units)){if(!u.home||!S.blds[u.bld])continue;(by[u.bld]=by[u.bld]||[]).push(u.home.cond);}for(const[b,L]of Object.entries(by)){const v=L.reduce((a,x)=>a+x,0)/L.length;m[b]=fourStep(v,[70,40,18],['good','fair','poor','bad']);}
+   return{m,keys:[{k:'good',l:'Good shape',c:OC.green,i:'🏡'},{k:'fair',l:'Could use work',c:OC.yellow,i:'🔧'},{k:'poor',l:'Run down',c:OC.orange,i:'🪣'},{k:'bad',l:'Falling apart',c:OC.red,i:'🏚️'}]};}},
+ {id:'favs',g:'People',i:'⭐',l:'Where your favorites are',f(){const m={};const names=[];for(const p of living()){if(!p.fav)continue;names.push(p.id);const h=p.homeU&&S.units[p.homeU]&&S.units[p.homeU].bld;if(h)m[h]=m[h]||'home';const at=p.loc||(p.trip&&p.trip.to);if(at&&S.blds[at])m[at]='now';}
+   return{m,keys:[{k:'now',l:'A favorite is here now',c:OC.yellow,i:'⭐'},{k:'home',l:'A favorite’s home',c:OC.blue,i:'🏠'}],note:names.length?'':'You haven’t starred anyone yet. Tap ☆ on a person’s page.'};}},
+ {id:'crowd',g:'People',i:'👥',l:'Crowds right now',f(){const m={};for(const[b,L]of Object.entries(S._occ||{})){if(!S.blds[b]||!L.length)continue;const n=L.length;m[b]=n>=15?'xl':n>=7?'l':n>=3?'m':'s';}
+   return{m,keys:[{k:'s',l:'1–2 people',c:OC.sky,i:'👤'},{k:'m',l:'3–6',c:OC.blue,i:'👥'},{k:'l',l:'7–14',c:OC.orange,i:'👥'},{k:'xl',l:'15 or more',c:OC.red,i:'🎉'}]};}},
+ {id:'mood',g:'People',i:'😊',l:'Mood at home',f(){const m={};for(const[b,L]of Object.entries(homeMap())){const v=L.reduce((a,p)=>a+p.mood,0)/L.length;m[b]=fourStep(v,[65,50,35],['great','ok','meh','low']);}
+   return{m,keys:[{k:'great',l:'Happy',c:OC.green,i:'😄'},{k:'ok',l:'Fine',c:OC.sky,i:'🙂'},{k:'meh',l:'So-so',c:OC.yellow,i:'😐'},{k:'low',l:'Unhappy',c:OC.red,i:'😞'}],note:'Average mood of everyone who lives in each building.'};}},
+ {id:'wealth',g:'People',i:'💵',l:'Wealth at home',f(){const m={};for(const[b,L]of Object.entries(homeMap())){const ad=L.filter(adult);if(!ad.length)continue;const v=ad.reduce((a,p)=>a+p.money,0)/ad.length;m[b]=v>=500000?'rich':v>=50000?'well':v>=5000?'ok':v>=0?'tight':'debt';}
+   return{m,keys:[{k:'rich',l:'Rich',c:OC.purple,i:'💎'},{k:'well',l:'Comfortable',c:OC.green,i:'💰'},{k:'ok',l:'Getting by',c:OC.sky,i:'💵'},{k:'tight',l:'Tight',c:OC.yellow,i:'🪙'},{k:'debt',l:'In debt',c:OC.red,i:'📉'}],note:'Average money of the adults in each building.'};}},
+ {id:'ages',g:'People',i:'🧸',l:'Kids and seniors',f(){const m={};for(const[b,L]of Object.entries(homeMap())){const k=L.some(p=>age(p)<18),s=L.some(p=>age(p)>=65);m[b]=k&&s?'both':k?'kids':s?'old':'adults';}
+   return{m,keys:[{k:'kids',l:'Kids live here',c:OC.orange,i:'🧸'},{k:'old',l:'Seniors live here',c:OC.blue,i:'👴'},{k:'both',l:'Kids and seniors',c:OC.pink,i:'👪'},{k:'adults',l:'Adults only',c:OC.gray,i:'🧑'}]};}},
+ {id:'family',g:'People',i:'🌳',l:'One family',param:'family',f(fam){const m={};if(!fam){const top=famList()[0];fam=top&&top[0];if(OV)OV.param=fam;}const who=living().filter(p=>p.last===fam&&!p.inmate);
+   for(const p of who){const j=p.job&&p.job.b&&S.blds[p.job.b]?p.job.b:null;if(j)m[j]=m[j]||'work';}for(const p of who){const h=p.homeU&&S.units[p.homeU]&&S.units[p.homeU].bld;if(h)m[h]='home';}
+   const ins=living().filter(p=>p.last===fam&&p.inmate).length;const pb=prisonB();if(ins&&pb)m[pb]='inside';
+   return{m,keys:[{k:'home',l:'Where they live',c:OC.blue,i:'🏠'},{k:'work',l:'Where they work',c:OC.orange,i:'💼'},{k:'inside',l:'Someone’s locked up',c:OC.gray,i:'⛓️'}],note:fam?(who.length===1?'1 person':who.length+' people')+' named '+fam+' in town'+(ins?', '+ins+' locked up':'')+'.':'No families yet.'};}},
+ {id:'rough',g:'People',i:'⛺',l:'People without a home',f(){const m={};let n=0;for(const p of living()){if(p.homeU||p.inmate||age(p)<18)continue;n++;const at=p.loc||(p.trip&&p.trip.to);if(at&&S.blds[at])m[at]='here';}for(const b of(S._byUse.shelter||[]))if(S.blds[b])m[b]=m[b]?'here':'shelter';
+   return{m,keys:[{k:'here',l:'Someone without a home is here',c:OC.orange,i:'⛺'},{k:'shelter',l:'Shelter',c:OC.blue,i:'🛏️'}],note:n?n+' people have nowhere to live.':'Everyone has a roof right now.'};}},
+ {id:'hot',g:'Crime',i:'🚨',l:'Crime hot spots',f(){const m={},c={};for(const cs of Object.values(S.cases||{})){if(day()-cs.day>28||!cs.bid||!S.blds[cs.bid])continue;c[cs.bid]=(c[cs.bid]||0)+1;}for(const[b,n]of Object.entries(c))m[b]=n>=4?'hi':n>=2?'mid':'one';
+   return{m,keys:[{k:'one',l:'1 crime',c:OC.yellow,i:'❗'},{k:'mid',l:'2–3 crimes',c:OC.orange,i:'⚠️'},{k:'hi',l:'4 or more',c:OC.red,i:'🚨'}],note:'Reported crimes over the past year (28 days).'};}},
+ {id:'turf',g:'Crime',i:'🎭',l:'Outfit turf',f(){const m={},keys=[];const col={};for(const o of(typeof outfits==='function'?outfits():[])){keys.push({k:'o'+o.id,l:cap(o.name),c:o.color,i:'💼'});keys.push({k:'f'+o.id,l:'Front for '+o.name,c:o.color,i:'🎭'});for(const id of o.turf)if(S.blds[id])m[id]='o'+o.id;if(o.front&&S.blds[o.front])m[o.front]='f'+o.id;}
+   return{m,keys,note:keys.length?'Businesses paying protection, and each outfit’s front. Only you know.':'No outfits in this town.'};}},
+ {id:'grudge',g:'Crime',i:'😠',l:'Grudges',f(){const m={},lines=[];for(const p of living()){if(!p.wr||!p.wr.length)continue;const hb=p.homeU&&S.units[p.homeU]&&S.units[p.homeU].bld;if(!hb)continue;for(const e of p.wr){const q=P(e.by);if(!q||!q.alive)continue;const tb=q.inmate?prisonB():q.homeU&&S.units[q.homeU]&&S.units[q.homeU].bld;if(!tb)continue;const hot=revengeWant(p,e)>55;m[hb]=hot||m[hb]==='hot'?'hot':'holds';if(!m[tb])m[tb]='target';lines.push([hb,tb,hot?OC.red:OC.orange,!hot]);}}
+   return{m,lines,keys:[{k:'hot',l:'Wants payback',c:OC.red,i:'😡'},{k:'holds',l:'Holding a grudge',c:OC.orange,i:'😠'},{k:'target',l:'The one they blame',c:OC.purple,i:'🎯'}],note:lines.length?'Lines run from the person holding the grudge to the person they blame.':'Nobody’s holding a grudge right now.'};}},
+ {id:'police',g:'Crime',i:'🚓',l:'Police and the courts',f(){const m={};for(const p of living()){if(!p.job||!['pol_officer','pol_det','j_sheriff_s_deputy','j_judge'].includes(p.job.j))continue;const h=p.homeU&&S.units[p.homeU]&&S.units[p.homeU].bld;if(h)m[h]=p.onTake?'take':(m[h]==='take'?'take':'cop');}
+   for(const b of(S._byUse.police||[]))m[b]='pd';for(const b of(S._byUse.courthouse||[]))m[b]='court';for(const b of(S._byUse.prison||[]))m[b]='prison';
+   return{m,keys:[{k:'pd',l:'Police station',c:OC.blue,i:'🚓'},{k:'court',l:'Courthouse',c:OC.sky,i:'⚖️'},{k:'prison',l:'Prison',c:OC.gray,i:'⛓️'},{k:'cop',l:'Where officers and judges live',c:OC.green,i:'👮'},{k:'take',l:'Lives here, on an outfit’s payroll',c:OC.red,i:'💸'}]};}},
+ {id:'hoods',g:'Town',i:'🗺️',l:'Neighborhoods',f(){const m={},keys=[],pal=[OC.blue,OC.orange,OC.green,OC.pink,OC.sky,OC.yellow,OC.purple,OC.red];keys.push({k:'core',l:'Old Sprungfeld',c:OC.gray,i:'🏘️'});let i=0;for(const h of Object.values(S.hoods||{})){keys.push({k:'h'+h.id,l:h.name,c:pal[i%pal.length],i:'📍'});i++;}
+   for(const b of Object.values(S.blds)){if(b.use==='highway')continue;m[b.id]=b.hood&&S.hoods&&S.hoods[b.hood]?'h'+b.hood:'core';}return{m,keys};}},
+ {id:'transit',g:'Town',i:'🚌',l:'Getting around',f(){const m={};for(const b of(typeof busStops==='function'?busStops():[]))if(S.blds[b])m[b]='stop';for(const b of(S._byUse.transit||[]))m[b]='depot';for(const b of(S._byUse.taxi||[]))m[b]='taxi';for(const b of(S._byUse.dealer||[]))m[b]='cars';for(const b of(S._byUse.gas||[]))m[b]=m[b]||'gas';
+   return{m,keys:[{k:'stop',l:'Bus stop',c:OC.blue,i:'🚏'},{k:'depot',l:'Bus depot',c:OC.orange,i:'🚌'},{k:'taxi',l:'Taxi company',c:OC.yellow,i:'🚕'},{k:'cars',l:'Car dealer',c:OC.pink,i:'🚗'},{k:'gas',l:'Gas station',c:OC.sky,i:'⛽'}],note:'The bus loops through every stop.'};}},
+ {id:'growth',g:'Town',i:'🏗️',l:'Growth and new places',f(){const m={};for(const b of Object.values(S.blds)){if(b.use==='site')m[b.id]='site';else if(b.use==='lot')m[b.id]='lot';else{const z=S.biz[b.id];if(z&&z.open&&!z.civic&&z.founded>=day()-7&&z.founded>0)m[b.id]='new';}}
+   for(const h of Object.values(S.hoods||{}))if(h.ready&&day()-h.ready<=7)for(const b of Object.values(S.blds))if(b.hood===h.id&&!m[b.id])m[b.id]='hood';
+   return{m,keys:[{k:'new',l:'Opened this week',c:OC.green,i:'✨'},{k:'hood',l:'New neighborhood',c:OC.sky,i:'🆕'},{k:'site',l:'Being built',c:OC.yellow,i:'🏗️'},{k:'lot',l:'Empty lot',c:OC.gray,i:'⬜'}]};}},
+ {id:'big',g:'Town',i:'🏛️',l:'Big names',f(){const m={};const ic={mayor:'🏛️',chief:'🚓',judge:'⚖️',principal:'🍎',warden:'⛓️'};for(const p of living()){const r=typeof bigRole==='function'&&bigRole(p);if(!r)continue;const h=p.homeU&&S.units[p.homeU]&&S.units[p.homeU].bld;if(h)m[h]=r;}
+   return{m,keys:Object.entries(DATA.bigRoles||{}).map(([k,l],i)=>({k,l:l+'’s home',c:[OC.purple,OC.blue,OC.sky,OC.orange,OC.gray][i%5],i:ic[k]})),note:'Where the people everyone knows live.'};}},
+ /* contextual: opened from a person or a business page */
+ {id:'world',g:null,i:'🧭',l:'Their world',param:'person',f(pid){const p=S.people[pid];const m={},lines=[];if(!p)return{m,keys:[]};const H=q=>q&&q.homeU&&S.units[q.homeU]&&S.units[q.homeU].bld;const hb=H(p);
+   for(const[id,r]of Object.entries(p.rel)){const q=P(id);if(!q||!q.alive||q===p)continue;const b=q.inmate?prisonB():H(q);if(!b||b===hb)continue;const fam=['family','spouse','partner'].includes(r.st);const k=fam?'fam':r.a<=-30?'foe':r.a>=30?'friend':null;if(!k)continue;if(m[b]==='fam'||(m[b]==='foe'&&k==='friend'))continue;m[b]=k;}
+   const w=p.job&&p.job.b&&S.blds[p.job.b]?p.job.b:(age(p)>=5&&age(p)<18?(S._byUse.school||[])[0]:null);if(w)m[w]='work';if(hb)m[hb]='home';
+   if(hb)for(const[b,k]of Object.entries(m))if(b!==hb&&k!=='work')lines.push([hb,b,k==='foe'?OC.red:k==='fam'?OC.pink:OC.green,k!=='fam']);
+   return{m,lines,keys:[{k:'home',l:'Home',c:OC.blue,i:'🏠'},{k:'work',l:age(p)<18?'School':'Work',c:OC.orange,i:'💼'},{k:'fam',l:'Family',c:OC.pink,i:'👪'},{k:'friend',l:'Friends',c:OC.green,i:'💚'},{k:'foe',l:'People they can’t stand',c:OC.red,i:'💢'}],title:tn(fullName(p))+'’s world'};}},
+ {id:'rivals',g:null,i:'🆚',l:'Competitors',param:'biz',f(bid){const z=S.biz[bid];const m={};if(!z)return{m,keys:[]};const b=S.blds[bid];const g=grpOf(b);for(const y of bizOpen()){if(y.id===bid)continue;if(y.use===z.use)m[y.id]='same';else if(g&&grpOf(S.blds[y.id])===g)m[y.id]='near';}m[bid]='me';
+   return{m,keys:[{k:'me',l:z.name,c:OC.blue,i:'📍'},{k:'same',l:'Same kind of business',c:OC.red,i:'🆚'},{k:'near',l:'Competes for the same customers',c:OC.orange,i:'↔️'}],title:z.name+' and its competitors'};}}];
+function famList(){const c={};for(const p of living())if(p.last)c[p.last]=(c[p.last]||0)+1;return Object.entries(c).filter(x=>x[1]>=2).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));}
+function ovDef(id){return OVL.find(o=>o.id===id);}
+function ovEval(){if(!OV)return null;const k=OV.id+'|'+OV.param+'|'+Math.floor(S.t/20)+'|'+day();if(OVC&&OVC.k===k&&OVC.S===S)return OVC.r;const d=ovDef(OV.id);let r;try{r=d.f(OV.param);}catch(e){console.warn(e);r={m:{},keys:[]};}
+ const cnt={};for(const v of Object.values(r.m))cnt[v]=(cnt[v]||0)+1;r.cnt=cnt;r.keyOf={};for(const kk of r.keys)r.keyOf[kk.k]=kk;OVC={k,S,r};return r;}
+function setOverlay(id,param){if(!id){OV=null;OVC=null;}else{OV={id,param:param==null?null:param};OVC=null;}ovChip();if(stack.length&&stack[stack.length-1].type==='ovl'){if(OV){showSheet(ovTitle());render();}else if(stack.length>1)$('#sheetBack').onclick();else closeSheet();}}
+/* ---- drawing: dim everything, then bring the matches back in color with an icon on the roof ---- */
+function drawOverlay19(occ,night){if(!OV)return;const r=ovEval();if(!r)return;cx.save();cx.globalAlpha=TH.dark?0.66:0.6;cx.fillStyle=TH.board;cx.fillRect(0,0,VW,VH);cx.restore();
+ for(const it of ORDER){const b=it.b;if(!b||!r.m[b.id]||!b.fp)continue;const K=r.keyOf[r.m[b.id]];if(!K)continue;try{drawBld(b,occ,0);}catch(e){}const h=['lot','site'].includes(b.use)?0.6:bH(b);
+  cx.save();cx.globalAlpha=0.5;quad(b.fp.map(q=>[q[0],q[1],h]),K.c,null);cx.restore();cx.save();cx.lineWidth=Math.max(1.5,1.6*cam.z);quad(b.fp.map(q=>[q[0],q[1],h]),null,K.c);cx.lineWidth=Math.max(1.5,1.6*cam.z);cx.strokeStyle=K.c;cx.stroke();cx.restore();}}
+function drawOverlayTop19(){if(!OV)return;const r=ovEval();if(!r)return;
+ if(r.lines&&r.lines.length){cx.save();for(const[a,b,c,dash]of r.lines){const A=S.blds[a],B=S.blds[b];if(!A||!B)continue;const p=bCenter(A),q=bCenter(B);const s=P2(p[0],p[1],bH(A)+4),t=P2(q[0],q[1],bH(B)+4);const mx=(s[0]+t[0])/2,my=Math.min(s[1],t[1])-Math.abs(s[0]-t[0])*0.18-10;
+   cx.strokeStyle=c;cx.lineWidth=Math.max(1.4,1.2*cam.z);cx.setLineDash(dash?[5,4]:[]);cx.globalAlpha=0.85;cx.beginPath();cx.moveTo(s[0],s[1]);cx.quadraticCurveTo(mx,my,t[0],t[1]);cx.stroke();}cx.restore();}
+ const n=Object.keys(r.m).length;if(cam.z<0.8&&n>30)return;const fs=Math.round(clamp(8+cam.z*3.5,9,18));cx.save();cx.font=fs+'px sans-serif';cx.textAlign='center';
+ for(const[bid,k]of Object.entries(r.m)){const b=S.blds[bid];const K=r.keyOf[k];if(!b||!b.fp||!K||!K.i)continue;const c=bCenter(b);const s=P2(c[0],c[1],(['lot','site'].includes(b.use)?0:bH(b))+5);if(s[0]<-20||s[0]>VW+20||s[1]<-20||s[1]>VH+20)continue;
+  cx.fillStyle=TH.dark?'rgba(20,24,22,.85)':'rgba(255,255,255,.9)';cx.strokeStyle=K.c;cx.lineWidth=2;cx.beginPath();cx.arc(s[0],s[1]-fs*0.35,fs*0.72,0,7);cx.fill();cx.stroke();cx.fillStyle=TH.ink;cx.fillText(K.i,s[0],s[1]);}
+ cx.restore();}
+{const _dt=drawTurf;drawTurf=function(){if(OV)return;_dt();};}
+/* ---- the button, the picker, the legend chip ---- */
+(function(){const st=document.createElement('style');st.textContent=`
+#ovlRow{display:flex;gap:6px;align-items:center;justify-content:flex-end;pointer-events:none}#ovlRow>*{pointer-events:auto}
+#ovlBtn{min-width:46px;min-height:40px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;font-size:1.05em;cursor:pointer}
+#ovlBtn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+#ovlPick{position:absolute;z-index:22;right:10px;width:min(340px,calc(100vw - 20px));max-height:min(62vh,560px);overflow:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:8px 10px 10px}
+#ovlPick[hidden],#ovlChip[hidden]{display:none}
+#ovlPick h4{margin:10px 2px 4px;font-size:.78em;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+#ovlPick .ogrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#ovlPick button.oi{display:flex;gap:6px;align-items:center;text-align:left;min-height:42px;padding:4px 8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:10px;font:inherit;font-size:.86em;line-height:1.15;cursor:pointer}
+#ovlPick button.oi[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+#ovlPick .oi span:first-child{font-size:1.15em}
+#ovlChip{position:absolute;z-index:6;left:10px;max-width:min(420px,calc(100vw - 20px));background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:6px 8px 6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:.84em}
+#ovlChip .oh{display:flex;align-items:center;gap:6px;font-weight:700}#ovlChip .oh b{flex:1;min-width:0}
+#ovlChip .oh button{min-height:32px;min-width:32px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:999px;cursor:pointer;font:inherit;font-size:.92em;padding:0 9px}
+#ovlChip .ok{display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:4px}
+#ovlChip .ok span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+#ovlChip i{display:inline-block;width:10px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.25)}
+#ovlChip .on{color:var(--muted);margin-top:3px}
+#ovlChip select{font:inherit;max-width:100%;margin-top:4px;min-height:32px}
+#ovlChip.min .ok,#ovlChip.min .on,#ovlChip.min select{display:none}
+`;document.head.appendChild(st);
+ const fb=document.getElementById('favbar');const row=document.createElement('div');row.id='ovlRow';fb.parentNode.insertBefore(row,fb);const btn=document.createElement('button');btn.id='ovlBtn';btn.setAttribute('aria-label','Map views');btn.setAttribute('aria-pressed','false');btn.textContent='🗺';row.appendChild(btn);row.appendChild(fb);
+ const pk=document.createElement('div');pk.id='ovlPick';pk.hidden=true;pk.setAttribute('role','dialog');pk.setAttribute('aria-label','Map views');document.getElementById('app').appendChild(pk);
+ const chip=document.createElement('div');chip.id='ovlChip';chip.hidden=true;chip.setAttribute('role','status');document.getElementById('app').appendChild(chip);
+ btn.addEventListener('click',e=>{e.stopPropagation();if(!pk.hidden){pk.hidden=true;return;}ovPick();pk.hidden=false;const r=btn.getBoundingClientRect(),a=document.getElementById('app').getBoundingClientRect();pk.style.top=(r.bottom-a.top+6)+'px';pk.style.right='10px';});
+ pk.addEventListener('click',e=>{const b=e.target.closest('button[data-ov]');if(!b)return;e.stopPropagation();const id=b.dataset.ov;pk.hidden=true;setOverlay(OV&&OV.id===id?null:id);if(OV)announce('Map view: '+ovDef(id).l);});
+ document.addEventListener('pointerdown',e=>{if(!pk.hidden&&!pk.contains(e.target)&&e.target!==btn)pk.hidden=true;},true);
+ chip.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();if(b.dataset.oc==='x')setOverlay(null);else if(b.dataset.oc==='list'){if(stack.length&&stack[stack.length-1].type==='ovl')return;pushView({type:'ovl'});showSheet(ovTitle());render();}else if(b.dataset.oc==='min'){chip.classList.toggle('min');ovChip();}});
+ chip.addEventListener('change',e=>{const s=e.target.closest('select[data-oc]');if(!s||!OV)return;OV.param=s.value;OVC=null;ovChip();if(stack.length&&stack[stack.length-1].type==='ovl')render();});
+ window.addEventListener('resize',ovPlace);})();
+function ovTitle(){const d=OV&&ovDef(OV.id);if(!d)return'';const r=ovEval();return(r&&r.title)||(d.id==='family'&&OV.param?'The '+OV.param+' family':d.l);}
+function ovPick(){const pk=document.getElementById('ovlPick');const gs=['Places','People','Crime','Town'];let h=`<div style="display:flex;align-items:center;justify-content:space-between"><b>Map views</b>${OV?'<button class="oi" data-ov="'+OV.id+'" style="min-height:32px">Turn off</button>':''}</div>`;
+ for(const g of gs){const L=OVL.filter(o=>o.g===g&&(g!=='Crime'||crimeOn()||o.id==='police'));if(!L.length)continue;h+=`<h4>${g}</h4><div class="ogrid">`+L.map(o=>`<button class="oi" data-ov="${o.id}" aria-pressed="${OV&&OV.id===o.id}"><span aria-hidden="true">${o.i}</span><span>${esc(o.l)}</span></button>`).join('')+'</div>';}
+ h+=`<p class="small muted" style="margin:10px 2px 0">Tip: a person’s page has “Show their world”, and a business page has “Show competitors”.</p>`;pk.innerHTML=h;}
+function ovPlace(){const chip=document.getElementById('ovlChip');if(!chip||chip.hidden)return;const top=document.getElementById('top');const a=document.getElementById('app').getBoundingClientRect();let y=10;if(top){const br=top.querySelector('.brand');const rc=top.querySelector('.rightcol');const b1=br?br.getBoundingClientRect().bottom:0,b2=rc?rc.getBoundingClientRect().bottom:0;y=Math.max(b1,b2)-a.top+8;}chip.style.top=y+'px';}
+function ovChip(){const chip=document.getElementById('ovlChip'),btn=document.getElementById('ovlBtn');if(!chip)return;btn.setAttribute('aria-pressed',OV?'true':'false');if(!OV){chip.hidden=true;return;}const d=ovDef(OV.id);const r=ovEval();
+ const keys=r.keys.filter(k=>r.cnt[k.k]);let h=`<div class="oh"><span aria-hidden="true">${d.i}</span><b>${esc(ovTitle())}</b><button data-oc="min" aria-label="${chip.classList.contains('min')?'Show key':'Hide key'}">${chip.classList.contains('min')?'▾':'▴'}</button><button data-oc="list">List</button><button data-oc="x" aria-label="Turn off map view">✕</button></div>`;
+ if(d.param==='family'){h+=`<select data-oc="fam" aria-label="Pick a family">`+famList().map(([n,c])=>`<option value="${esc(n)}"${n===OV.param?' selected':''}>${esc(n)} (${c})</option>`).join('')+'</select>';}
+ h+=`<div class="ok">${keys.length?keys.map(k=>`<span><i style="background:${k.c}"></i>${k.i||''} ${esc(k.l)} <b>${r.cnt[k.k]}</b></span>`).join(''):'<span class="muted">Nothing to show right now.</span>'}</div>`;if(r.note)h+=`<div class="on">${esc(r.note)}</div>`;
+ chip.innerHTML=tn(h);chip.hidden=false;ovPlace();}
+function ovlListHTML(){if(!OV)return'<p class="muted">No map view is on.</p>';const r=ovEval();const by={};for(const[b,k]of Object.entries(r.m))(by[k]=by[k]||[]).push(b);let h=r.note?`<p class="small muted">${esc(r.note)}</p>`:'';
+ for(const K of r.keys){const L=by[K.k];if(!L||!L.length)continue;L.sort((a,b)=>bName(S.blds[a]).localeCompare(bName(S.blds[b])));h+=`<h3><span aria-hidden="true">${K.i||''}</span> ${esc(K.l)} <span class="muted small">${L.length}</span></h3><p class="small">`+L.slice(0,120).map(blink).join(', ')+(L.length>120?' …and '+(L.length-120)+' more':'')+'</p>';}
+ return h||'<p class="muted">Nothing to show right now.</p>';}
+{const _r=render;render=function(){const v=stack[stack.length-1];if(v&&v.type==='ovl'){body.innerHTML=tn(ovlListHTML());return;}_r();};}
+/* keep the legend counts fresh while the map runs */
+{let last=0;const tick=()=>{if(OV&&!document.getElementById('ovlChip').hidden&&Date.now()-last>1500){last=Date.now();OVC=null;ovChip();if(stack.length&&stack[stack.length-1].type==='ovl'&&!typing()){const st=body.scrollTop;body.innerHTML=tn(ovlListHTML());body.scrollTop=st;}}requestAnimationFrame(tick);};requestAnimationFrame(tick);}
+/* shortcuts from pages */
+body.addEventListener('click',e=>{const b=e.target.closest('button[data-ovw],button[data-ovr]');if(!b)return;e.stopPropagation();if(b.dataset.ovw)setOverlay('world',b.dataset.ovw);else setOverlay('rivals',b.dataset.ovr);if(window.innerWidth<700&&typeof closeSheet==='function')closeSheet();},true);
 
 </script>
 </body>
