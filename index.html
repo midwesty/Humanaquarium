@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Humanaquarium (v0.17)</title>
+<title>Humanaquarium (v0.18.1)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -184,7 +184,7 @@ button.armed{background:var(--warn)!important;color:#fff!important;border-color:
 <script>
 /* ==== DATA: every table the sim reads. Placeholder rows are marked; the real
    government datasets replace them row-for-row later. ==== */
-const VERSION='0.17.0', SAVE_VERSION=4;
+const VERSION='0.18.1', SAVE_VERSION=4;
 const NEEDS=['energy','hunger','fun','social','comfort'];
 const DATA={
 meta:{town:'Sprungfeld',paper:'The Sprungfeld Ledger',startYear:2026,realMinPerDay:10,daysPerYear:4,walk:70,targetPop:200,placeholder:true},
@@ -1410,8 +1410,8 @@ function businesses(){
   const owner=z.ownerId&&P(z.ownerId);
   z.luck=clamp(z.luck+(rand()-0.5)*0.1-0.004+(S.town&&S.town.policy==='business'?0.006:0),0.55,1.3);
   const bd=z.baseA/dpy();z.cash+=Math.round(bd*z.luck*(0.75+rand()*0.5)*(Object.values(z.staff).flat().length?1:0.4)+z.rev-(DATA.uses[z.use].up||0)*E());z.rev=0;z.visits=0;
-  if(owner&&owner.alive&&owner.money<0&&z.cash>bd*2&&z.cash<=bd*6){const top=Math.round(Math.min(z.cash*0.25,-owner.money+bd*0.5));z.cash-=top;earn(owner,top,'business');}if(owner&&owner.alive&&z.cash>bd*6){const draw=Math.round((z.cash-bd*6)*0.5);z.cash-=draw;earn(owner,draw,'business');owner.ownerIncome=Math.round((owner.ownerIncome||40000)*0.7+draw*dpy()*0.3);}
-  if(owner&&owner.alive&&z.cash<0&&owner.money>bd*2&&chance(0.25)){const inj=Math.round(Math.min(owner.money*0.3,bd*4));spend(owner,inj,'business');z.cash+=inj;logp(owner,'Put $'+inj+' of their own money into '+z.name+'.');}
+  if(owner&&owner.alive&&owner.money<0&&z.cash>bd*2&&z.cash<=bd*6){const top=Math.round(Math.min(z.cash*0.25,-owner.money+bd*0.5));z.cash-=top;acc18(z).draw+=top;earn(owner,top,'business');}if(owner&&owner.alive&&z.cash>bd*6){const draw=Math.round((z.cash-bd*6)*0.5);z.cash-=draw;acc18(z).draw+=draw;earn(owner,draw,'business');owner.ownerIncome=Math.round((owner.ownerIncome||40000)*0.7+draw*dpy()*0.3);}
+  if(owner&&owner.alive&&z.cash<0&&owner.money>bd*2&&chance(0.25)){const inj=Math.round(Math.min(owner.money*0.3,bd*4));spend(owner,inj,'business');z.cash+=inj;acc18(z).inj+=inj;logp(owner,'Put $'+inj+' of their own money into '+z.name+'.');}
   z.failDays=z.cash<0?z.failDays+1:0;
   if(z.failDays===1){const st=Object.entries(z.staff).flatMap(([j,ids])=>ids.map(i=>P(i))).filter(q=>q&&q.alive&&q.id!==z.ownerId);if(st.length>1){const lo=st.sort((a,b)=>a.perf-b.perf)[0];clearJob(lo);lo.unemployedSince=day();moodlet(lo,'Laid off',-20,2);news('job',3,z.name+' laid off '+N(lo)+' to cut costs.',[lo.id]);}}
   if(z.failDays>=3)closeBiz(z);}
@@ -1509,7 +1509,7 @@ function baseAnnual(use){return Math.round((jobsFor(use).reduce((a,j)=>a+j.pay*2
 function rollWeather(){const opts=DATA.weather[season()];const k=wpick(opts,o=>o[1])[0];const base={Spring:62,Summer:86,Fall:60,Winter:31}[season()];S.wx={k,temp:base+ri(-9,9)+(k==='hot'?12:0)+(k==='snow'?-8:0),snowDay:k==='snow'&&chance(0.45)};
  if(S.wx.snowDay)news('weather',1,'Snow day: Sprungfeld School is closed. Children report this is “the best day ever.”',[]);if(k==='hot')news('weather',1,'A heat wave rolls in. The Ledger advises hydration and lowered expectations.',[]);}
 function personFinance(p,d){if(!adult(p))return;const M=DATA.money;
- if(p.job&&p.workedDay===d-1&&p.job.j!=='owner'){const J=JOB[p.job.j];const gross=salary(p)/dpy()*7/5;earn(p,gross*M.takeHome,'pay');const z=p.job.b&&S.biz[p.job.b];if(z&&!z.civic)z.cash-=gross;
+ if(p.job&&p.workedDay===d-1&&p.job.j!=='owner'){const J=JOB[p.job.j];const gross=salary(p)/dpy()*7/5;earn(p,gross*M.takeHome,'pay');const z=p.job.b&&S.biz[p.job.b];if(z&&!z.civic){z.cash-=gross;acc18(z).pay+=gross;}
   if(!J.pay&&gross>0&&chance(0.04)&&gross*M.takeHome>3000)news('arts',3,N(p)+' had a strong season'+(J.interest==='painting'?' selling paintings':J.interest==='music'?' playing shows':' selling stories')+', clearing $'+Math.round(gross*M.takeHome).toLocaleString()+'.',[p.id]);}
  if(p.retired)earn(p,(M.pensionBase+p.edu*M.pensionPerEdu)/dpy(),'pension');
  for(const c of p.children.map(P))if(c&&c.alive&&c.homeU===p.homeU&&age(c)>=8&&age(c)<18&&p.money>2000&&(p.sex==='f'||!c.parents.some(x=>x!==p.id&&P(x)&&P(x).alive&&P(x).homeU===p.homeU))){const a=M.allowance/dpy();spend(p,a,'kids');earn(c,a,'allowance');}
@@ -2944,7 +2944,7 @@ function addr(bid){const b=S.blds[bid];return b?(S.biz[bid]&&!['house','duplex',
 function doCrime(p,k){if(DATA.crimes13[k.type]&&DATA.crimes13[k.type].ox){oxCrime(p,k);return;}const T=k.type,D=DATA.crimes13[T],bid=p.act.place,c=crOf(p);const v=k.vic&&P(k.vic);const W=witnessesAt(bid,p,k.vic);const cops=copsOnDuty();const careful=(100-p.traits.impulse)/100;
  let loot=0,hurt=false,dead=false,txt='',ids=[];const vn=v?N(v):'someone';
  const seen=W.filter(()=>chance(0.35));let catchP=({1:0.1,2:0.12,3:0.08,4:0.15,5:0.2,9:0.2})[D.sev]+cops*0.025+seen.length*0.08-careful*0.06;
- if(T==='shoplift'){const z=S.biz[bid];loot=ri(15,90);const item=pick(DATA.items);txt='Someone walked out of '+addr(bid)+' with '+item+' and didn’t pay.';if(z)z.cash-=loot;catchP+=0.12;}
+ if(T==='shoplift'){const z=S.biz[bid];loot=ri(15,90);const item=pick(DATA.items);txt='Someone walked out of '+addr(bid)+' with '+item+' and didn’t pay.';if(z){z.cash-=loot;acc18(z).theft+=loot;}catchP+=0.12;}
  else if(T==='vandalism'){const u=k.vic&&v&&unitOf(v);if(u){u.home.cond=Math.max(0,u.home.cond-12);if(v.car)v.car.cond=Math.max(0,v.car.cond-12);for(const q of residents(u.id))moodlet(q,'Someone vandalized the house',-10,2);txt='Someone spray-painted the '+v.last+' house on '+(S.blds[u.bld].addr.replace(/^\d+ /,''))+' overnight'+(v.car?' and keyed the car in the driveway':'')+'.';ids=[v.id];}else{const z=S.biz[bid];if(z)z.cash-=ri(200,900);txt='Vandals smashed a window at '+addr(bid)+' overnight.';}}
  else if(T==='disorderly'){p.lastDrink=S.t;txt='Police were called to '+addr(bid)+' after a customer refused to leave and started singing at the officers.';catchP=0.65;}
  else if(T==='trespass'){txt='Someone was seen climbing the fence at '+addr(bid)+' after midnight.';catchP+=0.05;}
@@ -2952,10 +2952,10 @@ function doCrime(p,k){if(DATA.crimes13[k.type]&&DATA.crimes13[k.type].ox){oxCrim
    else{const car=v.car;loot=Math.round(4000*(car.cond/100)+500);v.carGone={car,day:day()};v.car=null;moodlet(v,'My car was stolen',-20,3);txt=vn+' woke up to find their '+DATA.vehicles[car.type].label.toLowerCase()+' gone from the driveway.';}ids=[v.id];}}
  else if(T==='burglary'){if(chance(0.2))seen.push({id:null});const u=S.units[k.unit];if(u){const res=residents(u.id);const rich=res.reduce((a,q)=>a+Math.max(0,q.money),0);loot=Math.round(Math.min(rich*0.05,ri(300,2500)));for(const q of res.filter(adult)){const take=Math.round(loot*Math.max(0,q.money)/Math.max(1,rich));q.money-=take;}for(const q of res){moodlet(q,'Our house was broken into',-16,4);q.scared=day()+ri(3,6);}const item=pick(['a TV','a laptop','a jewelry box','a coin collection','a gaming console','a guitar','the good silverware']);(u.items=u.items||[]).push('a broken lock');
    txt='The '+(res[0]?res[0].last:'')+' home at '+S.blds[u.bld].addr+' was broken into while nobody was home. '+item.charAt(0).toUpperCase()+item.slice(1)+' and about $'+loot.toLocaleString()+' are gone.';ids=res.filter(adult).map(q=>q.id).slice(0,3);}}
- else if(T==='breakin'){const z=S.biz[k.biz];if(z){loot=Math.round(Math.min(z.cash*0.08,ri(800,6000)));z.cash-=loot;const o=P(z.ownerId);if(o)moodlet(o,'The business was broken into',-14,3);txt=z.name+' was broken into overnight. The register and the back office were cleaned out, about $'+loot.toLocaleString()+'.';ids=o?[o.id]:[];}}
+ else if(T==='breakin'){const z=S.biz[k.biz];if(z){loot=Math.round(Math.min(z.cash*0.08,ri(800,6000)));z.cash-=loot;acc18(z).theft+=loot;const o=P(z.ownerId);if(o)moodlet(o,'The business was broken into',-14,3);txt=z.name+' was broken into overnight. The register and the back office were cleaned out, about $'+loot.toLocaleString()+'.';ids=o?[o.id]:[];}}
  else if(T==='scam'){if(v){loot=Math.round(Math.min(v.money*0.25,ri(600,6000)));v.money-=loot;moodlet(v,'Got scammed',-18,4);txt=vn+', '+Math.floor(age(v))+', lost $'+loot.toLocaleString()+' to a caller claiming to be from “the bank’s security department.”';ids=[v.id];catchP=0.03;}}
  else if(T==='mugging'){if(v){loot=Math.round(Math.min(Math.max(0,v.money)*0.02,ri(20,300)));v.money-=loot;hurt=chance(0.35);if(hurt&&!v.sick)v.sick={id:'injury',label:'injuries from a mugging',d:ri(1,3),sev:2};moodlet(v,'Got mugged',-24,4);v.scared=day()+ri(4,8);txt=vn+' was mugged outside '+addr(bid)+(loot>0?' and lost about $'+loot:'. They had nothing worth taking')+(hurt?'. They were hurt and taken to the hospital':'')+'.';ids=[v.id];if(hurt)callOut('ambulance',bid);}}
- else if(T==='armedrob'){const z=S.biz[k.biz];const staff=W.filter(q=>q.job&&q.job.b===bid);const clerk=staff[0]||W[0];loot=Math.round(Math.min(z?z.cash*0.04:500,ri(300,2500)));if(z)z.cash-=loot;
+ else if(T==='armedrob'){const z=S.biz[k.biz];const staff=W.filter(q=>q.job&&q.job.b===bid);const clerk=staff[0]||W[0];loot=Math.round(Math.min(z?z.cash*0.04:500,ri(300,2500)));if(z){z.cash-=loot;acc18(z).theft+=loot;}
    const resist=clerk&&chance(0.2+(clerk.traits.risk-50)/200);if(resist){if(murderOn()&&p.traits.temper>60&&chance(crCfg().crime==='gritty'?0.35:0.12)&&adult(clerk)){dead=true;}else{hurt=true;if(!clerk.sick)clerk.sick={id:'injury',label:'injuries from a robbery',d:ri(2,4),sev:3};}}
    for(const q of W)moodlet(q,'Held up at '+(z?z.name:'the store'),-22,4);txt='A masked robber held up '+(z?z.name:'a store')+' and got away with about $'+loot.toLocaleString()+'.'+(hurt&&clerk?' '+N(clerk)+' tried to stop them and was hurt.':'');ids=clerk?[clerk.id]:[];catchP+=0.1;
    if(dead){kill(clerk,'shot during a robbery',N(clerk)+', '+Math.floor(age(clerk))+', was killed during a robbery at '+(z?z.name:'a store')+'. They tried to stop it.',8);txt='';}}
@@ -2969,7 +2969,7 @@ function doCrime(p,k){if(DATA.crimes13[k.type]&&DATA.crimes13[k.type].ox){oxCrim
  if(chance(clamp(catchP,0.02,0.85)))arrest(p,cs,'at the scene');
  else{moodlet(p,D.sev>=4?'Got away with it (for now)':'Got away with it',p.traits.kindness<25?6:-6,2);if(T==='murder'||dead)moodlet(p,'Can’t stop thinking about it',-30,6);}}
 /* employees skimming from the till */
-function embezzleDaily(p){const z=S.biz[p.job.b];if(!z||z.cash<500)return;const take=Math.round(Math.min(z.cash*0.004,ri(40,220)));z.cash-=take;earn(p,take,'stolen');p.embezzled=(p.embezzled||0)+take;const o=P(z.ownerId);
+function embezzleDaily(p){const z=S.biz[p.job.b];if(!z||z.cash<500)return;const take=Math.round(Math.min(z.cash*0.004,ri(40,220)));z.cash-=take;acc18(z).theft+=take;earn(p,take,'stolen');p.embezzled=(p.embezzled||0)+take;const o=P(z.ownerId);
  if(chance(0.03+(o?o.traits.standards/1500:0)+p.embezzled/200000)){const cs=openCase('embezzle',p,z.ownerId,z.id,{evidence:70,loot:p.embezzled});news('crime',4,'The books at '+z.name+' don’t add up. About $'+p.embezzled.toLocaleString()+' is missing, and the owner has called the police.',o?[o.id]:[]);p.embezzle=false;if(chance(0.55))arrest(p,cs,'after an audit');}}
 /* ---- cases: police work ---- */
 function openCase(type,p,vic,bid,o){S.cases=S.cases||{};S.caseSeq=(S.caseSeq||0)+1;const id='c'+S.caseSeq;const cs=Object.assign({id,type,perp:p.id,vic,bid,day:day(),status:'open',evidence:30,seen:[]},o||{});S.cases[id]=cs;crOf(p);return cs;}
@@ -3181,7 +3181,7 @@ function outfitsDaily(){if(!S.outfits)return;const d=day(),wd=wday();
   // protection money
   if(racketOn('protection'))for(const zid of o.turf.slice()){const z=S.biz[zid];if(!z||!z.open||z.civic){o.turf=o.turf.filter(x=>x!==zid);continue;}if((hash(zid)%7)!==wd)continue;const own=P(z.ownerId);const fee=Math.round(z.baseA*0.003);
    if(own&&own.outfit===o.id){continue;}const refuse=own&&chance((own.traits.risk+own.traits.honest+(100-own.traits.patience))/400*(z.strikes?0.6:1));
-   if(!refuse){z.cash-=fee;o.cash+=fee;o.earned+=fee;if(own)moodlet(own,'Paid off '+o.name+' again',-6,2);}
+   if(!refuse){z.cash-=fee;acc18(z).prot+=fee;o.cash+=fee;o.earned+=fee;if(own)moodlet(own,'Paid off '+o.name+' again',-6,2);}
    else{z.strikes=(z.strikes||0)+1;if(own)moodlet(own,'Told '+o.name+' to get lost',4,2);const enf=ms.filter(q=>q.rank==='enforcer'&&!q.inmate&&!q.cr.plan)[0]||ms.find(q=>!q.inmate&&adult(q)&&!(q.cr&&q.cr.plan));if(enf){enf.cr=crOf(enf);enf.cr.plan={type:z.strikes>=3&&crCfg().crime==='gritty'?'torch':'shakedown',biz:zid,day:d,why:['the boss said '+z.name+' needs a reminder']};}}}
   // loans
   if(racketOn('loans')){for(const p of living()){const L=p.shark;if(!L||L.o!==o.id)continue;if(wd!==(hash(p.id)%7))continue;L.owed=Math.round(L.owed*1.1);const pay=Math.min(L.owed,Math.max(0,Math.round(p.money*0.35)));if(pay>0){spend(p,pay,'loan shark');L.owed-=pay;o.cash+=pay;o.earned+=pay;}
@@ -3266,7 +3266,7 @@ const OXTOWN={
  war(){let os=outfits();if(os.length<2){const c=living().filter(p=>adult(p)&&!p.outfit&&!p.inmate&&p.traits.honest<50).sort((a,b)=>b.traits.ambition-a.traits.ambition)[0];if(!c)return'Nobody to start a rival outfit.';OXGOD.boss(c);os=outfits();}const[a,b]=os;a.tension[b.id]=b.tension[a.id]=90;startWar(a,b);return'War is on.';},
  fed(){const o=outfits().sort((a,b)=>b.evidence-a.evidence)[0];if(!o)return'There’s nobody for the feds to raid.';raidOutfit(o,true);return'The feds hit '+o.name+'.';},
  scandal(){const L=living().filter(q=>q.onTake);if(!L.length){news('politics',3,'An investigation into police corruption found nothing. The chief seemed relieved.',[]);return'Nobody was on the take.';}for(const q of L){const cs=openCase('racketeering',q,null,homeBld(q),{evidence:80});arrest(q,cs,'in a corruption investigation');q.onTake=null;}return L.length+' officer'+(L.length===1?'':'s')+' arrested for taking bribes.';},
- heist(){const bank=(S._byUse.bank||[])[0];if(!bank)return'There’s no bank.';const crew=living().filter(p=>adult(p)&&!p.inmate&&(p.outfit||crOf(p).nerve>40)).slice(0,4);if(!crew.length)return'Nobody has the nerve.';const loot=ri(60000,220000);const z=S.biz[bank];if(z)z.cash-=loot;for(const p of crew){earn(p,Math.round(loot/crew.length),'stolen');const cs=openCase('bankjob',p,null,bank,{evidence:45});if(chance(0.25))arrest(p,cs,'after the bank job');}news('crime',9,'Four masked people robbed '+(z?z.name:'the bank')+' in broad daylight and drove off with about $'+loot.toLocaleString()+'. Police have set up roadblocks on Highway 13.',[]);return'The bank got hit.';},
+ heist(){const bank=(S._byUse.bank||[])[0];if(!bank)return'There’s no bank.';const crew=living().filter(p=>adult(p)&&!p.inmate&&(p.outfit||crOf(p).nerve>40)).slice(0,4);if(!crew.length)return'Nobody has the nerve.';const loot=ri(60000,220000);const z=S.biz[bank];if(z){z.cash-=loot;acc18(z).theft+=loot;}for(const p of crew){earn(p,Math.round(loot/crew.length),'stolen');const cs=openCase('bankjob',p,null,bank,{evidence:45});if(chance(0.25))arrest(p,cs,'after the bank job');}news('crime',9,'Four masked people robbed '+(z?z.name:'the bank')+' in broad daylight and drove off with about $'+loot.toLocaleString()+'. Police have set up roadblocks on Highway 13.',[]);return'The bank got hit.';},
  newcrew(){const c=living().filter(p=>adult(p)&&!p.outfit&&!p.inmate).sort((a,b)=>(crOf(b).nerve+(100-b.traits.honest))-(crOf(a).nerve+(100-a.traits.honest)))[0];if(!c)return'Nobody fits.';return OXGOD.boss(c);}};
 const OXBIZ={
  front(z){const o=outfits()[0];if(!o)return'There’s no outfit in town.';o.front=z.id;const own=P(z.ownerId);if(own&&!own.outfit)setRank(own,o,'associate');return z.name+' is a front for '+o.name+' now.';},
@@ -3408,6 +3408,52 @@ const RVGOD={
  wrong(a,b){if(!b||a===b)return'Pick someone else.';if(age(a)<13)return a.first+' is too young to hold that kind of grudge.';const e=remember(a,b,'assault',null,null,0);if(!e)return'That can’t happen (family doesn’t feud this way here).';e.sev=4;return a.first+' now believes '+b.first+' did them real harm.';}};
 /* elected officials and the chief don't quit for a commute job down the highway */
 {const _taj=takeAwayJob;takeAwayJob=function(p,J,silent){if(p.job&&(ELECTED.has(p.job.j)||S.polChief===p.id||p.job.j==='j_judge'))return false;return _taj(p,J,silent);};}
+
+/* ==== v0.18 SIM: business books you can read, and a hotel people actually stay at ==== */
+function acc18(z){return z.acc||(z.acc={pay:0,theft:0,prot:0,draw:0,inj:0,stay:0});}
+function hotelRate(){return Math.round(120*E()/91);}
+function hotels(){return(S._byUse.hotel||[]).map(b=>S.biz[b]).filter(z=>z&&z.open);}
+/* ---- who books a room tonight, and why ---- */
+function hotelWhy(p){if(!adult(p)||p.inmate||p.jailUntil>S.t||!hotels().length)return null;if(p._hrD!==day()){p._hrD=day();p._hr=rand();}const roll=p._hr;if(p.hotelDay!=null&&day()-p.hotelDay<1)return null;const rate=hotelRate();if(p.money<rate*1.5)return null;
+ if(!p.homeU)return{k:'unhoused',w:26,txt:'has enough for a room tonight'};
+ const u=unitOf(p);if(u&&u.home&&u.home.cond<18&&roll<0.4)return{k:'home',w:18,txt:'the house is in bad shape'};
+ const f=p.moodlets.find(m=>/^(Argument with|Fight about the dishes with|Insulted by|Broke up with|Divorced)/.test(m.text)&&m.cause&&S.people[m.cause]&&S.people[m.cause].homeU===p.homeU&&m.until-S.t>600);
+ if(f&&roll<0.12&&(p.traits.temper>55||p.traits.impulse>55||/Broke|Divorced/.test(f.text)))return{k:'fight',w:16,txt:'needs a night away from '+S.people[f.cause].first,with:null};
+ if(p.partner&&roll<(wday()>=4?0.035:0.012)*(1+(p.traits.romance-50)/80)){const q=P(p.partner);if(q&&q.alive&&adult(q)&&q.homeU===p.homeU&&!q.inmate&&(p.getaway==null||day()-p.getaway>=9)&&p.money>rate*5){const kids=residents(p.homeU).filter(k=>age(k)<14);const sitter=residents(p.homeU).some(k=>k!==p&&k!==q&&adult(k));if(kids.length&&!sitter)return null;
+   const wkend=wday()>=4;return{k:'getaway',w:(p.traits.romance-50)/6+(wkend?6:0)+(p.money>rate*30?5:0)-8,txt:'a night away with '+q.first,with:q.id};}}
+ return null;}
+/* acts: a night at the hotel, brunch in the hotel dining room */
+{const NK=Object.keys(DATA.acts[0]);const A=(id,label,pose,prop,at,room,fx,dur,emo,cat,o)=>{if(ACT[id])return;const a=Object.assign({id,label,pose,prop,at,room,fx,dur,emo,cat,v11:1,v13:1,v14:1},o||{});const n={};for(const k of NK)n[k]=a[k];for(const k in a)n[k]=a[k];n._fxp=[];for(const nd of NEEDS){const v=(a.fx&&a.fx[nd])||0;if(v>0)n._fxp.push([nd,v*(a.dur[0]+a.dur[1])/120]);}n._i=DATA.acts.length;n._gap=0;n._cal=0;n._tw=a.tw?Object.entries(a.tw):null;n._g=true;n._opt=false;DATA.acts.push(n);ACT[id]=n;fxi11(n);};
+ A('hotel_night','Spending the night at the hotel','lie','bed',['hotel'],'room',{energy:15,comfort:5},[480,600],'🏨','sleep',{special:'hotel',hours:[20,24],minAge:18});
+ A('hotel_brunch','Having brunch at the hotel','sit','plate',['hotel'],'dining',{hunger:70,social:10,fun:6},[45,80],'🥂','eat',{special:'hbrunch',hours:[9,13],days:[5,6],minAge:12,cost:24,social:1,bias:-8});}
+{const _g=gate14;gate14=function(p,A,u,a){const sp=A.special;if(sp==='hotel'){const w=hotelWhy(p);return!!(w&&w.w>-4);}if(sp==='hbrunch')return p.money>200&&(p.traits.frugal||50)<70;return _g(p,A,u,a);};}
+{const _b=bonus14;bonus14=function(p,A,why){const sp=A.special;if(sp==='hotel'){const w=hotelWhy(p);if(!w)return -50;why.push(w.txt);return w.w+(hour()>=21?10:0)+(p.needs.energy<45?8:0);}if(sp==='hbrunch'){why.push('treating themselves');return(p.money>20000?6:0)+(p.partner?3:0);}return _b(p,A,why);};}
+{const _o=onStart14;onStart14=function(p,A,z,u){const sp=A.special;
+ if(sp==='hotel'&&p.act.joined){p.hotelDay=day();const q=P(p.act.joined);p.act.label='Away for the night with '+(q?q.first:'their partner');return;}
+ if(sp==='hotel'){const w=hotelWhy(p)||{k:'night',txt:'a night out'};const rate=hotelRate();const hz=S.biz[p.act.place];p.hotelDay=day();spend(p,rate,'hotel');if(hz){hz.rev+=rate;hz.visits++;acc18(hz).stay+=rate;(hz.locals=hz.locals||[]).push({d:day(),id:p.id,k:w.k});if(hz.locals.length>12)hz.locals.shift();}
+  p.act.label={getaway:'Away for the night at '+(hz?hz.name:'the hotel'),fight:'Sleeping at the hotel after a fight',home:'Staying at the hotel until the house is fixed',unhoused:'Got a room for the night'}[w.k]||'Spending the night at the hotel';
+  if(w.k==='getaway'&&w.with){const q=P(w.with);p.getaway=day();if(q&&q.alive&&!q.trip&&q.act&&!['work','sleep','jail','hospital'].includes(q.act.id)&&!q.inmate){q.getaway=day();q.hotelDay=day();setAct(q,'hotel_night',p.act.place,Math.max(60,p.act.until-S.t),{why:['a night away with '+p.first],opts:[]},true);if(q.act){q.act.label='Away for the night with '+p.first;q.act.joined=p.id;}moodlet(p,'Night away with '+q.first,12,2,q.id);moodlet(q,'Night away with '+p.first,12,2,p.id);rel(p,q).a=Math.min(100,rel(p,q).a+4);rel(q,p).a=Math.min(100,rel(q,p).a+4);if(rel(p,q).r!=null){rel(p,q).r+=3;rel(q,p).r+=3;}ixShow(p,q,'❤️','❤️',30);}}
+  if(w.k==='fight')logp(p,'Spent the night at '+(hz?hz.name:'the hotel')+' to cool off.');
+  if(w.k==='unhoused')moodlet(p,'A real bed for once',10,1);return;}
+ if(sp==='hbrunch'){const hz=S.biz[p.act.place];return;}
+ return _o(p,A,z,u);};}
+/* out-of-town guests: weddings, ball tournaments, sales reps, people passing through on the highway */
+DATA.guestGroups=['a youth baseball team from Joplin','a wedding party','a bus of retirees on a fall-color tour','sales reps for a farm equipment company','a church group from Branson','two families in town for a funeral','a bowling league from Tulsa','a marching band','a film crew scouting locations','a motorcycle club passing through'];
+function hotelDaily(){const d=day();for(const z of hotels()){const rooms=hotelRooms(z);const s=season();const sf={Spring:1,Summer:1.35,Fall:1.1,Winter:0.7}[s]||1;const wk=wday()>=4?1.3:0.85;const hol=(S._hol&&S._hol.day===d)?1.3:1;
+  let out=Math.round(rooms*0.32*sf*wk*hol*(z.luck||1)*(0.6+rand()*0.8));let grp=null;if(chance(0.05*sf)){grp=pick(DATA.guestGroups);out+=ri(4,9);}
+  const locals=(z.locals||[]).filter(x=>x.d===d-1||x.d===d).length;out=Math.min(out,Math.max(0,rooms-locals));const rate=hotelRate();const inc=out*rate;z.rev+=inc;acc18(z).stay+=inc;
+  z.guests={d,out,locals,rooms,grp};z.gHist=(z.gHist||[]);z.gHist.push(out+locals);if(z.gHist.length>28)z.gHist.shift();
+  if(grp&&out>=rooms*0.7)news('business',2,z.name+' is fully booked: '+grp+' took most of the rooms.',[]);}}
+function hotelRooms(z){const r=(DATA.uses.hotel.rooms||[]).flat().filter(x=>x==='room').length;const b=S.blds[z.id];return Math.max(6,r*Math.max(1,(b&&b.floors)||1)*2);}
+/* ---- the books: one line a day per business ---- */
+{const _bz=businesses;businesses=function(){hotelDaily();const pre={};for(const z of Object.values(S.biz)){if(!z.open||z.civic)continue;acc18(z);pre[z.id]={c0:z.cash,rev:z.rev,lc:z.lc};}
+ _bz();
+ for(const[id,x]of Object.entries(pre)){const z=S.biz[id];if(!z)continue;const a=acc18(z);const up=Math.round((DATA.uses[z.use].up||0)*E());const inside=z.cash-x.c0;const sales=inside-x.rev+up+a.draw-a.inj;
+  const other=x.lc==null?0:(x.c0-x.lc)+a.pay+a.theft+a.prot;const R=v=>Math.round(v);
+  const rec={d:day(),sales:R(sales),cust:R(x.rev-a.stay),stay:R(a.stay),pay:R(a.pay),up,theft:R(a.theft),prot:R(a.prot),other:R(other),draw:R(a.draw),inj:R(a.inj),cash:R(z.cash),open:z.open};
+  rec.net=rec.sales+rec.cust+rec.stay-rec.pay-rec.up-rec.theft-rec.prot+rec.other;
+  (z.led=z.led||[]).push(rec);if(z.led.length>28)z.led.shift();z.lc=z.cash;z.acc={pay:0,theft:0,prot:0,draw:0,inj:0,stay:0};}};}
+function ledSum(z,n){const L=(z.led||[]).slice(-n);const s={days:L.length,sales:0,cust:0,stay:0,pay:0,up:0,theft:0,prot:0,other:0,draw:0,inj:0,net:0};for(const r of L)for(const k in s)if(k!=='days')s[k]+=r[k]||0;return s;}
 
 /* ==== UI ==== */
 const $=s=>document.querySelector(s);
@@ -3600,7 +3646,7 @@ function drawDoll(){const c=$('#doll');if(!c||!selB)return;const b=S.blds[selB];
  const place=(p)=>{let fi=0,ri0=0;const A=ACT[p.act.id]||DATA.sysActs[p.act.id]||{};const want=p.act.id==='work'?null:(A.room||'living');
   let unit=null;if(p.homeU&&S.units[p.homeU].bld===b.id)unit=p.homeU;else if(p.act.id==='visit'){const host=occ.find(q=>q.act.id==='host');unit=host?host.homeU:null;}
   if(DATA.uses[b.use].cat==='home'){if(want==='yard'&&yardW)return{yard:true};const cand=[];F.forEach((row,f)=>row.forEach((r,i)=>{if(!unit||r.unit===unit)cand.push([f,i,r]);}));const m=cand.find(([f,i,r])=>r.k===want)||cand.find(([f,i,r])=>r.k==='apt')||cand[hash(p.id)%Math.max(1,cand.length)]||[0,0];fi=m[0];ri0=m[1];}
-  else{const staff=p.job&&p.job.b===b.id&&p.act.id==='work';const cand=[];F.forEach((row,f)=>row.forEach((r,i)=>{if(staff?r.staff:!r.staff)cand.push([f,i]);}));const pool=cand.length?cand:F.flatMap((row,f)=>row.map((r,i)=>[f,i]));const m=pool[hash((p.act.id==='date'&&p.partner?[p.id,p.partner].sort().join(''):p.id)+(staff?'s':''))%pool.length];fi=m[0];ri0=m[1];}
+  else{const staff=p.job&&p.job.b===b.id&&p.act.id==='work';const cand=[];F.forEach((row,f)=>row.forEach((r,i)=>{if(staff?r.staff:!r.staff)cand.push([f,i]);}));const cw=!staff&&b.use==='hotel'?cand.filter(([f,i])=>F[f][i].k===want):[];const pool=cw.length?cw:cand.length?cand:F.flatMap((row,f)=>row.map((r,i)=>[f,i]));const m=pool[hash(((p.act.id==='date'||p.act.id==='hotel_night')&&p.partner?[p.id,p.partner].sort().join(''):p.id)+(staff?'s':''))%pool.length];fi=m[0];ri0=m[1];}
   return{f:fi,r:ri0};};
  for(let f=0;f<F.length;f++){const row=F[f];const y0=top+(F.length-1-f)*FL;const rw=gw/row.length;
   row.forEach((r,i)=>{const x=gx+i*rw;g.fillStyle=SET.contrast?(dark?'#111':'#fff'):(ROOMTINT[r.k]||(r.staff?'#E6E2DA':'#ECEFF1'));if(dark&&!SET.contrast)g.fillStyle=shade(g.fillStyle,-0.62);g.fillRect(x,y0,rw,FL);
@@ -4915,6 +4961,38 @@ PFILT.push(['grudge','Holding a grudge',p=>!!(p.wr&&p.wr.length)],['bigname','Bi
   if(adult(p)||age(p)>=13)h+=`<div class="btnrow wrap"><button data-rvg="now" class="danger">Get even now</button><button data-rvg="forgive">Let it all go</button></div>`;}
  return h;};}
 body.addEventListener('click',e=>{const b=e.target.closest('button[data-rvg]');if(!b)return;e.stopPropagation();const v=stack[stack.length-1];const p=v&&v.type==='person'&&S.people[v.id];if(!p)return;toast(tn(RVGOD[b.dataset.rvg](p)));render();},true);
+function bizVerdict(z){const w=ledSum(z,7),y=ledSum(z,28);if(!w.days)return{tone:'',txt:'No books yet. Check back tomorrow.'};const bd=z.baseA/dpy();const per=w.net/w.days;
+ if(z.failDays>0)return{tone:'bad',txt:'In trouble: the account is overdrawn. '+(z.failDays>=2?'One more bad day and it closes.':'Two more bad days and it closes.')};
+ if(per<0){const left=z.cash>0?Math.floor(z.cash/-per):0;return{tone:'bad',txt:'Losing money, about '+money(-Math.round(per))+' a day. '+(left<30?'At this rate the cash runs out in about '+left+' day'+(left===1?'':'s')+'.':'There’s enough cash to ride it out for a while.')};}
+ if(per<bd*0.15)return{tone:'',txt:'Getting by. It covers its costs with a little left over.'};
+ if(per<bd*0.6)return{tone:'good',txt:'Doing fine: about '+money(Math.round(per*7))+' a week after paying everyone.'};
+ return{tone:'good',txt:'Doing great: about '+money(Math.round(per*7))+' a week after paying everyone'+(y.draw>0?', and the owner has taken home '+money(y.draw)+' this year':'')+'.'};}
+
+/* ======================= v0.18 UI: the books, on every business page ======================= */
+function finChart(z){const L=(z.led||[]).slice(-28);if(L.length<2)return'';const W=320,H=70,pad=2;const hi=Math.max(0,...L.map(r=>r.net)),lo=Math.min(0,...L.map(r=>r.net));const span=Math.max(1,hi-lo);const y0=pad+(hi/span)*(H-pad*2);const bw=(W-pad*2)/28;
+ const bars=L.map((r,i)=>{const h=Math.max(1,Math.abs(r.net)/span*(H-pad*2));const x=pad+(28-L.length+i)*bw;return`<rect x="${x.toFixed(1)}" y="${(r.net>=0?y0-h:y0).toFixed(1)}" width="${Math.max(1,bw-1.5).toFixed(1)}" height="${h.toFixed(1)}" fill="var(${r.net>=0?'--good':'--bad'})" rx="1"><title>Day ${r.d}: ${r.net>=0?'made':'lost'} ${money(Math.abs(r.net))}</title></rect>`;}).join('');
+ const best=Math.max(...L.map(r=>r.net)),worst=Math.min(...L.map(r=>r.net));
+ return`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:420px;display:block;margin:8px 0 2px" role="img" aria-label="Profit or loss each day for the past ${L.length} days"><line x1="0" x2="${W}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--line)"/>${bars}</svg><p class="small muted" style="margin-top:0">One bar a day, oldest on the left. Green made money, red lost money. Best day ${money(best)}, worst day ${money(worst)}.</p>`;}
+function finHTML(z){if(!z||z.civic)return'';const L=z.led||[];const v=bizVerdict(z);let h=`<p class="small${v.tone==='bad'?' warn':''}"><b>${esc(v.txt)}</b></p>`;
+ if(z.use==='hotel'&&z.guests){const g=z.guests;const loc=(z.locals||[]).filter(x=>x.d>=day()-1).map(x=>S.people[x.id]).filter(Boolean);h+=`<p class="small">Last night: ${g.out+g.locals} of ${g.rooms} rooms filled${g.out?', '+g.out+' by people from out of town':''}${g.grp?' ('+esc(g.grp)+')':''}. A room is ${money(hotelRate())} a night.${loc.length?' Local guests: '+loc.slice(0,5).map(q=>plink(q.id)).join(', ')+'.':''}</p>`;}
+ if(!L.length)return h;h+=finChart(z);
+ const n=L.length;const c=[ledSum(z,1)];const hd=['Yesterday'];if(n>1){c.push(ledSum(z,7));hd.push('Past '+Math.min(7,n)+' days');}if(n>7){c.push(ledSum(z,28));hd.push('Past '+Math.min(28,n)+' days');}const row=(lab,k,neg,cls)=>{if(c.every(s=>!s[k]))return'';return`<tr${cls?` class="${cls}"`:''}><td>${lab}</td>${c.map(s=>`<td class="num">${s[k]?(neg?'−':'')+money(Math.abs(s[k])).replace('−',''):'—'}</td>`).join('')}</tr>`;};
+ const netRow=`<tr style="font-weight:600;border-top:1px solid var(--line)"><td>Profit</td>${c.map(s=>`<td class="num" style="color:var(${s.net>=0?'--good':'--bad'})">${money(s.net)}</td>`).join('')}</tr>`;
+ h+=`<div style="overflow-x:auto"><table class="small fin18" style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left"></th>${hd.map(x=>`<th class="num">${x}</th>`).join('')}</tr></thead><tbody>`
+  +row('Everyday sales','sales')+row('Customers we saw','cust')+row('Room stays','stay')+row('Wages','pay',1)+row('Rent and upkeep','up',1)+row('Stolen','theft',1)+row('Protection money','prot',1)
+  +(c.some(s=>s.other)?`<tr><td>Other</td>${c.map(s=>`<td class="num">${s.other?money(s.other):'—'}</td>`).join('')}</tr>`:'')+netRow
+  +row('Owner took home','draw',0,'muted')+row('Owner put in','inj',0,'muted')+`</tbody></table></div>`;
+ const tr=L.length>=7?L[L.length-1].cash-L[Math.max(0,L.length-8)].cash:0;h+=`<p class="small muted">Cash on hand ${money(z.cash)}${L.length>=7?', '+(tr>=0?'up ':'down ')+money(Math.abs(tr))+' over the past week (after anything the owner took out or put in)':''}. A year here is 28 days.</p>`;return h;}
+{const _ob=oxBizHTML;oxBizHTML=function(z){let h=_ob(z);if(z&&!z.civic&&z.open)h+=sec('fin18','The books',finHTML(z),true);return h;};}
+/* ---- v0.18.1: saving survives Safari dropping the storage connection; the follow bar keeps up ---- */
+async function idbReopen(){try{SDB=await idbOpen();SDB.onclose=()=>{SDB_STALE=true;};SDB_STALE=false;return true;}catch(e){return false;}}
+var SDB_STALE=false;
+storeWrite=function(k,v){SCACHE[k]=v;if(!SDB)return Promise.resolve(LS0.set(k,v));const put=async()=>{if(SDB_STALE)await idbReopen();const z=await zip(v);await idbDo('readwrite',st=>st.put(z,k));return true;};
+ const job=(SQ[k]||Promise.resolve()).then(async()=>{if(SCACHE[k]!==v)return true;try{return await put();}catch(e){console.warn('save retry',e);await idbReopen();try{return await put();}catch(e2){console.warn(e2);SINFO.lastErr=String(e2&&e2.name||e2);return false;}}});SQ[k]=job;return job;};
+LS.set=(k,v)=>{if(!bigKey(k)||!SDB)return LS0.set(k,v);storeWrite(k,v).then(async ok=>{if(ok)return;let full=false;try{if(navigator.storage&&navigator.storage.estimate){const e=await navigator.storage.estimate();full=e.quota&&e.usage/e.quota>0.95;}}catch(e){}
+ const what=k==='halverson:auto'?'Autosave':'Saving';toast(full?what+' failed: this device is out of space. Export a save from Admin to keep your town.':what+' didn’t go through this time ('+(SINFO.lastErr||'storage hiccup')+'). It will try again; export a save from Admin if it keeps happening.');});return true;};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&SDB)SDB_STALE=true;});
+{const _lr=liveRefresh;liveRefresh=function(v){_lr(v);const fb=body.querySelector('.followbar span');const fp=follow&&S.people[follow];if(fb&&fp){const t=`👁 Following <b>${esc(fp.first)}</b>: ${esc(actLabel(fp))}`;if(fb.innerHTML!==t)fb.innerHTML=t;}};}
 
 </script>
 </body>
