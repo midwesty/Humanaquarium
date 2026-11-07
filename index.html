@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Humanaquarium (v0.19)</title>
+<title>Humanaquarium (v0.21)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -184,7 +184,7 @@ button.armed{background:var(--warn)!important;color:#fff!important;border-color:
 <script>
 /* ==== DATA: every table the sim reads. Placeholder rows are marked; the real
    government datasets replace them row-for-row later. ==== */
-const VERSION='0.19.0', SAVE_VERSION=4;
+const VERSION='0.21.0', SAVE_VERSION=4;
 const NEEDS=['energy','hunger','fun','social','comfort'];
 const DATA={
 meta:{town:'Sprungfeld',paper:'The Sprungfeld Ledger',startYear:2026,realMinPerDay:10,daysPerYear:4,walk:70,targetPop:200,placeholder:true},
@@ -5128,6 +5128,248 @@ function ovlListHTML(){if(!OV)return'<p class="muted">No map view is on.</p>';co
 {let last=0;const tick=()=>{if(OV&&!document.getElementById('ovlChip').hidden&&Date.now()-last>1500){last=Date.now();OVC=null;ovChip();if(stack.length&&stack[stack.length-1].type==='ovl'&&!typing()){const st=body.scrollTop;body.innerHTML=tn(ovlListHTML());body.scrollTop=st;}}requestAnimationFrame(tick);};requestAnimationFrame(tick);}
 /* shortcuts from pages */
 body.addEventListener('click',e=>{const b=e.target.closest('button[data-ovw],button[data-ovr]');if(!b)return;e.stopPropagation();if(b.dataset.ovw)setOverlay('world',b.dataset.ovw);else setOverlay('rivals',b.dataset.ovr);if(window.innerWidth<700&&typeof closeSheet==='function')closeSheet();},true);
+
+/* ======================= v0.20: the story engine. Storylines, Brewing, tappable markers. Watches the town, never steers it. ======================= */
+if(SET.brewAlerts==null)SET.brewAlerts=true;if(SET.pinShow==null)SET.pinShow='all';
+const STT={case:{i:'🚨',l:'Crime case',kinds:['crime'],quiet:12},feud:{i:'⚔️',l:'Feud',kinds:['fight','crime'],quiet:10},love:{i:'❤️',l:'Romance',kinds:['romance','wedding','divorce','birth'],quiet:14},
+ election:{i:'🗳️',l:'Election',kinds:['politics','election'],quiet:6},biz:{i:'🏪',l:'Business',kinds:['business'],quiet:8},war:{i:'🎭',l:'Outfit war',kinds:['crime'],quiet:10},vice:{i:'🍺',l:'Struggle',kinds:['health','crime'],quiet:14},rough:{i:'⛺',l:'Hard times',kinds:['housing','moving','money'],quiet:10}};
+function stS(){if(!S.stories)S.stories={};return S.stories;}
+function stFind(key){const A=stS();let best=null;for(const s of Object.values(A))if(s.key===key&&(!best||s.d0>best.d0))best=s;return best;}
+function stOpen(type,key,title,ids,o){let s=stFind(key);if(s){if(s.st!=='open'&&day()-s.endD<=14&&!(o&&o.fresh)){s.st='open';s.end=null;}else if(s.st!=='open')s=null;}
+ if(!s){S.storySeq=(S.storySeq||0)+1;s={id:'s'+S.storySeq,type,key,title,ids:[],bids:[],d0:day(),last:day(),beats:[],st:'open',sev:0};stS()[s.id]=s;}
+ for(const id of ids||[])if(id&&!s.ids.includes(id))s.ids.push(id);if(o){if(o.bid&&!s.bids.includes(o.bid))s.bids.push(o.bid);if(o.sev)s.sev=Math.max(s.sev,o.sev);if(o.title)s.title=o.title;if(o.big)s.big=o.big;}return s;}
+function stBeat(s,text,t){if(!s||!text)return;if(s.beats.some(b=>b.text===text))return;s.beats.push({t:t==null?S.t:t,text});s.beats.sort((x,y)=>x.t-y.t);const bd=Math.floor((t==null?S.t:t)/1440);if(bd<s.d0)s.d0=bd;if(s.beats.length>40)s.beats.shift();s.last=day();if(s.st!=='open'){s.st='open';s.end=null;}}
+function stEnd(s,text,how){if(!s||s.st!=='open')return;s.st=how||'done';s.end=text||null;s.endD=day();if(text)s.beats.push({t:S.t,text,end:1});}
+function pairKey(a,b){return a<b?a+'~'+b:b+'~'+a;}
+const PN=id=>{const p=S.people[id];return p?N(p):'someone';};
+/* ---- listening: every news story can join a storyline, and some start one ---- */
+function stOnNews(e){try{if(!S||!e)return;const ids=e.ids||[];const k=e.kind;const A=stS();
+ for(const s of Object.values(A)){if(s.st!=='open'&&!(s.st==='quiet'))continue;const T=STT[s.type];const hit=ids.filter(i=>s.ids.includes(i)).length;let ok=false;
+  if(hit>=2)ok=true;else if(hit===1&&T.kinds.includes(k))ok=true;
+  if(!ok&&s.type==='biz'&&s.bids[0]&&S.biz[s.bids[0]]&&e.text.includes(S.biz[s.bids[0]].name))ok=true;
+  if(!ok&&s.type==='war'&&s.names&&s.names.some(n=>e.text.includes(n)))ok=true;
+  if(ok)stBeat(s,e.text,e.t);}
+ if(ids.length>=2&&(k==='romance'||k==='wedding'||k==='divorce')){const[a,b]=ids;const pa=S.people[a],pb=S.people[b];if(pa&&pb&&adult(pa)&&adult(pb)){const key='love:'+pairKey(a,b);
+   if(/split up|divorcing/.test(e.text)){const s=stFind(key);if(s){stBeat(s,e.text,e.t);stEnd(s,'It’s over.');}}
+   else if(/seeing each other|married|proposed|renewed/.test(e.text)){const s=stOpen('love',key,pa.first+' & '+pb.first,[a,b]);stBeat(s,e.text,e.t);if(/The answer was no|who are you/.test(e.text))stEnd(s,'Rejected.');}}}
+ if(k==='fight'&&ids.length>=2){const[a,b]=ids;const pa=S.people[a],pb=S.people[b];if(pa&&pb){const s=stOpen('feud','feud:'+pairKey(a,b),pa.first+' vs. '+pb.first,[a,b],{sev:k==='fight'?2:1});stBeat(s,e.text,e.t);}}
+ if(k==='politics'&&/running|jumped into the race|special election/.test(e.text)&&S.town){const T=S.town;const key=T.special?'el:s'+T.special.day:'el:'+T.nextYear;const s=stOpen('election',key,T.special?'The special election':'The race for mayor, Year '+T.nextYear,ids,{sev:3});stBeat(s,e.text,e.t);}
+ if(k==='election'){const s=Object.values(A).find(x=>x.type==='election'&&x.st==='open');if(s){stBeat(s,e.text,e.t);stEnd(s,ids[0]?PN(ids[0])+' won.':'The votes are in.');}}
+ if(k==='death'||/killed|died|found dead/.test(e.text)){for(const id of ids){const p=S.people[id];if(p&&!p.alive)for(const s of Object.values(A))if(s.st==='open'&&s.ids.includes(id)&&['love','vice','rough'].includes(s.type)){stBeat(s,e.text,e.t);stEnd(s,p.first+' died.');}}}
+}catch(err){console.warn('stOnNews',err);}}
+/* ---- once a day: look at the town and open, update or close storylines ---- */
+const CASE_T={murder:v=>'Who killed '+v+'?',hit:v=>'Who killed '+v+'?',assault:v=>'The attack on '+v,mugging:v=>'The mugging of '+v,armedrob:v=>'The holdup',burglary:v=>'The break-in at the '+v+' place',breakin:v=>'The break-in',cartheft:v=>v+'’s stolen car',scam:v=>'The scam on '+v,beatdown:v=>'The beating of '+v,torch:v=>'The fire',embezzle:v=>'The missing money',shakedown:v=>'The shakedown'};
+function stScan(){try{if(!S)return;const d=day();const A=stS();
+ // crime cases
+ const seen=S.stCaseSeen||0;let maxN=seen;for(const cs of Object.values(S.cases||{})){const n=+String(cs.id).slice(1)||0;const D=DATA.crimes13[cs.type]||{sev:1};const perp=S.people[cs.perp],vic=cs.vic&&S.people[cs.vic];
+  if(n>seen){maxN=Math.max(maxN,n);if(d-cs.day>14)continue;const fav=(perp&&perp.fav)||(vic&&vic.fav);if(!(D.sev>=3||fav||cs.big||cs.rg))continue;
+   const vn=vic?(cs.type==='burglary'?vic.last:vic.first+' '+vic.last):'';const tf=CASE_T[cs.type];const title=(tf?tf(vn||'town'):cap(caseLabel(cs)))+(cs.type==='armedrob'||cs.type==='breakin'||cs.type==='torch'?' at '+addr(cs.bid):'');
+   const s=stOpen('case','case:'+cs.id,title,[cs.vic,cs.perp].filter(Boolean),{bid:cs.bid,sev:D.sev,big:cs.big});s.cs=cs.id;
+   const ev=(S.events||[]).slice(-80).filter(e=>e.kind==='crime'&&e.day===cs.day&&(e.ids.some(i=>i===cs.vic||i===cs.perp)||e.text.includes(addr(cs.bid))));for(const e of ev)stBeat(s,e.text,e.t);
+   if(!s.beats.length)stBeat(s,cap(caseLabel(cs))+' at '+addr(cs.bid)+(vic?', '+(cs.victimDead?'leaving '+N(vic)+' dead':'with '+N(vic)+' as the victim'):'')+'.',cs.day*1440);
+   if(cs.rg)stBeat(s,'Police think it was payback.');}}
+ S.stCaseSeen=maxN;
+ for(const s of Object.values(A)){if(s.type!=='case'||!s.cs)continue;const cs=S.cases&&S.cases[s.cs];if(!cs)continue;const perp=S.people[cs.perp];
+  if(cs.status==='charged'&&perp&&/^Who killed/.test(s.title)){s.title=s.title.replace(/^Who killed (.*)\?$/,'The murder of $1');}
+  if(s.st==='open'){if(cs.status==='convicted'){const r=perp&&(perp.record||[]).slice(-1)[0];stEnd(s,(perp?perp.first:'They')+' was convicted'+(r&&r.s?': '+r.s:'')+'.');}else if(cs.status==='acquitted')stEnd(s,(perp?perp.first:'They')+' walked free.');else if(cs.status==='done')stEnd(s,'Case closed.');else if(cs.status==='cold')stEnd(s,'The case went cold.','quiet');else if(cs.status==='closed')stEnd(s,cs.note?cap(cs.note)+'.':'Case closed.');}
+  else if(cs.status==='open'&&s.st==='quiet'){s.st='open';stBeat(s,'The case has been reopened.');}}
+ // grudges become feuds
+ for(const p of living()){if(!p.wr||!p.wr.length||age(p)<13)continue;for(const e of p.wr){const q=P(e.by);if(!q||!q.alive)continue;if(revengeWant(p,e)<=55)continue;const key='feud:'+pairKey(p.id,q.id);const ex=stFind(key);const s=stOpen('feud',key,(ex&&ex.title)||p.first+' vs. '+q.first,[p.id,q.id],{sev:e.sev>=9?4:3});stBeat(s,N(p)+' wants payback from '+N(q)+' for '+wrongText(e)+'.');}}
+ // businesses in trouble
+ for(const z of Object.values(S.biz)){if(z.civic||!S.blds[z.id])continue;const key='biz:'+z.id;const ex=stFind(key);
+  if(!z.open){if(ex&&ex.st==='open')stEnd(ex,'Closed for good.');continue;}if(!z.led||!z.led.length)continue;const c=bizClass(z);
+  if(c==='closing'||(c==='losing'&&ledSum(z,7).net<0&&z.cash<-ledSum(z,7).net/7*10)){const own=z.ownerId&&S.people[z.ownerId];const s=stOpen('biz',key,'Trouble at '+z.name,own?[own.id]:[],{bid:z.id,sev:2});const v=bizVerdict(z);stBeat(s,z.name+': '+v.txt);s.okDays=0;}
+  else if(ex&&ex.st==='open'&&(c==='thrive'||c==='ok')){ex.okDays=(ex.okDays||0)+1;if(ex.okDays>=3)stEnd(ex,'Back on its feet.');}}
+ // outfit wars
+ if(typeof outfits==='function'&&S.outfits){for(const o of outfits()){const x=o.war&&OX(o.war);const key=x?'war:'+pairKey(o.id,x.id):null;if(x){const s=stOpen('war',key,cap(o.name)+' vs. '+x.name,[o.boss,x.boss].filter(Boolean),{sev:4});s.names=[o.name,x.name];if(!s.beats.length)stBeat(s,cap(o.name)+' and '+x.name+' are at war.');}}
+  for(const s of Object.values(A))if(s.type==='war'&&s.st==='open'){const[a,b]=s.key.slice(4).split('~');const oa=OX(a),ob=OX(b);if(!oa||!ob||oa.war!==ob.id&&ob.war!==oa.id)stEnd(s,'The shooting stopped.');}}
+ // struggles and hard times
+ for(const p of living()){if(!adult(p)||p.inmate)continue;const al=p.dep.alcohol||0,dr=p.dep.drugs||0;const kv='vice:'+p.id,ex=stFind(kv);
+  if(dr>45||al>65){const s=stOpen('vice',kv,dr>45?p.first+' and drugs':p.first+'’s drinking',[p.id],{sev:2});if(!s.beats.length)stBeat(s,N(p)+' is '+(dr>45?Math.round(dr)+'% hooked on drugs':'drinking heavily ('+Math.round(al)+'% dependent)')+'.');}
+  else if(ex&&ex.st==='open'&&dr<25&&al<30)stEnd(ex,p.first+' got clean.');
+  const kr='rough:'+p.id,er=stFind(kr);if(!p.homeU){const s=stOpen('rough',kr,p.first+' has nowhere to live',[p.id],{sev:2});if(!s.beats.length)stBeat(s,N(p)+' has no home right now.');}else if(er&&er.st==='open')stEnd(er,p.first+' found a place to live.');}
+ // quiet, finished, pruned
+ for(const s of Object.values(A)){if(s.st==='open'){const T=STT[s.type];if(s.ids.length&&s.ids.every(i=>!S.people[i]||!S.people[i].alive)&&s.type!=='case')stEnd(s,'Everyone in this story is gone now.');else if(d-s.last>T.quiet)stEnd(s,null,'quiet');}
+  else if(d-(s.endD||s.last)>56)delete A[s.id];}
+ const L=Object.values(A);if(L.length>220){L.sort((a,b)=>stHeat(a)-stHeat(b));for(const s of L.slice(0,L.length-220))delete A[s.id];}
+ brewAlertScan();}catch(err){console.warn('stScan',err);}}
+function stHeat(s){const d=day();const favs=s.ids.filter(i=>S.people[i]&&S.people[i].fav).length;return Math.max(0,30-(d-s.last))*2+Math.min(20,s.beats.length*1.5)+(s.sev||0)*4+favs*20+(s.big?15:0)+(s.st==='open'?12:0);}
+/* ---- Brewing: what the town is about to do ---- */
+const PLAN_TXT={murder:t=>'to kill '+t,hit:t=>'a hit on '+t,assault:t=>'to go after '+t,beatdown:t=>'to rough up '+t,vandalism:t=>t?'to trash '+t+'’s place':'some vandalism',burglary:()=>'a burglary',mugging:()=>'to mug someone',armedrob:()=>'an armed robbery',shoplift:()=>'some shoplifting',scam:()=>'a phone scam',cartheft:()=>'to steal a car',joyride:()=>'to take a car for a joyride',breakin:()=>'to break into a business',trespass:()=>'to sneak in somewhere after dark',disorderly:()=>'a rowdy night',shakedown:()=>'a shakedown',torch:()=>'to set a fire',collect:()=>'to collect a debt',deal:()=>'a drug deal'};
+function brewList(){const out=[];const d=day();const add=(cat,i,text,ids,score,key,bid)=>{ids=(ids||[]).filter(Boolean);const fav=ids.some(x=>S.people[x]&&S.people[x].fav);out.push({cat,i,text,ids,score:score+(fav?40:0),key,bid,fav});};
+ for(const p of living()){const c=p.cr;if(c&&c.plan){const t=c.plan.target&&S.people[c.plan.target];const f=PLAN_TXT[c.plan.type];const D=DATA.crimes13[c.plan.type]||{sev:1};
+   add('crime',c.plan.type==='murder'||c.plan.type==='hit'?'🔪':'🕵️',N(p)+' is planning '+(f?f(t?N(t):''):'something')+(c.plan.rev?' (payback)':'')+(c.plan.why&&c.plan.why[0]?'. Why: '+c.plan.why[0]:'')+'.',[p.id,t&&t.id],20+D.sev*12,'plan:'+p.id+':'+c.plan.type+':'+(c.plan.target||''));}
+  if(p.wr)for(const e of p.wr){const q=P(e.by);if(!q||!q.alive||q.inmate)continue;const w=revengeWant(p,e);if(w>55&&!(c&&c.plan&&c.plan.rev))add('crime','😡',N(p)+' wants payback from '+N(q)+' for '+wrongText(e)+'.',[p.id,q.id],30+Math.min(30,w-55),'rev:'+p.id+':'+q.id);}
+  if(p.shark&&p.shark.missed>=1){const o=OX(p.shark.o);add('money','💸',N(p)+' is behind on payments to '+(o?o.name:'a loan shark')+' (owes $'+p.shark.owed.toLocaleString()+').',[p.id],25+p.shark.missed*10,'shark:'+p.id);}
+  if(p.inmate&&p.inmate.until!=null&&p.inmate.until-d<=3&&p.inmate.until>=d)add('justice','🚪',N(p)+' gets out of prison '+(p.inmate.until-d<=0?'any day now':'in '+(p.inmate.until-d)+' day'+(p.inmate.until-d===1?'':'s'))+'.',[p.id],30,'out:'+p.id);
+  if(p.pregUntil&&adult(p))add('family','🍼',N(p)+' is expecting'+(p.pregBy&&S.people[p.pregBy]?' (with '+N(S.people[p.pregBy])+')':'')+'.',[p.id,p.pregBy],15,'preg:'+p.id);
+  if(p.sick&&p.sick.sev>=3)add('family','🏥',N(p)+' is seriously ill with '+p.sick.label+'.',[p.id],20,'sick:'+p.id);
+  if(adult(p)&&!p.inmate){for(const[id,r]of Object.entries(p.rel)){if(r.r<45||id===p.partner)continue;const q=S.people[id];if(!q||!q.alive||!adult(q)||q.inmate)continue;
+    if(p.partner&&S.people[p.partner]){if(r.r>=55)add('love','👀',N(p)+' has eyes for '+N(q)+', even though they’re with '+N(S.people[p.partner])+'.',[p.id,q.id,p.partner],35,'tri:'+p.id+':'+id);}
+    else if(!q.partner&&!(q.rel[p.id]&&q.rel[p.id].r>=45&&p.id>id))add('love','💘',N(p)+' has a crush on '+N(q)+(q.rel[p.id]&&q.rel[p.id].r>=45?', and it’s mutual':'')+'.',[p.id,q.id],18+(q.rel[p.id]&&q.rel[p.id].r>=45?10:0),'crush:'+pairKey(p.id,id));}
+   if(p.partner&&p.id<p.partner){const r=p.rel[p.partner];const q=S.people[p.partner];if(r&&q&&r.a<0)add('love','💔',N(p)+' and '+N(q)+' are fighting a lot.',[p.id,q.id],22+Math.min(20,-r.a/3),'crack:'+p.id);}}}
+ for(const cs of Object.values(S.cases||{})){if(cs.status!=='charged'||!cs.court||cs.court<d)continue;const p=S.people[cs.perp];if(!p)continue;const v=cs.vic&&S.people[cs.vic];add('justice','⚖️','Trial '+(cs.court===d?'today':cs.court===d+1?'tomorrow':'on '+dateLabel(cs.court))+': '+N(p)+' for '+caseLabel(cs).toLowerCase()+(v?', in the case of '+N(v):'')+'.',[p.id,v&&v.id],25+(DATA.crimes13[cs.type]||{sev:1}).sev*5,'trial:'+cs.id);}
+ for(const z of Object.values(S.biz)){if(!z.open||z.civic)continue;if(z.failDays>0)add('money','⚠️',z.name+' could close '+(z.failDays>=2?'tomorrow':'within two days')+'.',[z.ownerId],35,'close:'+z.id,z.id);
+  else if(z.led&&z.led.length>=3){const w=ledSum(z,7);const per=w.net/Math.max(1,w.days);if(per<0&&z.cash>0&&z.cash/-per<10)add('money','📉',z.name+' is losing money and has about '+Math.floor(z.cash/-per)+' days of cash left.',[z.ownerId],22,'runway:'+z.id,z.id);}}
+ for(const u of Object.values(S.units)){if((u.arrears||0)>=2){const R=residents(u.id).filter(adult);if(R.length)add('money','🏠',(R.length>1?'The '+R[0].last+' household is':N(R[0])+' is')+' behind on rent.',R.map(p=>p.id).slice(0,2),18+u.arrears*4,'rent:'+u.id,u.bld);}}
+ const T=S.town;if(T&&T.candidates&&T.candidates.length)add('town','🗳️',(T.electionDay===d?'Election day: ':T.special?'Special election '+(T.special.day===d?'today':'on '+dateLabel(T.special.day))+': ':'Race for mayor: ')+T.candidates.map(c=>PN(c.id)).join(' vs. ')+'.',T.candidates.map(c=>c.id),30,'race:'+(T.special?T.special.day:T.nextYear));
+ if(typeof outfits==='function'&&S.outfits){const os=outfits();for(const o of os)for(const x of os){if(o.id>=x.id)continue;const tn1=Math.max(o.tension&&o.tension[x.id]||0,x.tension&&x.tension[o.id]||0);if(o.war===x.id)add('crime','🎭',cap(o.name)+' and '+x.name+' are at war.',[o.boss,x.boss],50,'war:'+o.id+x.id);else if(tn1>60)add('crime','🎭',cap(o.name)+' and '+x.name+' are close to war.',[o.boss,x.boss],30+tn1/5,'tension:'+o.id+x.id);}}
+ for(const f of(S.funerals||[]))if(!f.done&&f.day>=d){const p=S.people[f.pid];if(p)add('family','🕯️','Funeral for '+N(p)+' '+(f.day===d?'today':'on '+dateLabel(f.day))+'.',[p.id],15,'fun:'+f.pid,f.b);}
+ return out.sort((a,b)=>b.score-a.score);}
+const BREW_CAT={crime:'Trouble',justice:'Courts and prison',love:'Love',money:'Money',family:'Family and health',town:'Town'};
+function brewAlertScan(){if(!SET.brewAlerts)return;S._brewSeen=S._brewSeen||new Set();const L=brewList();for(const b of L){if(S._brewSeen.has(b.key))continue;S._brewSeen.add(b.key);if(!(b.fav||b.score>=70||/^plan:.*:(murder|hit)/.test(b.key)))continue;if(!S._brewInit)continue;logAlert({text:'🔮 '+b.text,ids:b.ids,drama:3},b.fav);if(b.fav&&SET.favToasts&&!busy)toast(plain('🔮 '+b.text));}S._brewInit=true;}
+/* ---- wiring into the day, the news, and the app ---- */
+{const _bz=businesses;businesses=function(){_bz();stScan();};}
+{const _hs=hookSim;hookSim=function(){_hs();const on=S._onNews;S._onNews=e=>{if(on)on(e);stOnNews(e);};};}
+if(S&&S._onNews&&!S._onNews._st){const on=S._onNews;S._onNews=e=>{on(e);stOnNews(e);};S._onNews._st=1;}
+/* ---- markers remember what happened ---- */
+let PCTX=null;
+{const _pin=pin;pin=function(bid,emo,dur){const n0=(S._pins||[]).length;_pin(bid,emo,dur);const L=S._pins||[];const q=L[L.length-1];if(q&&q.bid===bid&&q.t0===S.t&&!q.ids){q.ids=PCTX?PCTX.ids.filter(Boolean):[];q.text=PCTX&&PCTX.text||null;q.kind=PCTX&&PCTX.kind||null;}};}
+{const _ix=ix16;ix16=function(a,b,bid,id){const v={fight:'got into a fight',argue:'had a shouting match',insult:'got insulted'}[id];PCTX=v?{ids:[a.id,b.id],text:id==='insult'?N(a)+' insulted '+N(b)+'.':N(a)+' and '+N(b)+' '+v+'.',kind:'fight'}:null;try{_ix(a,b,bid,id);}finally{PCTX=null;}};}
+{const _cr=crimeResolve;crimeResolve=function(p){const k=p.act&&p.act.crime;PCTX=k?{ids:[p.id,k.vic],text:null,kind:'crime'}:null;try{_cr(p);}finally{PCTX=null;}};}
+{const _k=kill;kill=function(p,cause,text,drama){PCTX={ids:[p.id],text:text||null,kind:'death'};try{return _k(p,cause,text,drama);}finally{PCTX=null;}};}
+function pinStory(q){if(!q.text){const E=S.events||[];for(let i=E.length-1;i>=0&&i>E.length-400;i--){const e=E[i];if(e.t<q.t0-2)break;if(e.t>q.t0+6)continue;if((q.ids||[]).some(id=>e.ids.includes(id))||(q.kind==='crime'&&e.kind==='crime'&&e.t>=q.t0-1)){q.text=e.text;for(const id of e.ids)if(!q.ids.includes(id))q.ids.push(id);break;}}}return q.text;}
+function pinVisible(q){const m=SET.pinShow||'all';if(m==='off')return false;if(m==='crime')return!['💢','👊'].includes(q.emo);if(m==='fav')return(q.ids||[]).some(id=>S.people[id]&&S.people[id].fav);return true;}
+function pinXY(q){const b=S.blds[q.bid];if(!b||!b.fp)return null;const cxm=(b.fp[0][0]+b.fp[2][0])/2,cym=(b.fp[0][1]+b.fp[2][1])/2;const h=(b.floors||1)*12+14;const s=P2(cxm,cym,h);const fs=Math.round(11+cam.z*3);return{x:s[0],y:s[1]-fs,r:fs*0.8,fs,s};}
+drawPins=function(){if(!S._pins||!S._pins.length)return;const t=animNow()/1000;for(const q of S._pins){if(q.until<S.t||!pinVisible(q))continue;const P0=pinXY(q);if(!P0)continue;const{fs,s}=P0;const bob=reduce()?0:Math.sin(t*3+q.t0)*2;const age=clamp((S.t-q.t0)/Math.max(1,q.until-q.t0),0,1);
+ cx.save();cx.globalAlpha=1-age*0.65;cx.fillStyle=TH.dark?'rgba(30,34,32,.9)':'rgba(255,255,255,.95)';cx.strokeStyle='#D33A32';cx.lineWidth=2;cx.beginPath();cx.arc(s[0],s[1]-fs+bob,fs*0.8,0,7);cx.fill();cx.stroke();cx.font=fs+'px sans-serif';cx.textAlign='center';cx.fillStyle=TH.ink;cx.fillText(q.emo,s[0],s[1]-fs*0.62+bob);cx.restore();}};
+{const _tm=tapMap;tapMap=function(x,y){if(S&&S._pins){let best=null,bd=1e9;for(const q of S._pins){if(q.until<S.t||!pinVisible(q))continue;const P0=pinXY(q);if(!P0)continue;const dd=Math.hypot(P0.x-x,P0.y-y);if(dd<Math.max(16,P0.r+6)&&dd<bd){bd=dd;best=q;}}
+ if(best){pinStory(best);stack=[];pushView({type:'pin',q:best});showSheet(pinTitle(best));render();return;}}return _tm(x,y);};}
+const PIN_L={'💢':'A blow-up','👊':'A fight','🛍️':'Shoplifting','🎨':'Vandalism','🚧':'Trespassing','🚗':'A car taken','🏚️':'A break-in at a home','💥':'A break-in','📞':'A scam','🚨':'Police on the scene','🍺':'A rowdy customer','🔥':'A fire','💊':'A drug deal','🕯️':'Someone died here'};
+function pinTitle(q){return(PIN_L[q.emo]||'Something happened')+' at '+addr(q.bid);}
+function storiesFor(ids){return Object.values(stS()).filter(s=>(ids||[]).some(i=>s.ids.includes(i))).sort((a,b)=>stHeat(b)-stHeat(a));}
+function pinHTML(v){const q=v.q;pinStory(q);const ago=Math.max(0,Math.round(S.t-q.t0));let h=`<p class="sub">${q.emo} ${esc(PIN_L[q.emo]||'Something happened')}, ${clock(q.t0)} (${ago<2?'just now':ago<60?ago+' minutes ago':Math.round(ago/60)+' hours ago'})</p>`;
+ h+=q.text?`<p>${fmt(q.text)}</p>`:'<p class="muted">Nobody said much about it.</p>';const ppl=(q.ids||[]).filter(i=>S.people[i]);if(ppl.length)h+=`<p class="small"><b>Who:</b> ${ppl.map(plink).join(', ')}</p>`;
+ h+=`<div class="btnrow wrap"><button data-bld="${q.bid}">Look inside ${esc(bName(S.blds[q.bid]))}</button>${ppl.length?`<button data-stfav="${ppl.join(',')}">⭐ Follow ${ppl.length>1?'them':'them'}</button>`:''}</div>`;
+ const ss=storiesFor(ppl).slice(0,3);if(ss.length)h+=`<h3>Part of</h3>`+ss.map(stCard).join('');return h;}
+/* ---- the Stories menu ---- */
+(function(){const st=document.createElement('style');st.textContent=`.stcard{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:12px;padding:8px 10px;margin:6px 0;font:inherit;cursor:pointer}
+.stcard .t{font-weight:700}.stcard .m{color:var(--muted);font-size:.84em}.stcard .b{font-size:.9em;margin-top:3px}.stcard.done{opacity:.78}
+.brew{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line)}.brew .ic{font-size:1.2em;line-height:1.2}.brew .tx{flex:1;min-width:0}.brew .bt{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}.brew .bt button{min-height:32px;font-size:.85em}
+.stbeat{display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}.stbeat .w{color:var(--muted);font-size:.8em;min-width:74px}.stbeat.end{font-weight:600}`;document.head.appendChild(st);
+ const rail=document.getElementById('rail');const pb=rail.querySelector('[data-open="paper"]');const b=document.createElement('button');b.id='storiesBtn';b.innerHTML='<span class="ico" aria-hidden="true">📖</span><span>Stories</span>';pb.after(b);b.onclick=()=>{stack=[];sheet.classList.remove('tall');openStories('brew');};})();
+function openStories(tab){pushView({type:'stories',tab:tab||'brew'});showSheet('Stories');render();}
+function stCard(s){const T=STT[s.type]||{i:'📖'};const last=s.beats[s.beats.length-1];const cast=s.ids.filter(i=>S.people[i]).slice(0,4).map(i=>S.people[i]);const favs=cast.some(p=>p.fav);
+ return`<button class="stcard${s.st!=='open'?' done':''}" data-sto="${s.id}"><div class="t">${T.i} ${favs?'★ ':''}${esc(tn(s.title))}</div><div class="m">${s.st==='open'?'Ongoing':s.st==='quiet'?'Went quiet':'Ended'} · ${s.beats.length} update${s.beats.length===1?'':'s'} · since ${esc(dateLabel(s.d0))}${cast.length?' · '+cast.map(p=>esc(p.first+' '+p.last)).join(', '):''}</div>${last?`<div class="b">${fmtPlain(last.text)}</div>`:''}</button>`;}
+function fmtPlain(t){return esc(plain(tn(t)));}
+function storiesHTML(v){const tab=v.tab||'brew';const C=(k,l)=>`<button class="chip ${tab===k?'on':''}" data-stab="${k}">${l}</button>`;let h=`<div class="chips ptopics">${C('brew','🔮 Brewing')}${C('lines','📖 Storylines')}${C('alerts','🔔 Alerts')}</div>`;
+ if(tab==='brew'){const L=brewList();h+=`<p class="small muted">What’s about to happen, as far as anyone can tell. Nothing here is certain.</p><label class="tog"><input type="checkbox" id="brewTog" ${SET.brewAlerts?'checked':''}> Send alerts about what’s coming (favorites, and anything deadly)</label>`;
+  if(!L.length)return h+'<p class="empty">Quiet for now. Nobody’s planning anything you can see.</p>';const by={};for(const b of L)(by[b.cat]=by[b.cat]||[]).push(b);
+  for(const c of['crime','justice','love','money','family','town']){const B=by[c];if(!B)continue;h+=`<h3>${BREW_CAT[c]} <span class="muted small">${B.length}</span></h3>`+B.slice(0,25).map(b=>{const ppl=b.ids.filter(i=>S.people[i]);return`<div class="brew"><span class="ic" aria-hidden="true">${b.i}</span><div class="tx">${b.fav?'★ ':''}${fmt(b.text)}<div class="bt">${ppl.length?`<button data-stfav="${ppl.join(',')}">⭐ Follow</button><button data-stmap="${ppl.join(',')}|${b.bid||''}">🗺 Map</button>`:b.bid?`<button data-bld="${b.bid}">Look inside</button>`:''}</div></div></div>`;}).join('');}
+  return h;}
+ if(tab==='lines'){const f=v.sf||'hot';const F=(k,l)=>`<button class="chip ${f===k?'on':''}" data-sf="${k}">${l}</button>`;h+=`<div class="chips">${F('hot','Hottest')}${F('fav','Favorites')}${F('open','Ongoing')}${F('done','Finished')}</div>`;
+  let L=Object.values(stS());if(f==='fav')L=L.filter(s=>s.ids.some(i=>S.people[i]&&S.people[i].fav));if(f==='open')L=L.filter(s=>s.st==='open');if(f==='done')L=L.filter(s=>s.st!=='open');
+  L.sort(f==='done'?(a,b)=>(b.endD||0)-(a.endD||0):(a,b)=>stHeat(b)-stHeat(a));if(!L.length)return h+'<p class="empty">No storylines yet. They start when something worth following happens: a fight, a romance, a crime, a business in trouble.</p>';return h+L.slice(0,80).map(stCard).join('');}
+ return h+alertsHTML(v);}
+function storyHTML(v){const s=stS()[v.id];if(!s)return'<p class="muted">This storyline has faded from memory.</p>';const T=STT[s.type]||{i:'📖',l:'Story'};const cast=s.ids.filter(i=>S.people[i]);
+ let h=`<p class="sub">${T.i} ${esc(T.l)} · ${s.st==='open'?'ongoing since '+esc(dateLabel(s.d0)):(s.st==='quiet'?'went quiet ':'ended ')+esc(dateLabel(s.endD||s.last))}</p>`;
+ if(cast.length)h+=`<p class="small"><b>Who:</b> ${cast.map(i=>plink(i)+(S.people[i].alive?'':' <span class="muted">(died)</span>')).join(', ')}</p>`;
+ h+=`<div class="btnrow wrap">${cast.length?`<button data-stfav="${cast.join(',')}">⭐ Follow everyone</button>`:''}<button data-stmapid="${s.id}">🗺 Show on map</button></div><h3>What’s happened</h3>`;
+ h+=s.beats.slice().reverse().map(b=>`<div class="stbeat${b.end?' end':''}"><span class="w">${esc(dateLabel(Math.floor(b.t/1440)))}<br>${clock(b.t)}</span><span>${fmt(b.text)}</span></div>`).join('');return h;}
+{const _r=render;render=function(){const v=stack[stack.length-1];if(v&&v.type==='stories'){body.innerHTML=tn(storiesHTML(v));const t=body.querySelector('#brewTog');if(t)t.onchange=()=>{SET.brewAlerts=t.checked;saveSettings();toast(t.checked?'You’ll get alerts about what’s coming.':'No more alerts about what’s coming.');};return;}
+ if(v&&v.type==='story'){body.innerHTML=tn(storyHTML(v));return;}if(v&&v.type==='pin'){body.innerHTML=tn(pinHTML(v));return;}_r();};}
+body.addEventListener('click',e=>{const b=e.target.closest('button[data-stab],button[data-sf],button[data-sto],button[data-stfav],button[data-stmap],button[data-stmapid]');if(!b)return;e.stopPropagation();const v=stack[stack.length-1];
+ if(b.dataset.stab&&v){v.tab=b.dataset.stab;render();return;}if(b.dataset.sf&&v){v.sf=b.dataset.sf;render();return;}
+ if(b.dataset.sto){const s=stS()[b.dataset.sto];pushView({type:'story',id:b.dataset.sto});showSheet(s?tn(s.title):'Story');render();return;}
+ if(b.dataset.stfav){let n=0;for(const id of b.dataset.stfav.split(',')){const p=S.people[id];if(p&&p.alive&&!p.fav){p.fav=true;n++;}}toast(n?'Following '+n+' more '+(n===1?'person':'people')+'.':'You’re already following them.');if(typeof favBarTick==='function')favBarTick();render();return;}
+ if(b.dataset.stmap){const[ids,bid]=b.dataset.stmap.split('|');setOverlay('story',{ids:ids.split(',').filter(Boolean),bids:bid?[bid]:[],title:'On the map'});if(window.innerWidth<700)closeSheet();return;}
+ if(b.dataset.stmapid){const s=stS()[b.dataset.stmapid];if(s)setOverlay('story',{ids:s.ids,bids:s.bids,title:tn(s.title)});if(window.innerWidth<700)closeSheet();return;}},true);
+/* a storyline (or anything from Brewing) on the map: where everyone lives, where they are now, where it happened */
+OVL.push({id:'story',g:null,i:'📖',l:'Storyline',param:'story',f(x){const m={};if(!x)return{m,keys:[]};for(const id of x.ids||[]){const p=S.people[id];if(!p)continue;const h=p.homeU&&S.units[p.homeU]&&S.units[p.homeU].bld;if(h&&!m[h])m[h]='home';}
+ for(const id of x.ids||[]){const p=S.people[id];if(!p||!p.alive)continue;const at=p.inmate?prisonB():p.loc||(p.trip&&p.trip.to);if(at&&S.blds[at])m[at]='now';}for(const b of x.bids||[])if(S.blds[b])m[b]='scene';
+ return{m,keys:[{k:'scene',l:'Where it happened',c:OC.red,i:'📍'},{k:'now',l:'Where they are now',c:OC.yellow,i:'👣'},{k:'home',l:'Where they live',c:OC.blue,i:'🏠'}],title:x.title||'Storyline'};}});
+/* marker settings live with the map views */
+{const _op=ovPick;ovPick=function(){_op();const pk=document.getElementById('ovlPick');const m=SET.pinShow||'all';const B=(k,l)=>`<button class="oi" data-pinshow="${k}" aria-pressed="${m===k}" style="min-height:34px;justify-content:center">${l}</button>`;
+ pk.insertAdjacentHTML('beforeend',`<h4>Event markers (💢 🚨 🕯️)</h4><div class="ogrid" style="grid-template-columns:repeat(4,1fr)">${B('all','All')}${B('crime','Crimes')}${B('fav','Favorites')}${B('off','Off')}</div><p class="small muted" style="margin:6px 2px 0">Tap a marker on the map to see what happened there.</p>`);};}
+document.getElementById('ovlPick').addEventListener('click',e=>{const b=e.target.closest('button[data-pinshow]');if(!b)return;e.stopPropagation();SET.pinShow=b.dataset.pinshow;saveSettings();ovPick();},true);
+
+/* ======================= v0.21: TV mode on the Watch button, a smarter Watch, and the cast strip ======================= */
+if(SET.castStrip==null)SET.castStrip=true;if(SET.castMin==null)SET.castMin=false;
+/* ---- what's worth watching right now (reads only; never uses the town's dice) ---- */
+function awake(p){return p&&p.alive&&!p.inmate&&p.act&&!['sleep','rough'].includes(p.act.id);}
+function sceneList(){const out=[];const seen=S._tvSeen||(S._tvSeen={});const add=(pid,score,title,sub,kind)=>{const p=S.people[pid];if(!p||!p.alive)return;const fav=p.fav?25:0;const rec=seen[pid]&&S.t-seen[pid]<120?-60:0;out.push({pid,score:score+fav+rec,title,sub,kind});};
+ for(const p of living()){const a=p.act;if(!a)continue;
+  if(a.id==='crime'&&a.crime&&!a.done){const D=DATA.crimes13[a.crime.type]||{sev:1};const v=a.crime.vic&&S.people[a.crime.vic];add(p.id,100+D.sev*8,N(p)+' is up to something'+(v?' involving '+N(v):'')+' at '+addr(a.place)+'.',a.label,'crime');continue;}
+  if(p.trip&&p.trip.mode==='police'){add(p.id,75,N(p)+' is in the back of a police car.',p.rideLabel||'','ride');continue;}
+  if(p.trip&&p.trip.mode==='ambulance'){add(p.id,70,N(p)+' is on the way to the hospital.',p.rideLabel||'','ride');continue;}
+  if(['flee','shaken','callcops','gawk'].includes(a.id)){add(p.id,a.id==='flee'?80:55,N(p)+': '+(a.label||'').replace(/^./,c=>c.toLowerCase())+'.','', 'after');continue;}
+  if(['funeral','date','app_date','court','p_visit'].includes(a.id)||(ACT[a.id]&&ACT[a.id].special==='hotel')){add(p.id,a.id==='funeral'?38:(ACT[a.id]&&ACT[a.id].special==='hotel')?(S.t-a.start<40?26:12):30,N(p)+': '+actLabel(p).replace(/^./,c=>c.toLowerCase())+'.','',a.id);continue;}
+  const ix=ixOf(p);if(ix&&ix.w&&['👊','💢','😠','😢','😍','❤️','💍','💔'].includes(ix.emo)){const q=S.people[ix.w];add(p.id,['👊','💍','💔'].includes(ix.emo)?65:45,N(p)+(q?' and '+N(q):'')+' '+({'👊':'are fighting','💢':'are arguing','😠':'are at it','😢':'had words','😍':'are flirting','❤️':'are together','💍':'just got married','💔':'just broke up'}[ix.emo]||'are talking')+'.',actLabel(p),'ix');continue;}
+  if(p.cr&&p.cr.plan&&awake(p)){const t=p.cr.plan.target&&S.people[p.cr.plan.target];add(p.id,40+((DATA.crimes13[p.cr.plan.type]||{sev:1}).sev*5),N(p)+' is thinking about '+((PLAN_TXT[p.cr.plan.type]||(()=>'something'))(t?N(t):'')).replace(/^to /,'how to ')+'.',actLabel(p),'plan');continue;}
+  if(p.fav&&awake(p)){const A=ACT[a.id]||{};add(p.id,(A.social?18:8)+(p.mood<35||p.mood>80?6:0),N(p)+': '+actLabel(p).replace(/^./,c=>c.toLowerCase())+'.','','fav');}}
+ for(const e of(S.events||[]).slice(-60)){if(S.t-e.t>180||e.drama<4)continue;const id=e.ids.find(i=>awake(S.people[i]));if(id)add(id,20+e.drama*5,plain(tn(e.text)),'Just happened','news');}
+ if(S.stories)for(const s of Object.values(S.stories)){if(s.st!=='open'||day()-s.last>2)continue;const id=s.ids.find(i=>awake(S.people[i]));if(id){const p=S.people[id];add(id,6+Math.min(18,stHeat(s)/4)+(p.act&&p.act.id==='work'?-6:0),N(p)+': '+actLabel(p).replace(/^./,c=>c.toLowerCase())+'.','Part of: '+tn(s.title),'story');}}
+ const best={};for(const x of out)if(!best[x.pid]||best[x.pid].score<x.score)best[x.pid]=x;return Object.values(best).sort((a,b)=>b.score-a.score);}
+function markSeen(pid){(S._tvSeen||(S._tvSeen={}))[pid]=S.t;}
+/* ---- tap Watch: go to the best thing happening ---- */
+nowShowing=function(){if(TV.on){tvNext(true);return;}const L=sceneList();const x=L[0];
+ if(!x||x.score<5){const A=living().filter(awake);if(!A.length)return toast('Everyone’s asleep. Try again in the morning.');const p=A[Math.floor(Math.random()*Math.min(6,A.length))];markSeen(p.id);follow=p.id;stack=[];openPerson(p.id);toast('Nothing dramatic right now. Here’s '+p.first+'.');return;}
+ markSeen(x.pid);follow=x.pid;stack=[];openPerson(x.pid);toast(plain(tn(x.title)));if(!SET.tvTip){SET.tvTip=1;saveSettings();setTimeout(()=>toast('Tip: hold the Watch button to turn on TV mode.'),1600);}};
+/* ---- TV mode: the camera picks the stories, captions explain them ---- */
+const TV={on:false,cur:null,t0:0,prev:null,own:null,auto:null};
+(function(){const st=document.createElement('style');st.textContent=`
+#tvCap{position:absolute;z-index:7;left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 16px));background:var(--panel);color:var(--ink);border:2px solid var(--accent);border-radius:14px;padding:7px 10px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:8px;align-items:center}
+#tvCap[hidden]{display:none}#tvCap .tx{flex:1;min-width:0}#tvCap .t1{font-weight:700;font-size:.92em;line-height:1.25}#tvCap .t2{color:var(--muted);font-size:.8em;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tvCap button{min-width:38px;min-height:38px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:999px;cursor:pointer;font:inherit;font-size:.9em}
+#tvCap .lbl{font-size:.7em;font-weight:800;letter-spacing:.06em;color:var(--accent);text-transform:uppercase}
+#nowShowing.tvon{background:var(--accent);color:var(--accent-ink)}
+#cast{position:absolute;z-index:5;left:50%;transform:translateX(-50%);display:flex;gap:4px;align-items:center;max-width:calc(100% - 16px);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 4px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+#cast[hidden]{display:none}#cast .cs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}#cast .cs::-webkit-scrollbar{display:none}
+#cast button{border:0;background:none;color:var(--ink);cursor:pointer;font:inherit;border-radius:999px}
+#cast .cp{display:flex;align-items:center;gap:4px;padding:2px 8px 2px 3px;min-height:34px;white-space:nowrap;font-size:.8em;font-weight:600}
+#cast .cp.on{background:var(--panel2);box-shadow:inset 0 0 0 1.5px var(--accent)}
+#cast .av{width:26px;height:26px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:.95em;border:2.5px solid var(--line);background:var(--panel2)}
+#cast .tg{min-width:30px;min-height:30px;font-size:.85em;color:var(--muted);font-weight:700}
+@media (min-width:900px){body.sheet-open #cast,body.sheet-open #tvCap{left:calc(50% - 220px)}}`;document.head.appendChild(st);
+ const cap=document.createElement('div');cap.id='tvCap';cap.hidden=true;cap.setAttribute('role','status');cap.setAttribute('aria-live','polite');document.getElementById('app').appendChild(cap);
+ const cast=document.createElement('div');cast.id='cast';cast.hidden=true;cast.setAttribute('role','group');cast.setAttribute('aria-label','Your favorites');document.getElementById('app').appendChild(cast);
+ // Watch: tap for the next story, hold for TV mode
+ const w=document.getElementById('nowShowing');w.onclick=null;let hold=null,held=false;
+ w.addEventListener('pointerdown',e=>{held=false;clearTimeout(hold);hold=setTimeout(()=>{held=true;tvToggle();if(navigator.vibrate)try{navigator.vibrate(15);}catch(_){}},550);});
+ const cancel=()=>clearTimeout(hold);w.addEventListener('pointerleave',cancel);w.addEventListener('pointercancel',cancel);
+ w.addEventListener('pointerup',()=>{clearTimeout(hold);});w.addEventListener('click',e=>{if(held){held=false;e.preventDefault();return;}nowShowing();});
+ w.addEventListener('contextmenu',e=>e.preventDefault());w.setAttribute('aria-label','Watch: tap for the next story, hold for TV mode');
+ cap.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();const p=TV.cur&&S.people[TV.cur.pid];if(b.dataset.tv==='x')tvToggle(false);else if(b.dataset.tv==='next')tvNext(true);else if(b.dataset.tv==='fav'&&p){p.fav=!p.fav;favBarTick();toast(p.fav?'★ Following '+p.first+'.':'Stopped following '+p.first+'.');tvCaption();}else if(b.dataset.tv==='page'&&p){stack=[];openPerson(p.id);}});
+ cast.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;e.stopPropagation();if(b.dataset.cm){SET.castMin=!SET.castMin;saveSettings();castTick(true);return;}const p=S.people[b.dataset.cp];if(!p)return;
+  if(follow===p.id&&selP===p.id){stack=[];openPerson(p.id);return;}follow=p.id;selP=p.id;if(cam.z<1.6)cam.z=1.9;if(TV.on)tvToggle(false);castTick(true);toast(p.first+': '+plain(actLabel(p)||'')+(p.loc&&!p.trip&&S.blds[p.loc]?' at '+bName(S.blds[p.loc]):'')+'. Tap again for their page.');});
+ document.addEventListener('keydown',e=>{if(e.target.matches&&e.target.matches('input,textarea,select'))return;if(e.key==='t'||e.key==='T')tvToggle();});
+ window.addEventListener('resize',()=>castTick(true));})();
+function tvToggle(on){on=on==null?!TV.on:on;if(on===TV.on)return;TV.on=on;const w=document.getElementById('nowShowing');w.classList.toggle('tvon',on);const ico=w.querySelector('.ico'),lb=w.querySelector('span:last-child');
+ if(on){TV.manual=false;ico.textContent='📺';lb.textContent='TV';TV.prev=speed;if(!speed)setSpeed(1);if(!sheet.hidden&&window.innerWidth<900)closeSheet();TV.cur=null;tvNext(true);announce('TV mode on');}
+ else{ico.textContent='🎬';lb.textContent='Watch';document.getElementById('tvCap').hidden=true;if(TV.auto!=null&&TV.prev!=null)setSpeed(TV.prev);TV.auto=null;TV.cur=null;layoutBottom();announce('TV mode off');}}
+function tvSpeed(s){if(TV.manual)return;if(speed!==s){setSpeed(s);TV.auto=s;}}
+function tvNext(force){const L=sceneList().filter(x=>!TV.cur||x.pid!==TV.cur.pid);let x=L[0];
+ if(!x||x.score<15){// nothing worth watching: skip ahead until something happens
+  TV.cur={quiet:true,pid:null,title:'Quiet in town. Skipping ahead…',sub:'TV mode speeds up until something happens.'};TV.t0=performance.now();if(speed<16)tvSpeed(16);follow=null;tvCaption();return;}
+ TV.cur=x;TV.t0=performance.now();markSeen(x.pid);const p=S.people[x.pid];follow=p.id;selP=p.id;cam.z=Math.max(cam.z,2.1);
+ tvSpeed(x.score>=60?1:x.score>=30?(TV.prev&&TV.prev<=4?Math.max(1,TV.prev):4):4);
+ if(window.innerWidth>=900&&p.loc&&!p.trip&&S.blds[p.loc]){stack=[];openBuilding(p.loc,true);follow=p.id;selP=p.id;TV.own=stack[stack.length-1];}
+ else TV.own=null;tvCaption();}
+function tvCaption(){const c=document.getElementById('tvCap');if(!TV.on||!TV.cur){c.hidden=true;return;}const x=TV.cur;const p=x.pid&&S.people[x.pid];
+ const sub=x.sub||(p?plain(actLabel(p)):'');c.innerHTML=tn(`<div class="tx"><div class="lbl">📺 TV${TV.paused?' · paused while you look around':''}</div><div class="t1">${fmtPlainLink(x.title)}</div>${sub?`<div class="t2">${esc(plain(tn(sub)))}</div>`:''}</div>${p?`<button data-tv="fav" aria-label="${p.fav?'Unfollow':'Follow'} ${esc(p.first)}">${p.fav?'★':'☆'}</button><button data-tv="page">Page</button>`:''}<button data-tv="next" aria-label="Next story">⏭</button><button data-tv="x" aria-label="Turn off TV mode">✕</button>`);c.hidden=false;layoutBottom();}
+function fmtPlainLink(t){return esc(plain(tn(t)));}
+/* the TV loop: hold on big moments, move on after a while, pause while the player looks around */
+(function loop(){try{if(TV.on&&S){const now=performance.now();const top=stack[stack.length-1];const pid=TV.cur&&TV.cur.pid;const pp=pid&&S.people[pid];const tvView=window.innerWidth>=900&&top&&(top===TV.own||pp&&((top.type==='person'&&top.id===pid)||(top.type==='building'&&(pp.loc===top.id||pp.trip&&pp.trip.to===top.id))));const userSheet=!sheet.hidden&&!tvView;const was=TV.paused;TV.paused=userSheet;if(was!==TV.paused)tvCaption();
+  if(!TV.paused&&TV.cur){const x=TV.cur;const p=x.pid&&S.people[x.pid];const el=(now-TV.t0)/1000;let done=el>12;
+   if(x.quiet){if(el>2.5){const L=sceneList();if(L[0]&&L[0].score>=15){if(TV.prev!=null)setSpeed(TV.prev||1);tvNext(true);}else TV.t0=now-1000;}}
+   else{if(!p||!p.alive)done=el>4;else if(p.act&&p.act.id==='crime'&&!p.act.done)done=el>30;else if(x.kind==='crime'||x.kind==='ride')done=el>16;if(done)tvNext(true);else if(Math.floor(el*2)!==Math.floor((el-0.02)*2))tvCaptionSoft();}}}}catch(err){console.warn('tv',err);}
+ requestAnimationFrame(loop);})();
+function tvCaptionSoft(){const c=document.getElementById('tvCap');const x=TV.cur;if(!x||!x.pid)return;const p=S.people[x.pid];if(!p)return;const t2=c.querySelector('.t2');const s=x.sub&&!/^Part of|^Just happened/.test(x.sub)?plain(actLabel(p)):x.sub||plain(actLabel(p));if(t2&&t2.textContent!==plain(tn(s)))t2.textContent=plain(tn(s));}
+/* ---- the cast strip: your favorites at a glance ---- */
+function castIcon(p){if(!p.alive)return'🕯️';if(p.inmate)return'⛓️';if(p.jailUntil>S.t)return'🚓';if(p.trip&&p.trip.mode==='police')return'🚓';if(p.trip&&p.trip.mode==='ambulance')return'🚑';if(p.sick&&p.sick.sev>=3)return'🏥';
+ const ix=ixOf(p);if(ix&&['👊','💢','💔','💍','❤️','😍'].includes(ix.emo))return ix.emo;if(p.act&&p.act.id==='crime')return'😈';if(p.act&&p.act.id==='sleep')return'💤';if(p.trip)return p.trip.mode==='walk'?'🚶':p.trip.mode==='bike'?'🚲':'🚗';
+ const A=p.act&&(ACT[p.act.id]||DATA.sysActs[p.act.id]);return(A&&A.emo)||'🙂';}
+let castKey='';function castTick(force){const el=document.getElementById('cast');if(!el||!S)return;const L=SET.castStrip?favList():[];const hide=!L.length||onTitle||(!sheet.hidden&&window.innerWidth<900);
+ if(hide){if(!el.hidden){el.hidden=true;layoutBottom();}return;}
+ const parts=L.map(p=>p.id+castIcon(p)+moodB(p.mood)+(follow===p.id?1:0)).join('|')+SET.castMin;if(!force&&parts===castKey&&!el.hidden)return;castKey=parts;
+ const moodC={good:TH.good,ok:TH.ok,low:TH.low,bad:TH.bad};
+ el.innerHTML=SET.castMin?`<button class="tg" data-cm="1" aria-label="Show your favorites">★ ${L.length}</button>`:`<button class="tg" data-cm="1" aria-label="Hide the strip">★</button><div class="cs">`+L.map(p=>`<button class="cp${follow===p.id?' on':''}" data-cp="${p.id}" aria-label="${esc(p.first+' '+p.last)}, ${esc(moodWord(p.mood).toLowerCase())}, ${esc(plain(actLabel(p)||''))}"><span class="av" style="border-color:${moodC[moodB(p.mood)]}">${castIcon(p)}</span>${esc(p.first)}</button>`).join('')+'</div>';
+ el.hidden=false;layoutBottom();}
+function layoutBottom(){const rail=document.getElementById('rail');const cast=document.getElementById('cast');const cap=document.getElementById('tvCap');if(!rail)return;const a=document.getElementById('app').getBoundingClientRect(),r=rail.getBoundingClientRect();let b=a.bottom-r.top+6;
+ if(cast&&!cast.hidden){cast.style.bottom=b+'px';b+=cast.getBoundingClientRect().height+6;}if(cap&&!cap.hidden)cap.style.bottom=b+'px';const sc=document.getElementById('caption');if(sc)sc.style.bottom=b+(cap&&!cap.hidden?cap.getBoundingClientRect().height+6:0)+'px';}
+setInterval(()=>{try{castTick(false);}catch(e){}},700);
+
+document.getElementById('speeds').addEventListener('click',()=>{if(TV.on){TV.manual=true;TV.prev=null;}},true);
 
 </script>
 </body>
